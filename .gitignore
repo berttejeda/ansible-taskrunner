@@ -1,0 +1,17 @@
+# Ignore python compiled code
+*.pyc
+# Ignore ansible task retry files
+*.retry
+# Ignore everything under lib
+lib/*/*
+# Except for our core modules
+!lib/common/click_extras
+!lib/common/errorhandler
+!lib/common/formatting
+!lib/common/providers
+!lib/commonsuperduperconfig
+!lib/common/yamlc
+!lib/common/yamlr
+# Ignore build files
+dist
+build
