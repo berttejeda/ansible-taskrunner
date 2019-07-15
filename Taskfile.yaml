@@ -29,6 +29,7 @@
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
     help:
       message: |
@@ -54,6 +55,11 @@
         shell: bash
         source: |-
           echo hello
+      preflight_and_run:
+        shell: bash
+        source: |-
+          echo 'Running Preflight Tasks!'
+          tasks run -d dbhost1 -w webhost1 -t value1          
   tasks:
     - debug: 
         msg: |

@@ -17,7 +17,7 @@
     - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
   - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
   - [Populate the vars block - inventory](#populate-the-vars-block---inventory)
-  - [Populate the vars block - internal functions](#populate-the-vars-block---internal-functions)
+  - [Populate the vars block - embedded functions](#populate-the-vars-block---embedded-functions)
   - [Add tasks](#add-tasks)
 - [Usage Examples](#usage-examples)
   - [More Examples](#more-examples)
@@ -41,7 +41,7 @@ By default, this is a file named 'Taskfile.yaml' in the current working director
 The inspiration for the tool comes from the gnu make command, which operates in similar fashion, i.e.
 
 - A Makefile defines available build steps
-- The make command consumes the Makefile at runtime and exposes these steps as commandline options
+- The make command consumes the Makefile at runtime and exposes these steps as command-line options
 
 <a name="use-case-and-example"></a>
 # Use case and example
@@ -90,6 +90,7 @@ Disadvantages:
 - Leads to difficulty in collaboration and code refactoring
 - Decreased re-usability of codebase
   - This design encourages standalone playbooks
+  - Makes it more difficult to package actions as roles
   - Duplicate efforts across codebase
 
 <a name="proposed-solution"></a>
@@ -97,10 +98,10 @@ Disadvantages:
 
 Create ansible task runner that reads a specially formatted ansible playbook (Taskfile.yaml)
   - Accomplishes the same as the above, but in more uniform manner
-  - Each tasks playbook behaves like a commandline script
-  - Support for commandline parameters/flags
+  - Each `tasks` playbook behaves like a command-line script
+  - Support for command-line parameters/flags
   - Embedded dynamic inventory
-  - Internal shell functions
+  - Embedded shell functions
 
 Advantages to this approach:
 - Easier to manage
@@ -108,12 +109,12 @@ Advantages to this approach:
 - Single executable (/usr/local/bin/tasks)
 
 Disadvantages:
-- Target ansible controller needs to have the command installed
+- Target ansible controller needs to have the `tasks` command installed
 
 <a name="technical-details"></a>
 # Technical Details
 
-This tool functions much like the *make* command in that it accepts an input file that essentially extends its cli options.
+As stated in the [overview](#overview), this tool functions much like the *make* command in that it accepts an input file that essentially extends its cli options.
 
 We create a specially formatted ansible-playbook that serves as a task definition file (by default, Taskfile.yaml).
 
@@ -213,6 +214,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
 ```   
 
@@ -226,7 +228,17 @@ These are yaml list objects that expose optional and required command-line optio
 
 The syntax for the options is as follows:
 
-`-{{ short_option }}|--{{ long_option }}: {{ mapped_variable }}`
+```
+Options                                      | Mapped Variable
+-------------------------------------------- | ----------------------
+-{{ short_option }}|--{{ long_option }}      | {{ mapped_variable }}
+-{{ switch }}                                | {{ mapped_variable }} (boolean)
+--{{ switch }}                               | {{ mapped_variable }} (boolean)
+```
+
+Essentially, any option whose key contains a pipe '|' character is evaluated as a click option, which means you must provide an argument to said option.
+
+Anything else is treated as a switch, which evaluates to `True` if specified, and undefined otherwise (unless you provide a default in your `vars` declaration).
 
 Examples:
 
@@ -236,7 +248,7 @@ Options       | Mapped Variable
 -f|--foo      | some_foo_variable
 -b|--bar      | some_bar_variable
 -F|--foo-bar  | some_other_variable
--a|--all-else | [remaining_args] (behaves like click's nargs=1)
+-a|--all-else | [remaining_args] (behaves like click's variadic arguments (nargs=*))
 --some-option | some_switch (behaves like click switches, holds the value of True if specified)
 ```
 
@@ -286,6 +298,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
     help:
       message: |
@@ -332,6 +345,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
     help:
       message: |
@@ -356,11 +370,11 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
-<a name="populate-the-vars-block---internal-functions"></a>
-## Populate the vars block - internal functions
+<a name="populate-the-vars-block---embedded-functions"></a>
+## Populate the vars block - embedded functions
 
 <details>
-  <summary>Add internal functions: </summary>
+  <summary>Add embedded functions: </summary>
 
 *Taskfile.yaml*
 
@@ -387,6 +401,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
     help:
       message: |
@@ -412,9 +427,23 @@ Again, this variable is made available to the underlying subprocess call, and wi
         shell: bash
         source: |-
           echo hello
+      preflight_and_run:
+        shell: bash
+        source: |-
+          echo 'Running Preflight Tasks!'
+          tasks run -d dbhost1 -w webhost1 -t value1
 ```
 
 </details>
+
+Notice the two switches `-A` and `-PR`.
+
+These map to the variables `hello` and `preflight_and_run`, respectively.
+
+Now, because these mappings have corresponding keys in the embedded `functions` stanza, specifying the options in your `tasks` invocation 
+will short-circuit normal operation and execute the corresponding functions in the order you called them.
+
+For usage examples, see the [appendix](#usage-examples).
 
 <a name="add-tasks"></a>
 ## Add tasks
@@ -447,6 +476,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
     optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
+      -PR: preflight_and_run
       --debug-mode: debug_mode
     help:
       message: |
@@ -488,15 +518,19 @@ Again, this variable is made available to the underlying subprocess call, and wi
 Quick usage examples:
 
 * Display help for main command
-  `release/{{ version }}/tasks --help`
+  `tasks --help`
 * Display help for the *run* subcommand
-  `release/{{ version }}/tasks run --help`
+  `tasks run --help`
 * Don't do anything, just echo the underlying shell command
-  `release/{{ version }}/tasks run -d dbhost1 -w webhost1 -t value1 --echo`
+  `tasks run -d dbhost1 -w webhost1 -t value1 --echo`
   Result should be similar to:
   `ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
-* Run the playbook!
-  `release/{{ version }}/tasks run -d dbhost1 -w webhost1 -t value1`
+* Run the playbook
+  `tasks run -d dbhost1 -w webhost1 -t value1`
+* Run the embedded function `preflight_and_run`
+  `tasks run -d dbhost1 -w webhost1 -t value1 -PR`
+* Run the embedded functions `hello` and `preflight_and_run`
+  `tasks run -d dbhost1 -w webhost1 -t value1 -A -PR`
 
 Now all you need to do is install the `tasks` binary to your ansible controller to start using this workflow!
 
