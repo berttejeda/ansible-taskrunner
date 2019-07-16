@@ -8,6 +8,7 @@ lib/*/*
 !lib/common/click_extras
 !lib/common/errorhandler
 !lib/common/formatting
+!lib/common/help
 !lib/common/providers
 !lib/commonsuperduperconfig
 !lib/common/yamlc
@@ -15,3 +16,4 @@ lib/*/*
 # Ignore build files
 dist
 build
+release

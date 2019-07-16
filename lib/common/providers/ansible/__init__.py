@@ -41,7 +41,7 @@ class ProviderCLI():
         func = option(func)
         option = click.option('-v', count=True, help='Start task run with ansible in verbose mode', default=False, required=False)
         func = option(func)
-        option = click.option('---inventory', '---i', is_flag=False, help='Specify ansible inventory', required=False)
+        option = click.option('---inventory', '---i', is_flag=False, help='Override embedded inventory specification', required=False)
         func = option(func)
         return func
 
@@ -56,20 +56,22 @@ class ProviderCLI():
         list_vars=[],
         debug=False, 
         args=None, 
-        prefix='', 
+        prefix='',
+        raw_args='',
         kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
         ansible_playbook_command = default_vars.get('ansible_playbook_command','ansible-playbook')
         # Embedded inventory logic
         embedded_inventory = False
-        inventory_input = kwargs.get('inventory')
+        inventory_input = kwargs.get('_inventory')
         embedded_inventory_string = yaml_vars.get('inventory')
         if not inventory_input and not embedded_inventory_string:
             logger.error("Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
             sys.exit(1)
         elif inventory_input:
             ansible_inventory_file_path = inventory_input
+            ansible_inventory_file_path_descriptor = None
         else:
             ansible_inventory_file_path_descriptor, ansible_inventory_file_path = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini')
             logger.info("No inventory specified, so I'm using the embedded inventory from the playbook and writing a temporary inventory file %s (normally deleted after run)" % ansible_inventory_file_path)
@@ -101,13 +103,14 @@ class ProviderCLI():
             deb=debug
         )
         ansible_command = '''
-        {apc} ${{__ansible_extra_options}} -i {inf} {opt} {ply} {arg}
+        {apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply} 
         '''.format(
             apc = ansible_playbook_command,
             inf=ansible_inventory_file_path,
             opt=' '.join(ansible_extra_options),
             ply=yaml_input_file,
-            arg=args
+            arg=args,
+            raw=raw_args
         )
         command = reindent(pre_commands + ansible_command,0)
         # Command invocation
@@ -125,6 +128,7 @@ class ProviderCLI():
             with fdopen(ansible_command_file_descriptor, "w") as f:
                 f.write(command)
         else:
-            os.close(ansible_inventory_file_path_descriptor)
-            remove(ansible_inventory_file_path)
+            if ansible_inventory_file_path_descriptor:
+                os.close(ansible_inventory_file_path_descriptor)
+                remove(ansible_inventory_file_path)
   

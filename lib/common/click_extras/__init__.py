@@ -57,6 +57,8 @@ class ExtendCLI():
 
     def process_options(self, parameters, func, is_required=False):
         """Read dictionary of parameters and translate to click options"""
+        if not parameters:
+            parameters = {}
         numargs = 1
         numargs_unlimited_is_set = False
         numargs_unlimited_count = 0
@@ -92,7 +94,7 @@ class ExtendCLI():
                     option = click.argument(cli_option, nargs=numargs, required=is_required)
                 else:
                     numargs = 1 if numargs < 1 else numargs
-                    option = click.option(cli_option, value, is_flag = True, default=False, help=option_help, required=is_required)
+                    option = click.option(cli_option, value, is_flag=True, default=False, help=option_help, required=is_required)
             func = option(func)
             numargs_unlimited_is_set = False
             numargs = 1

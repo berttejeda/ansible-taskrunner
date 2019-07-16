@@ -1,3 +1,12 @@
+SAMPLE_CONFIG = '''
+---
+cli:
+  providers:
+    default: ansible
+...
+'''
+
+SAMPLE_TASKS_MANIFEST = '''
 - hosts: myhosts
   gather_facts: true
   become: true
@@ -20,9 +29,6 @@
       gcp:
         -d|--db-hosts: dbhosts_gcp
         -g|--some-special-gcp-flag: gcp_flag
-      pks:
-        -d|--db-hosts: dbhosts_pks
-        -p|--some-special-pks-flag: pks_flag
       -d|--db-hosts: dbhosts
       -w|--web-hosts: webhosts
       -t|--some-parameter: some_value
@@ -66,3 +72,4 @@
           Hello from Ansible!
           You specified: {{ some_value }}
           You specified: {{ another_value }}
+'''

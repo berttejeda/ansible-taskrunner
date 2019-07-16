@@ -22,6 +22,8 @@ try:
     from lib.common.errorhandler import catchException
     from lib.common.errorhandler import ERR_ARGS_TASKF_OVERRIDE
     from lib.common.formatting import reindent
+    from lib.common.help import SAMPLE_CONFIG
+    from lib.common.help import SAMPLE_TASKS_MANIFEST
     from lib.common.superduperconfig import SuperDuperConfig
     from lib.common.click_extras import ExtendedEpilog
     from lib.common.click_extras import ExtendedHelp
@@ -37,7 +39,7 @@ except ImportError as e:
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '0.0.10-alpha'
+__version__ = '0.0.13-alpha'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -75,8 +77,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     # Detect command provider
     cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
     if cli_provider == 'bash':
-        from lib.common.providers import default as default_cli
-        provider_cli = default_cli.ProviderCLI()
+        from lib.common.providers import bash as bash_cli
+        provider_cli = bash_cli.ProviderCLI()
     elif cli_provider == 'vagrant':
         from lib.common.providers import vagrant as vagrant_cli
         provider_cli = vagrant_cli.ProviderCLI()
@@ -120,7 +122,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     @click.option('--debug', '-d', is_flag=True, help='Enable debug output')
     @click.option('--verbose', '-v', count=True, help='Increase verbosity of output')
     @click.option('--log', '-l', type=str, help='Specify (an) optional log file(s)')
-    def cli(**kwargs):
+    def cli(**kwargs):       
         global config, config_file, __debug, verbose, loglevel, logger
         # Are we specifying an alternate config file?
         if kwargs['config']:
@@ -150,6 +152,31 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
         logger.debug('Debug Mode Enabled, keeping any generated temp files')
         return 0
 
+    # Examples command
+    @cli.command(help="Initialize local directory with sample files to get your started")
+    @click.version_option(version=__version__)
+    @click.option('--show-samples', '-m', is_flag=True, help='Only show a sample task manifest, don\'t write it')
+    def init(args=None, **kwargs):
+        logger.info('Initializing ...')
+        if kwargs['show_samples']:
+            logger.info('Displaying sample config')
+            print(SAMPLE_CONFIG)
+            logger.info('Displaying sample manifest')
+            print(SAMPLE_TASKS_MANIFEST)
+        else:
+            if not os.path.exists(config_file):
+                logger.info('File does not exist ... writing sample config %s' % config_file)
+                with open(config_file, 'w') as f:
+                    f.write(SAMPLE_CONFIG)
+            else:
+                logger.info('File exists ... not writing sample config %s' % config_file)
+            if not os.path.exists(tasks_file):
+                logger.info('File does not exist ... writing sample manifest %s' % tasks_file)
+                with open(tasks_file, 'w') as f:
+                    f.write(SAMPLE_TASKS_MANIFEST)
+            else:
+                logger.info('File exists ... not writing sample manifest %s' % tasks_file)
+
     # Parse help documentation
     help_string = yamlr.deep_get(yaml_vars, 'help.message', '')
     epilog_string = yamlr.deep_get(yaml_vars, 'help.epilog', '')
@@ -168,20 +195,25 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     {ex}
     '''.format(ep=epilog_string, ex=examples_string)
     epilog = reindent(epilog, 0)
+    
+    # Run command
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
+    @click.option('---raw', '---r', is_flag=False, help='Specify raw options to pass down to the underlying subprocess', required=False)
     @click.option('--echo',
                   is_flag=True,
                   help='Don\'t run, simply echo underlying commands')
     @extend_cli.options
     @provider_cli.options
     def run(args=None, **kwargs):
+        # Process Raw Args
+        raw_args = kwargs['_raw'] if kwargs['_raw'] else ''
         # Instantiate the cli invocation class
         yamlcli = YamlCLIInvocation()
         args = ' '.join(args) if args else ''
         # Initialize values for subshell
-        prefix = 'echo' if kwargs.get('echo') else ''
+        prefix = 'echo' if kwargs['echo'] else ''
         # Default variables
         default_vars = dict([(key, value) for key, value in yaml_vars.items() if not isinstance(value, dict)])        
         # Parameter set var (if it has been specified)
@@ -221,7 +253,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
             {dlv}
             {clv}
             {bfn}
-            {clf} {arg}
+            {clf} {arg} {raw}
                 '''.format(
                     dsv='\n'.join(defaults_string_vars),
                     psv=paramset_var,
@@ -229,7 +261,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
                     clv=cli_vars,
                     bfn='\n'.join(bash_functions),
                     clf=cli_function,
-                    arg=''
+                    arg=args,
+                    raw=raw_args
                 )            
                 yamlcli.call(command)
         else:
@@ -245,7 +278,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
                 prefix = prefix, 
                 debug = __debug, 
                 args = args, 
-                kwargs = kwargs,
+                raw_args=raw_args,
+                kwargs = kwargs
             )            
     # Call main cli function
     cli(args)
