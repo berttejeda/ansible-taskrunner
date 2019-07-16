@@ -41,7 +41,8 @@ class ProviderCLI():
         func = option(func)
         option = click.option('-v', count=True, help='Start task run with ansible in verbose mode', default=False, required=False)
         func = option(func)
-        option = click.option('---inventory', '---i', is_flag=False, help='Specify ansible inventory', required=False)
+        option = click.option('---inventory', '---i', is_flag=False, help='Override embedded inventory specification', required=False)
+        option = click.option('---raw', '---r', is_flag=False, help='Specify raw options to pass down to the ansible-playbook command', required=False)
         func = option(func)
         return func
 
@@ -56,7 +57,8 @@ class ProviderCLI():
         list_vars=[],
         debug=False, 
         args=None, 
-        prefix='', 
+        prefix='',
+        raw_args='',
         kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
@@ -101,13 +103,14 @@ class ProviderCLI():
             deb=debug
         )
         ansible_command = '''
-        {apc} ${{__ansible_extra_options}} -i {inf} {opt} {ply} {arg}
+        {apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply} 
         '''.format(
             apc = ansible_playbook_command,
             inf=ansible_inventory_file_path,
             opt=' '.join(ansible_extra_options),
             ply=yaml_input_file,
-            arg=args
+            arg=args,
+            raw=raw_args
         )
         command = reindent(pre_commands + ansible_command,0)
         # Command invocation

@@ -200,13 +200,15 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
-    @click.option('--show-sample-manifest', '---m', is_flag=True, help='Display a sample task manifest')
+    @click.option('---raw', '---r', is_flag=False, help='Specify raw options to pass down to the underlying subprocess', required=False)
     @click.option('--echo',
                   is_flag=True,
                   help='Don\'t run, simply echo underlying commands')
     @extend_cli.options
     @provider_cli.options
-    def run(args=None, **kwargs):        
+    def run(args=None, **kwargs):
+        # Process Raw Args
+        raw_args = kwargs.get('_raw', '')
         # Instantiate the cli invocation class
         yamlcli = YamlCLIInvocation()
         args = ' '.join(args) if args else ''
@@ -251,7 +253,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
             {dlv}
             {clv}
             {bfn}
-            {clf} {arg}
+            {clf} {arg} {raw}
                 '''.format(
                     dsv='\n'.join(defaults_string_vars),
                     psv=paramset_var,
@@ -259,7 +261,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
                     clv=cli_vars,
                     bfn='\n'.join(bash_functions),
                     clf=cli_function,
-                    arg=''
+                    arg=args,
+                    raw=raw_args
                 )            
                 yamlcli.call(command)
         else:
@@ -275,7 +278,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
                 prefix = prefix, 
                 debug = __debug, 
                 args = args, 
-                kwargs = kwargs,
+                raw_args=raw_args,
+                kwargs = kwargs
             )            
     # Call main cli function
     cli(args)
