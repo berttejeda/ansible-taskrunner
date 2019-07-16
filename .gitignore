@@ -15,3 +15,4 @@ lib/*/*
 # Ignore build files
 dist
 build
+release
