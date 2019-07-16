@@ -77,8 +77,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     # Detect command provider
     cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
     if cli_provider == 'bash':
-        from lib.common.providers import default as default_cli
-        provider_cli = default_cli.ProviderCLI()
+        from lib.common.providers import bash as bash_cli
+        provider_cli = bash_cli.ProviderCLI()
     elif cli_provider == 'vagrant':
         from lib.common.providers import vagrant as vagrant_cli
         provider_cli = vagrant_cli.ProviderCLI()
