@@ -64,13 +64,14 @@ class ProviderCLI():
         ansible_playbook_command = default_vars.get('ansible_playbook_command','ansible-playbook')
         # Embedded inventory logic
         embedded_inventory = False
-        inventory_input = kwargs.get('inventory')
+        inventory_input = kwargs.get('_inventory')
         embedded_inventory_string = yaml_vars.get('inventory')
         if not inventory_input and not embedded_inventory_string:
             logger.error("Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
             sys.exit(1)
         elif inventory_input:
             ansible_inventory_file_path = inventory_input
+            ansible_inventory_file_path_descriptor = None
         else:
             ansible_inventory_file_path_descriptor, ansible_inventory_file_path = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini')
             logger.info("No inventory specified, so I'm using the embedded inventory from the playbook and writing a temporary inventory file %s (normally deleted after run)" % ansible_inventory_file_path)
@@ -127,6 +128,7 @@ class ProviderCLI():
             with fdopen(ansible_command_file_descriptor, "w") as f:
                 f.write(command)
         else:
-            os.close(ansible_inventory_file_path_descriptor)
-            remove(ansible_inventory_file_path)
+            if ansible_inventory_file_path_descriptor:
+                os.close(ansible_inventory_file_path_descriptor)
+                remove(ansible_inventory_file_path)
   
