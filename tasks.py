@@ -39,7 +39,7 @@ except ImportError as e:
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '0.0.12-alpha'
+__version__ = '0.0.11-alpha'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -153,7 +153,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
         return 0
 
     # Examples command
-    @cli.command(help="Initialize local directory with some helpful files")
+    @cli.command(help="Initialize local directory with sample files to get your started")
     @click.version_option(version=__version__)
     @click.option('--show-samples', '-m', is_flag=True, help='Only show a sample task manifest, don\'t write it')
     def init(args=None, **kwargs):
