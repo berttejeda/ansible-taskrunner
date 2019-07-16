@@ -49,7 +49,8 @@ class ProviderCLI():
         list_vars=[],
         debug=False, 
         args=None, 
-        prefix='', 
+        prefix='',
+        raw_args='',
         kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')
