@@ -39,7 +39,7 @@ except ImportError as e:
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '0.0.12-alpha'
+__version__ = '0.0.13-alpha'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
