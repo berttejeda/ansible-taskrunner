@@ -22,6 +22,8 @@ try:
     from lib.common.errorhandler import catchException
     from lib.common.errorhandler import ERR_ARGS_TASKF_OVERRIDE
     from lib.common.formatting import reindent
+    from lib.common.help import SAMPLE_CONFIG
+    from lib.common.help import SAMPLE_TASKS_MANIFEST
     from lib.common.superduperconfig import SuperDuperConfig
     from lib.common.click_extras import ExtendedEpilog
     from lib.common.click_extras import ExtendedHelp
@@ -37,7 +39,7 @@ except ImportError as e:
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '0.0.10-alpha'
+__version__ = '0.0.12-alpha'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -120,7 +122,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     @click.option('--debug', '-d', is_flag=True, help='Enable debug output')
     @click.option('--verbose', '-v', count=True, help='Increase verbosity of output')
     @click.option('--log', '-l', type=str, help='Specify (an) optional log file(s)')
-    def cli(**kwargs):
+    def cli(**kwargs):       
         global config, config_file, __debug, verbose, loglevel, logger
         # Are we specifying an alternate config file?
         if kwargs['config']:
@@ -150,6 +152,31 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
         logger.debug('Debug Mode Enabled, keeping any generated temp files')
         return 0
 
+    # Examples command
+    @cli.command(help="Initialize local directory with some helpful files")
+    @click.version_option(version=__version__)
+    @click.option('--show-samples', '-m', is_flag=True, help='Only show a sample task manifest, don\'t write it')
+    def init(args=None, **kwargs):
+        logger.info('Initializing ...')
+        if kwargs['show_samples']:
+            logger.info('Displaying sample config')
+            print(SAMPLE_CONFIG)
+            logger.info('Displaying sample manifest')
+            print(SAMPLE_TASKS_MANIFEST)
+        else:
+            if not os.path.exists(config_file):
+                logger.info('File does not exist ... writing sample config %s' % config_file)
+                with open(config_file, 'w') as f:
+                    f.write(SAMPLE_CONFIG)
+            else:
+                logger.info('File exists ... not writing sample config %s' % config_file)
+            if not os.path.exists(tasks_file):
+                logger.info('File does not exist ... writing sample manifest %s' % tasks_file)
+                with open(tasks_file, 'w') as f:
+                    f.write(SAMPLE_TASKS_MANIFEST)
+            else:
+                logger.info('File exists ... not writing sample manifest %s' % tasks_file)
+
     # Parse help documentation
     help_string = yamlr.deep_get(yaml_vars, 'help.message', '')
     epilog_string = yamlr.deep_get(yaml_vars, 'help.epilog', '')
@@ -168,15 +195,18 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     {ex}
     '''.format(ep=epilog_string, ex=examples_string)
     epilog = reindent(epilog, 0)
+    
+    # Run command
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
+    @click.option('--show-sample-manifest', '---m', is_flag=True, help='Display a sample task manifest')
     @click.option('--echo',
                   is_flag=True,
                   help='Don\'t run, simply echo underlying commands')
     @extend_cli.options
     @provider_cli.options
-    def run(args=None, **kwargs):
+    def run(args=None, **kwargs):        
         # Instantiate the cli invocation class
         yamlcli = YamlCLIInvocation()
         args = ' '.join(args) if args else ''
