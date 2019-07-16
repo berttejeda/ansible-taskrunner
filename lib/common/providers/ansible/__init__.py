@@ -42,7 +42,6 @@ class ProviderCLI():
         option = click.option('-v', count=True, help='Start task run with ansible in verbose mode', default=False, required=False)
         func = option(func)
         option = click.option('---inventory', '---i', is_flag=False, help='Override embedded inventory specification', required=False)
-        option = click.option('---raw', '---r', is_flag=False, help='Specify raw options to pass down to the ansible-playbook command', required=False)
         func = option(func)
         return func
 

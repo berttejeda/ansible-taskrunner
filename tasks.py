@@ -208,12 +208,12 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars', c
     @provider_cli.options
     def run(args=None, **kwargs):
         # Process Raw Args
-        raw_args = kwargs.get('_raw', '')
+        raw_args = kwargs['_raw'] if kwargs['_raw'] else ''
         # Instantiate the cli invocation class
         yamlcli = YamlCLIInvocation()
         args = ' '.join(args) if args else ''
         # Initialize values for subshell
-        prefix = 'echo' if kwargs.get('echo') else ''
+        prefix = 'echo' if kwargs['echo'] else ''
         # Default variables
         default_vars = dict([(key, value) for key, value in yaml_vars.items() if not isinstance(value, dict)])        
         # Parameter set var (if it has been specified)
