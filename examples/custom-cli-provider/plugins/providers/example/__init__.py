@@ -41,13 +41,15 @@ class ProviderCLI():
         yaml_input_file=None, 
         string_vars=[], 
         default_vars={},
+        paramset_var=None,
         bash_functions=[],
         cli_vars='',
         yaml_vars={},
         list_vars=[],
         debug=False, 
         args=None, 
-        prefix='', 
+        prefix='',
+        raw_args='', 
         kwargs={}):
         logger.info('Example Command Provider')
         command = '''
