@@ -632,4 +632,4 @@ This project adopts the the MIT distribution License.
 [Releases](https://github.com/berttejeda/ansible-taskrunner/releases) come bundled with the following opensource python packages:
 
 - [click](https://github.com/pallets/click), licensed under BSD-3-Clause
-- [pyYaml]https://github.com/yaml/pyyaml), licensed under MIT
+- [pyYaml](https://github.com/yaml/pyyaml), licensed under MIT
