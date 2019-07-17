@@ -26,6 +26,7 @@
     - [ansible_playbook_command](#ansible_playbook_command)
     - [parameter_set](#parameter_set)
   - [Single-Executable Releases](#single-executable-releases)
+- [License and Credits](#license-and-credits)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -622,3 +623,13 @@ You can also build your own single-executable zipapp, as follows:
   - Build zipapp and push to remote host (via scp): `./tasks.py -f build.yaml run -b -bp someserver.somedomain.local:/home/${USER-USERNAME}`
 
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
+
+<a name="license-and-credits"></a>
+# License and Credits
+
+This project adopts the the MIT distribution License.
+
+[Releases](https://github.com/berttejeda/ansible-taskrunner/releases) come bundled with the following opensource python packages:
+
+- [click](https://github.com/pallets/click), licensed under BSD-3-Clause
+- [pyYaml]https://github.com/yaml/pyyaml), licensed under MIT
