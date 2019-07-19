@@ -26,7 +26,7 @@ ansible-playbook wrapper with YAML-abstracted python click cli options
 Features
 --------
 
-* TODO
+* TODO Employ language/regional options 
 
 Credits
 -------
