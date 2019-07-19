@@ -54,7 +54,7 @@ setup(
     author="Engelbert Tejeda",
     author_email='berttejeda@gmail.com',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
@@ -83,6 +83,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/berttejeda/ansible_taskrunner',
-    version='0.0.13',
+    version=version,
     zip_safe=False,
 )
