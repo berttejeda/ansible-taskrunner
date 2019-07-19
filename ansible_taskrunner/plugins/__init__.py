@@ -8,6 +8,7 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
+
 class Plugin:
     """ Plugin System """
 
@@ -29,14 +30,18 @@ class Plugin:
                 except (AttributeError, FileNotFoundError, ImportError, NotImplementedError):
                     continue
                 plugin_type = (os.path.split(root)[-1])
-                plugins.append({'type': plugin_type, 'path': os.path.join(root, plugin, self.MainModule)})
+                plugins.append({'type': plugin_type, 'path': os.path.join(
+                    root, plugin, self.MainModule)})
         return plugins
     #
+
     def path_import2(self, absolute_path):
-       spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
-       module = spec.loader.load_module(spec.name)
-       return module
+        spec = importlib.util.spec_from_file_location(
+            absolute_path, absolute_path)
+        module = spec.loader.load_module(spec.name)
+        return module
     #
+
     def activatePlugins(self, PluginFolder=None):
         PluginFolder = PluginFolder or self.PluginFolder
         plugin_objects = {
