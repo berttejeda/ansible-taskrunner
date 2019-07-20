@@ -18,7 +18,7 @@ else:
 py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
 project_root = os.path.dirname(os.path.abspath(__file__))
 if sys.platform in ['win32', 'cygwin']:
-    sys.path.insert(0, project_root + '\\lib\\common')
+    sys.path.insert(0, project_root + '\\lib')
     sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
 elif sys.platform in ['darwin']:
     sys.path.insert(0, project_root + '/lib')
@@ -30,18 +30,18 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from lib.errorhandler import catchException
-    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
-    from lib.formatting import logging_format
-    from lib.formatting import reindent
-    from lib.help import SAMPLE_CONFIG
-    from lib.help import SAMPLE_TASKS_MANIFEST
-    from lib.superduperconfig import SuperDuperConfig
-    from lib.click_extras import ExtendedEpilog
-    from lib.click_extras import ExtendedHelp
-    from lib.click_extras import ExtendCLI
-    from lib.yamlc import YamlCLIInvocation
-    from lib.yamlr import YamlReader
+    from errorhandler import catchException
+    from errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from formatting import logging_format
+    from formatting import reindent
+    from help import SAMPLE_CONFIG
+    from help import SAMPLE_TASKS_MANIFEST
+    from superduperconfig import SuperDuperConfig
+    from click_extras import ExtendedEpilog
+    from click_extras import ExtendedHelp
+    from click_extras import ExtendCLI
+    from yamlc import YamlCLIInvocation
+    from yamlr import YamlReader
     # TODO
     # Employ language/regional options    
     # from lib.language import get_strings
@@ -104,13 +104,13 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # Detect command provider
     cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
     if cli_provider == 'bash':
-        from lib import bash as bash_cli
+        from providers import bash as bash_cli
         provider_cli = bash_cli.ProviderCLI()
     elif cli_provider == 'vagrant':
-        from lib import vagrant as vagrant_cli
+        from providers import vagrant as vagrant_cli
         provider_cli = vagrant_cli.ProviderCLI()
     else:
-        from lib import ansible as ansible_cli
+        from providers import ansible as ansible_cli
         provider_cli = ansible_cli.ProviderCLI()
 
     # Load Tasks Manifest

@@ -12,7 +12,7 @@ except NameError:
 class Plugin:
     """ Plugin System """
 
-    def __init__(self, PluginFolder="./plugins", MainModule="__init__.py", provider='ansible'):
+    def __init__(self, PluginFolder="plugins", MainModule="__init__.py", provider='ansible'):
         self.PluginFolder = PluginFolder
         self.Provider = provider
         self.MainModule = MainModule
