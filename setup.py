@@ -4,7 +4,10 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+try: # for pip >= 10
+    from pip._internal.req import parse_requirements
+except ImportError: # for pip <= 9.0.3
+    from pip.req import parse_requirements
 import os
 import re
 import shutil
@@ -34,11 +37,12 @@ requirements = [str(ir.req) for ir in install_reqs]
 
 # Derive version info from main module
 try:
+    # https://stackoverflow.com/questions/52007436/pypi-is-adding-dashes-to-the-beginning-and-end-of-version-name
     version = re.search(
         '^__version__[\s]+=[\s]+(.*).*',
         open('ansible_taskrunner/__init__.py').read(),
         re.M
-        ).group(1)
+        ).group(1).strip('"').strip("'")
 except AttributeError as e:
     print('''
         I had trouble determining the verison information from your app.
