@@ -1,3 +1,12 @@
+SAMPLE_CONFIG = '''
+---
+cli:
+  providers:
+    default: ansible
+...
+'''
+
+SAMPLE_TASKS_MANIFEST = '''
 - hosts: myhosts
   gather_facts: true
   become: true
@@ -14,19 +23,16 @@
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-    optional_parameters:
       aws:
         -d|--db-hosts: dbhosts_aws
         -a|--some-special-aws-flag: aws_flag
       gcp:
         -d|--db-hosts: dbhosts_gcp
         -g|--some-special-gcp-flag: gcp_flag
-      pks:
-        -d|--db-hosts: dbhosts_pks
-        -p|--some-special-pks-flag: pks_flag
       -d|--db-hosts: dbhosts
       -w|--web-hosts: webhosts
       -t|--some-parameter: some_value
+    optional_parameters:
       -l|--another-parameter: another_value
       -A: hello
       -PR: preflight_and_run
@@ -59,10 +65,11 @@
         shell: bash
         source: |-
           echo 'Running Preflight Tasks!'
-          tasks run -d dbhost1 -w webhost1 -t value1               
+          tasks run -d dbhost1 -w webhost1 -t value1
   tasks:
-    - debug: 
+    - debug:
         msg: |
           Hello from Ansible!
           You specified: {{ some_value }}
           You specified: {{ another_value }}
+'''

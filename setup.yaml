@@ -1,65 +1,63 @@
 ---
 - hosts: local
   vars:
-    app_dir: ansible_taskrunner
-    lib_dir: ${app_dir}/lib
-    plugins_dir: ${app_dir}/plugins
-    workdir: ${PWD}
     help:
-      message: |
+      readme: |
         Task Runner for the Task Runner!
       examples:
     inventory: |
       [local]
       localhost      
     required_parameters:
-      -b: build
     optional_parameters:
+      -b: build
+      --s: setup_and_test
+      --u: uninstall      
       -bp|--build-and-push: deployment_host_and_path
-      -x|--replace-exe: REPLACE_EXE
     functions:
+      setup_and_test:
+        shell: bash
+        source: |-
+          python setup.py -q install
+          tasks run --help
+      uninstall:
+        shell: bash
+        source: |-
+          pip uninstall ansible_taskrunner -y        
       build:
         shell: bash
         source: |-
           set -o errexit
-          cd ${app_dir}
           for pyver in py2 py3;do
             if ! test -d lib/${pyver};then 
               mkdir lib/${pyver}
               source activate $pyver
-              pip install -t lib/${pyver} -r ${workdir}/requirments.txt
+              pip install -t lib/${pyver} -r requirments
             fi
           done
-          __version=$(egrep '.*__version__ =' __init__.py | cut -d\  -f3 | tr -d "'")
+          __version=$(egrep '.*__version__ =' tasks.py | cut -d\  -f3 | tr -d "'")
           echo "Version is ${__version}"
-          __release_dir=../release/${__version}
-          lint_result=$(python cli.py --help)
+          __release_dir=release/${__version}
+          lint_result=$(./tasks.py --help)
           echo "Initial lint OK, proceeding with build"
           if [[ "$OSTYPE" =~ .*msys.* ]];then 
             echo "OSType is Windows, nesting libdir ..."
-            if test -d windows;then 
-              rm -rf windows
-            else
-              mkdir windows
-            fi
+            mkdir windows
             cp -r lib plugins windows
             echo "Creating zip-app"
-            make-zipapp -f cli.py -X __pycache__ -x .pyc -d windows
+            make-zipapp -f tasks.py -X __pycache__ -x .pyc -d windows
             if test -d windows;then rm -rf windows;fi
           else
             echo "OSType is most likely POSIX native"
             echo "Creating zip-app"
-            make-zipapp -f cli.py -X __pycache__ -x .pyc
+            ../make-zipapp/make-zipapp.py -f tasks.py -d lib
           fi
-          mv cli tasks
-          lint_result=$(tasks --help)
+          lint_result=$(./tasks.py --help)
           echo "Initial lint OK, proceeding with release"
           if ! test -d ${__release_dir};then mkdir -p ${__release_dir};fi
           mv -f tasks ${__release_dir}
-          if [[ -n $REPLACE_EXE ]];then
-            echo "Replacing current executable: $(which tasks)"
-            yes | cp ${__release_dir}/tasks $(which tasks)
-          fi
+          echo "Replacing current executable: $(which tasks)"
+          yes | cp ${__release_dir}/tasks $(which tasks)
           if [[ -n $deployment_host_and_path ]];then
             echo "Pushing up"
             scp_result=$(scp ${__release_dir}/tasks ${deployment_host_and_path})
