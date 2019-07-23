@@ -44,6 +44,10 @@ The inspiration for the tool comes from the gnu make command, which operates in 
 - A Makefile defines available build steps
 - The make command consumes the Makefile at runtime and exposes these steps as command-line options
 
+Jump down to the [usage examples](#usage-examples) to see this in action.
+
+[Installation Instructions](#installation)
+
 <a name="use-case-and-example"></a>
 # Use case and example
 
@@ -533,7 +537,14 @@ Quick usage examples:
 * Run the embedded functions `hello` and `preflight_and_run`
   `tasks run -d dbhost1 -w webhost1 -t value1 -A -PR`
 
-Now all you need to do is install the `tasks` binary to your ansible controller to start using this workflow!
+<a name="installation"></a>
+# Installation
+
+Ansible-tasksrunner consists of the `tasks` binary (for now), and it can be installed in a few ways:
+
+1. pip install ansible-taskrunner
+2. pip install git+https://github.com/berttejeda/ansible-taskrunner.git
+3. Obtaining a [release](#single-executable-releases)
 
 <a name="more-examples"></a>
 ## More Examples
@@ -633,3 +644,8 @@ This project adopts the the MIT distribution License.
 
 - [click](https://github.com/pallets/click), licensed under BSD-3-Clause
 - [pyYaml](https://github.com/yaml/pyyaml), licensed under MIT
+
+Lastly, this package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
