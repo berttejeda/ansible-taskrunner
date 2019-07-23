@@ -29,6 +29,60 @@ BROWSER := python -c "$$BROWSER_PYSCRIPT"
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
+export define ZIPAPP_BASHSCRIPT
+	set -o errexit
+    echo activating py3 ...
+	source activate py3
+    echo activating py2 ...
+	source activate py2
+	exit
+	cd ansible_taskrunner
+	for pyver in py2 py3;do
+		echo Checking for embedded libraries in lib/$${pyver}
+		if ! test -d lib/$${pyver};then
+		  echo Creating lib/$${pyver}
+		  mkdir lib/$${pyver}
+		  echo Installing requirements to lib/$${pyver} ...
+		  source activate $$pyver
+		  pip install -t lib/$${pyver} -r ../requirements.txt
+		fi
+	done
+	__version=$$(egrep '.*__version__ =' __init__.py | cut -d\  -f3 | tr -d "'")
+	echo "Version is $${__version}"
+	__release_dir=../release/$${__version}
+	lint_result=$$(python cli.py --help)
+	echo "Initial lint OK, proceeding with build"
+	if [[ "$$OSTYPE" =~ .*msys.* ]];then 
+	echo "OSType is Windows, nesting libdir ..."
+	if test -d windows;then 
+	  rm -rf windows
+	else
+	  mkdir windows
+	fi
+	cp -r lib plugins windows
+	echo "Creating zip-app"
+	make-zipapp -f cli.py -X __pycache__ -x .pyc -d windows
+	if test -d windows;then rm -rf windows;fi
+	else
+	echo "OSType is most likely POSIX native"
+	echo "Creating zip-app"
+	make-zipapp -f cli.py -X __pycache__ -x .pyc
+	fi
+	mv cli tasks
+	lint_result=$$(tasks --help)
+	echo "Initial lint OK, proceeding with release"
+	if ! test -d $${__release_dir};then mkdir -p $${__release_dir};fi
+	mv -f tasks $${__release_dir}
+	echo "Replacing current executable: $$(which tasks)"
+	yes | cp $${__release_dir}/tasks $$(which tasks)
+	if [[ -n $$deployment_host_and_path ]];then
+	echo "Pushing up"
+	scp_result=$$(scp $${__release_dir}/tasks $${deployment_host_and_path})
+	fi	
+endef
+
+build-zipapp:; @ eval "$$ZIPAPP_BASHSCRIPT"
+
 clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
 
 clean-build: ## remove build artifacts
