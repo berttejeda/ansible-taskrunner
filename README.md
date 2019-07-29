@@ -24,7 +24,7 @@
 - [Appendix](#appendix)
   - [Special Variables](#special-variables)
     - [ansible_playbook_command](#ansible_playbook_command)
-    - [parameter_set](#parameter_set)
+    - [parameter_set](#parameter-sets)
   - [Single-Executable Releases](#single-executable-releases)
 - [License and Credits](#license-and-credits)
 
@@ -257,7 +257,7 @@ Options       | Mapped Variable
 --some-option | some_switch (behaves like click switches, holds the value of True if specified)
 ```
 
-More flexibility can be achieved through the use of parameter sets.
+More flexibility can be achieved through the use of [parameter sets](#parameter-sets).
 
 See the [appendix](#parameter_set) for more information.
 
@@ -522,19 +522,19 @@ For usage examples, see the [appendix](#usage-examples).
 
 Quick usage examples:
 
-* Display help for main command
+* Display help for main command<br />
   `tasks --help`
-* Display help for the *run* subcommand
+* Display help for the *run* subcommand<br />
   `tasks run --help`
-* Don't do anything, just echo the underlying shell command
-  `tasks run -d dbhost1 -w webhost1 -t value1 --echo`
-  Result should be similar to:
+* Don't do anything, just echo the underlying shell command<br />
+  `tasks run -d dbhost1 -w webhost1 -t value1 --echo`<br />
+  Result should be similar to:<br />
   `ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
-* Run the playbook
+* Run the playbook<br />
   `tasks run -d dbhost1 -w webhost1 -t value1`
-* Run the embedded function `preflight_and_run`
+* Run the embedded function `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -PR`
-* Run the embedded functions `hello` and `preflight_and_run`
+* Run the embedded functions `hello` and `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -A -PR`
 
 <a name="installation"></a>
@@ -579,8 +579,8 @@ Upon invoking the `tasks` command with the `--echo` flag, the underlying shell c
 
 `python ${HOME}/ansible_2.7.8/ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
 
-<a name="parameter_set"></a>
-### parameter_set
+<a name="parameter_sets"></a>
+### Parameter Sets
 
 What if you wanted to operate under multiple contexts?
 
@@ -645,7 +645,7 @@ This project adopts the the MIT distribution License.
 - [click](https://github.com/pallets/click), licensed under BSD-3-Clause
 - [pyYaml](https://github.com/yaml/pyyaml), licensed under MIT
 
-Lastly, this package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+Lastly, this package was created with Cookiecutter and the `audreyr/cookiecutter-pypackage` project template.
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+- Cookiecutter: https://github.com/audreyr/cookiecutter
+- audreyr/cookiecutter-pypackage: https://github.com/audreyr/cookiecutter-pypackage
