@@ -1,0 +1,54 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    DATETIME: "{{ [ansible_date_time.year, ansible_date_time.month, ansible_date_time.day, ansible_date_time.hour, ansible_date_time.minute] | join('') }}"
+    help:
+      message: |
+        Copy local file(s)/folder(s) from local to target host(s)
+      epilog: |
+        After playbook run, the specified file system objects should 
+        be mirrored onto the target host(s)
+      examples:
+        - You want to synchronize files to your target hosts: |
+            tasks run -p myfolder -h host1 -t /data
+        - You want to synchronize mock data: |
+            tasks run -p myfolder -h host1 -t /data --mock
+    inventory: |
+      [target_hosts]
+      $(echo -e "${target_hosts}" | tr ',' '\n')
+      [all_hosts:children]
+      target_hosts
+    required_parameters:
+      -h|--target-hosts: target_hosts
+      -p|--local-path: local_path
+      -t|--target-path: target_path
+    optional_parameters:
+      --mock: mock_test
+    functions:
+      mock_test:
+        shell: bash
+        source: |-
+          echo 'Mock mode!'
+          if ! test -f ${local_path}/mock_data;then 
+            mkdir -p ${local_path}/mock_data
+            echo myfile1 > ${local_path}/mock_data/myfile1.txt
+            echo myfile2 > ${local_path}/mock_data/myfile2.txt
+            echo myfile3 > ${local_path}/mock_data/myfile3.txt
+          fi
+          tasks run -p ${local_path} -t ${target_path} -h ${target_hosts}
+  tasks:
+
+    - name: Ensure target directory exists on host
+      file:
+        path: '{{ target_path }}'
+        state: directory
+
+    - name: Copy files
+      synchronize:
+        src: '{{ local_path }}'
+        dest: '{{ target_path }}'
+        rsync_opts:
+          - "--no-motd"
+...

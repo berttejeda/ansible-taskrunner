@@ -1,0 +1,30 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    help:
+      message: |
+        This is essentially a stripped down ansible playbook that holds bash functions represented in YAML syntax
+        The neat part about this is that you get to easily adjust cli options for your YAML-organized Bash script :)
+      epilog:
+      examples:
+        - You want to ping google's dns servers: |
+            tasks run -h 8.8.8.8
+        - You want to run the ping_google embedded function: |
+            tasks run --ping-google
+    required_parameters:
+    optional_parameters:
+      -h|--target-hosts: target_hosts
+      --ping-google: ping_google
+    functions:
+      ping_google:
+        shell: bash
+        source: |-
+          echo Attempting to ping Google DNS ...
+          if ping -c 1 -w 1 8.8.8.8 > /dev/null;then 
+            echo ok
+          else 
+            echo ping failed
+          fi
+...
