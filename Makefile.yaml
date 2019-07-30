@@ -1,0 +1,223 @@
+---
+- hosts: local
+  vars:
+    app_dir: ansible_taskrunner
+    lib_dir: ${app_dir}/lib
+    cli_provider: bash
+    plugins_dir: ${app_dir}/plugins
+    workdir: ${PWD}
+    help:
+      message: |
+        Task Runner for the Task Runner!
+      examples:
+    inventory: |
+      [local]
+      localhost      
+    required_parameters:
+    optional_parameters:
+      -b: build ## Shortcut to the build make-style function
+      -c: clean ## Shortcut to the clean make-style function
+      -bp|--build-and-push: deployment_host_and_path ## Build and Deploy to Specified Host via SCP
+      -x|--replace-exe: REPLACE_EXE ## Replace exe (used with build)
+    functions:
+      clean-test:
+        shell: bash
+        help: Remove test and coverage artifacts
+        source: |-
+          rm -fr .tox/
+          rm -f .coverage
+          rm -fr htmlcov/
+          rm -fr .pytest_cache
+      clean-pyc:
+        shell: bash
+        help: Remove Python file artifacts
+        source: |-
+          find . -name '*.pyc' -exec rm -f {} +
+          find . -name '*.pyo' -exec rm -f {} +
+          find . -name '*~' -exec rm -f {} +
+          find . -name '__pycache__' -exec rm -fr {} +
+      clean-build:
+        shell: bash
+        help: Remove build artifacts
+        source: |-
+          rm -fr build/
+          rm -fr dist/
+          rm -fr .eggs/
+          find . -name '*.egg-info' -exec rm -fr {} +
+          find . -name '*.egg' -exec rm -f {} +
+      browser:
+        shell: python
+        source: |-
+          import os, webbrowser, sys
+          try:
+            from urllib import pathname2url
+          except:
+            from urllib.request import pathname2url
+          webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
+      coverage: 
+        shell: bash
+        help: Check code coverage quickly with the default Python
+        source: |-
+          coverage run --source ansible_taskrunner setup.py test
+          coverage report -m
+          coverage html
+          browser docs/_build/html/index.html
+      docs:
+        shell: bash
+        help: Generate Sphinx HTML documentation, including API docs
+        source: |-
+          rm -f docs/ansible_taskrunner.rst
+          rm -f docs/modules.rst
+          sphinx-apidoc -o docs/ ansible_taskrunner
+          $(MAKE) -C docs clean
+          $(MAKE) -C docs html
+          browser docs/_build/html/index.html
+      servedocs:
+        shell: bash
+        help: Compile the docs watching for changes
+        source: |-
+          watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+      test-quick:
+        shell: bash
+        help: Run tests quickly with the default Python
+        source: |-
+            tox
+      test-all:
+        shell: bash
+        source: |-
+            python setup.py test      
+      dist:
+        shell: bash
+        help: Builds source and wheel package
+        source: |-
+          python setup.py sdist
+          python setup.py bdist_wheel
+          ls -l dist        
+      release:
+        shell: bash
+        help: Package and upload a release
+        source: |-
+            twine upload dist/*
+      install:
+        shell: bash
+        help: Install the package to the active Python's site-packages
+        source: |-
+            python setup.py install
+      lint:
+        shell: bash
+        help: Check style with flake8
+        source: |-
+            flake8 ansible_taskrunner tests
+      clean:
+        shell: bash
+        help: Remove all build, test, coverage and Python artifacts
+        source: |-
+            echo Cleaning up build, pyc, and test artifacts ...
+            clean-build
+            clean-pyc
+            clean-test
+            echo 'Done!'    
+      binary.check:
+        shell: bash
+        hidden: true
+        source: |-
+          if ! [[ ($(type /usr/{,local/}{,s}bin/${1} 2> /dev/null)) || ($(which ${1})) ]];then
+            echo "This function requires ${1}, see installation instructions: ${2}"
+            return 1
+          fi          
+      init.libs:
+        shell: bash
+        hidden: true
+        source: |-
+          echo Checking for embedded library directories ...
+          for pyver in py2 py3;do
+            if ! test -d lib/${pyver};then 
+              echo lib/${pyver} not found, creating ...
+              mkdir lib/${pyver}
+              if ! $(conda info --envs | grep -v '^#' | awk '{print $1}' | grep -q $pyver);then 
+                echo Python environment $pyver not found, creating ... 
+                conda.env.create ${pyver} ${pyver: -1}
+              fi
+              echo Activating python virtual environment $pyver ...
+              source activate $pyver
+              echo Installing modules to embedded library folder lib/${pyver} ...
+              pip install -t lib/${pyver} -r ${workdir}/requirements.txt
+            fi
+          done        
+      make.release:
+        shell: bash
+        hidden: true
+        source: |-
+          if ! test -d ${__release_dir};then mkdir -p ${__release_dir};fi
+          mv -f tasks ${__release_dir}
+          if [[ -n $REPLACE_EXE ]];then
+            echo "Replacing current executable: $(which tasks)"
+            yes | cp ${__release_dir}/tasks $(which tasks)
+          fi     
+      make.zip:
+        shell: bash
+        hidden: true
+        source: |-
+          if [[ "$OSTYPE" =~ .*msys.* ]];then 
+            echo "OSType is Windows, nesting libdir ..."
+            if test -d windows;then 
+              rm -rf windows
+              mkdir windows
+            else
+              mkdir windows
+            fi
+            cp -r lib plugins windows
+            echo "Creating zip-app"
+            make-zipapp -f cli.py -X __pycache__ -x .pyc -d windows
+            if test -d windows;then rm -rf windows;fi
+          else
+            echo "OSType is most likely POSIX native"
+            echo "Creating zip-app"
+            make-zipapp -f cli.py -X __pycache__ -x .pyc
+          fi        
+      conda.env.create:
+        shell: bash
+        hidden: true
+        source: |-
+          if [ $# -lt 1 ]; then 
+            echo "Usage: ${FUNCNAME[0]} <virtualenv_name> [python_version](optional)"; 
+            return 1
+          fi
+          environment=$1
+          ver=${2-2.7}
+          conda create --name ${environment} python=$ver
+      build:
+        shell: bash
+        help: Build self-contained zip-app
+        source: |-
+          set -o errexit
+          cd ${app_dir}
+          echo Checking for conda ...
+          if ! binary.check conda https://www.continuum.io/downloads;then 
+            return 1
+          fi
+          echo Checking for make-zipapp ...
+          if ! binary.check make-zipapp https://github.com/berttejeda/make-zipapp;then 
+            return 1
+          fi
+          init.libs
+          __version=$(cat ${workdir}/VERSION)
+          echo "Version is ${__version}"
+          __release_dir=../release/${__version}
+          lint_result=$(python cli.py --help)
+          echo "Initial lint OK, proceeding with build"
+          make.zip
+          mv cli tasks
+          lint_result=$(./tasks --help)
+          echo "Initial lint OK, proceeding with release"
+          make.release
+          echo "Cleaning up"
+          rm -rf lib/py{2,3}
+          if [[ -n $deployment_host_and_path ]];then
+            echo "Pushing up"
+            scp_result=$(scp ${__release_dir}/tasks ${deployment_host_and_path})
+          fi
+  tasks:
+    - debug: 
+        msg: Done!
+...

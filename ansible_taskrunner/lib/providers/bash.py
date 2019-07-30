@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 try:
     import click
     from formatting import reindent
-    from yamlc import YamlCLIInvocation
+    from yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -69,4 +69,4 @@ class ProviderCLI:
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            YamlCLIInvocation().call(command)
+            CLIInvocation().call(command)

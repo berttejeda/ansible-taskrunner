@@ -17,7 +17,7 @@ try:
     else:
         from lib.py2 import click
     from lib.common.formatting import ansi_colors, reindent
-    from lib.common.yamlc import YamlCLIInvocation
+    from lib.common.yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -70,4 +70,4 @@ class ProviderCLI():
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            YamlCLIInvocation().call(command)
+            CLIInvocation().call(command)
