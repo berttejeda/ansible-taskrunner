@@ -156,6 +156,17 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # Bash functions
     bash_functions = []
     internal_functions = yaml_vars.get('functions', {})
+    # Append the special make_mode_engage bash function
+    internal_functions['make_mode_engage'] = {
+        'help': 'Engage Make Mode',
+        'shell': 'bash',
+        'hidden': 'true',
+        'source': '''
+            echo Make Mode Engaged
+            echo Invoking ${1}
+            ${1}
+            '''
+    }    
     for f in internal_functions:
         has_shell = yaml_vars['functions'][f].get('shell')
         source = yaml_vars['functions'][f].get('source')
@@ -276,15 +287,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     examples = yamlr.deep_get(yaml_vars, 'help.examples', '')
     examples_string = ''
     # Treat the make-mode internal bash functions
-    function_help_string = ''
-    internal_functions = yaml_vars.get('functions', {})
-    # Append the special make_mode_engage bash function
-    internal_functions['make_mode_engage'] = {
-        'help': 'Engage Make Mode',
-        'shell': 'bash',
-        'hidden': 'true',
-        'source': 'echo Make Mode Engaged\n${1}\n'
-    }    
+    function_help_string = ''    
     for f in internal_functions:
         if internal_functions[f].get('hidden') or \
         not internal_functions[f].get('help'):
