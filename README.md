@@ -610,6 +610,13 @@ There are three cli-providers built in to the tasks command:
 - bash
 - vagrant
 
+<a name="__tasks_file__"></a>
+### __tasks_file__
+
+The **__tasks_file__** variable points to the current Taskfile.
+
+It is available to the underlying subprocess shell.
+
 <a name="parameter_sets"></a>
 ## Parameter Sets
 
