@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 try:
     import click
     from formatting import ansi_colors, reindent
-    from yamlc import YamlCLIInvocation
+    from yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -124,7 +124,7 @@ class ProviderCLI:
                 print(pre_commands)
             print(ansible_command)
         else:
-            YamlCLIInvocation().call(command)
+            CLIInvocation().call(command)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
