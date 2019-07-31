@@ -124,13 +124,14 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
 
     # Create a dictionary object holding option help messages
     option_help_messages = {}
-    string_pattern = re.compile('(.*-.*)##(.*)')
-    for line in open(_tasks_file_normalized_path).readlines():
-      match = string_pattern.match(line)
-      if match:
-        opt = match.groups()[0].strip().split(':')[0]
-        oph = match.groups()[1].strip()
-        option_help_messages[opt] = oph
+    if os.path.exists(_tasks_file_normalized_path):
+        string_pattern = re.compile('(.*-.*)##(.*)')
+        for line in open(_tasks_file_normalized_path).readlines():
+          match = string_pattern.match(line)
+          if match:
+            opt = match.groups()[0].strip().split(':')[0]
+            oph = match.groups()[1].strip()
+            option_help_messages[opt] = oph
     # Instantiate the class for extending click options
     extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set, help_msg_map=option_help_messages)
     # Default variables
@@ -155,28 +156,31 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         )
     # Bash functions
     bash_functions = []
-    internal_functions = yaml_vars.get('functions', {})
-    # Append the special make_mode_engage bash function
-    internal_functions['make_mode_engage'] = {
-        'help': 'Engage Make Mode',
-        'shell': 'bash',
-        'hidden': 'true',
-        'source': '''
-            echo Make Mode Engaged
-            echo Invoking ${1}
-            ${1}
-            '''
-    }    
-    for f in internal_functions:
-        has_shell = yaml_vars['functions'][f].get('shell')
-        source = yaml_vars['functions'][f].get('source')
-        if has_shell and source:
-            f_shell = yaml_vars['functions'][f]['shell']
-            function_source = shell_invocation_mappings[f_shell].format(src=source)
-            bash_functions.append(
-                'function {fn}(){{\n{fs}\n}}'.format(
-                    fn=f, fs=function_source)
-            )
+    yaml_vars_functions = yaml_vars.get('functions', {})
+    internal_functions = {}
+    if yaml_vars_functions:
+        internal_functions = yaml_vars_functions
+        # Append the special make_mode_engage bash function
+        internal_functions['make_mode_engage'] = {
+            'help': 'Engage Make Mode',
+            'shell': 'bash',
+            'hidden': 'true',
+            'source': '''
+                echo Make Mode Engaged
+                echo Invoking ${1} function
+                ${1}
+                '''
+        }    
+        for f in internal_functions:
+            has_shell = yaml_vars['functions'][f].get('shell')
+            source = yaml_vars['functions'][f].get('source')
+            if has_shell and source:
+                f_shell = yaml_vars['functions'][f]['shell']
+                function_source = shell_invocation_mappings[f_shell].format(src=source)
+                bash_functions.append(
+                    'function {fn}(){{\n{fs}\n}}'.format(
+                        fn=f, fs=function_source)
+                )
 
     # Detect command provider
     global provider_cli
