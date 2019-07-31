@@ -172,10 +172,9 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
                 '''
         }    
         for f in internal_functions:
-            has_shell = yaml_vars['functions'][f].get('shell')
-            source = yaml_vars['functions'][f].get('source')
-            if has_shell and source:
-                f_shell = yaml_vars['functions'][f]['shell']
+            f_shell = yamlr.deep_get(yaml_vars, 'functions.%s.shell' % f, {})
+            source = yamlr.deep_get(yaml_vars, 'functions.%s.source' % f, {})
+            if f_shell and source:
                 function_source = shell_invocation_mappings[f_shell].format(src=source)
                 bash_functions.append(
                     'function {fn}(){{\n{fs}\n}}'.format(
@@ -293,8 +292,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # Treat the make-mode internal bash functions
     function_help_string = ''    
     for f in internal_functions:
-        if internal_functions[f].get('hidden') or \
-        not internal_functions[f].get('help'):
+        if yamlr.deep_get(internal_functions, '%s.hidden' % f, {}) or \
+        not yamlr.deep_get(internal_functions, '%s.help' % f, {}):
             continue
         f_help_string = internal_functions[f].get('help')
         function_help_string += '{fn}: {hs}\n'.format(fn=f, hs=f_help_string)        
