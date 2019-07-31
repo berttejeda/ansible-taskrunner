@@ -15,11 +15,24 @@
       localhost      
     required_parameters:
     optional_parameters:
-      -b: build ## Shortcut to the build make-style function
+      --pypi-username|-U: pypi_username ## Specify the username for authenticating against pypi.org
+      --pypi-password|-P: pypi_password ## Specify the password for authenticating against pypi.org
+      --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
+      -bz: build_zip ## Shortcut to the build_zip make-style function
+      -br: build_pypi_release ## Shortcut to the build_pypi_release make-style function
       -c: clean ## Shortcut to the clean make-style function
       -bp|--build-and-push: deployment_host_and_path ## Build and Deploy to Specified Host via SCP
-      -x|--replace-exe: REPLACE_EXE ## Replace exe (used with build)
+      --replace-exe: REPLACE_EXE ## Replace exe (used with build)
     functions:
+      clean:
+        shell: bash
+        help: Remove all build, test, coverage and Python artifacts
+        source: |-
+            echo Cleaning up build, pyc, and test artifacts ...
+            clean-build
+            clean-pyc
+            clean-test
+            echo 'Done!'      
       clean-test:
         shell: bash
         help: Remove test and coverage artifacts
@@ -79,18 +92,30 @@
         shell: bash
         source: |-
             python setup.py test      
+      build_pypi_release:
+        shell: bash
+        help: Calls dist and release make-style functions
+        source: |-
+          dist && release
       dist:
         shell: bash
         help: Builds source and wheel package
         source: |-
           python setup.py sdist
           python setup.py bdist_wheel
-          ls -l dist        
       release:
         shell: bash
         help: Package and upload a release
         source: |-
-            twine upload dist/*
+            if [[ (-n $pypi_username) && (-n pypi_password) ]];then
+              if [[ -n $pypi_repourl ]];then                
+                twine upload --repository-url ${pypi_repourl} dist/* -u ${username} -p ${password}
+              else
+                twine upload dist/* -u ${username} -p ${password}
+              fi
+            else
+              echo You must provide a username and password when attempting to push your package to pypi.org
+            fi
       install:
         shell: bash
         help: Install the package to the active Python's site-packages
@@ -100,16 +125,7 @@
         shell: bash
         help: Check style with flake8
         source: |-
-            flake8 ansible_taskrunner tests
-      clean:
-        shell: bash
-        help: Remove all build, test, coverage and Python artifacts
-        source: |-
-            echo Cleaning up build, pyc, and test artifacts ...
-            clean-build
-            clean-pyc
-            clean-test
-            echo 'Done!'    
+            flake8 ansible_taskrunner tests   
       check.exe:
         shell: bash
         hidden: true
@@ -137,7 +153,7 @@
               pip install -t lib/${pyver} -r ${workdir}/requirements.txt
             fi
           done        
-      make.release:
+      make.zip.release:
         shell: bash
         hidden: true
         source: |-
@@ -145,7 +161,7 @@
           mv -f tasks ${__release_dir}
           if [[ -n $REPLACE_EXE ]];then
             echo "Replacing current executable: $(which tasks)"
-            yes | cp ${__release_dir}/tasks $(which tasks)
+            pip install -U .
           fi     
       make.zip:
         shell: bash
@@ -179,7 +195,7 @@
           environment=$1
           ver=${2-2.7}
           conda create --name ${environment} python=$ver
-      build:
+      build_zip:
         shell: bash
         help: Build self-contained zip-app
         source: |-
@@ -202,8 +218,8 @@
           make.zip
           mv cli tasks
           lint_result=$(./tasks --help)
-          echo "Initial lint OK, proceeding with release"
-          make.release
+          echo "Initial lint OK, proceeding with zipapp release"
+          make.zip.release
           echo "Cleaning up"
           rm -rf lib/py{2,3}
           if [[ -n $deployment_host_and_path ]];then
