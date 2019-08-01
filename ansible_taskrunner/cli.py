@@ -320,7 +320,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     @click.option('---make', '---m', 'make_mode_engage', is_flag=False,
                   help='Call make-style function',
                   required=False)    
-    @click.option('---raw', '---r', is_flag=False,
+    @click.option('---raw', is_flag=False,
                   help='Specify raw options for underlying subprocess',
                   required=False)
     @click.option('---echo',
