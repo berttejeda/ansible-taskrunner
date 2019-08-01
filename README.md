@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Overview](#overview)
+- [TL;DR](#tldr)
 - [Use case and example](#use-case-and-example)
   - [Given](#given)
   - [Task](#task)
@@ -26,12 +27,13 @@
   - [Special Variables](#special-variables)
     - [ansible_playbook_command](#ansible_playbook_command)
     - [cli_provider](#cli_provider)
+    - [__tasks_file__](#__tasks_file__)
   - [Parameter Sets](#parameter-sets)
   - [Single-Executable Releases](#single-executable-releases)
 - [License and Credits](#license-and-credits)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
+<a name="top"></a>
 <a name="overview"></a>
 # Overview
 
@@ -46,9 +48,19 @@ The inspiration for the tool comes from the gnu make command, which operates in 
 - A Makefile defines available build steps
 - The make command consumes the Makefile at runtime and exposes these steps as command-line options
 
-Jump down to the [usage examples](#usage-examples) to see this in action.
+# TL;DR
 
-[Installation Instructions](#installation)
+- Ever wanted to add custom switches to the `ansible-playbook` command? Something like this:<br /> 
+`ansible-playbook -i myinventory.txt -d dbhost1 -w webhost1 -t value1 myplaybook.yaml`
+- Well, you can through the use of an ansible-playbook wrapper
+- That's where `tasks` comes in:<br />
+`tasks run -d dbhost1 -w webhost1 -t value1`<br />
+translates to:<br />
+`ansible-playbook -i /tmp/ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
+
+1. Jump down to the [usage examples](#usage-examples) to see this in action
+2. Review the [installation](#installation) instructions if you want to test-drive it
+3. Read on if you want to dig deeper into the tool
 
 <a name="use-case-and-example"></a>
 # Use case and example
@@ -103,12 +115,15 @@ Disadvantages:
 <a name="proposed-solution"></a>
 ## Proposed Solution
 
-Create ansible task runner that reads a specially formatted ansible playbook (Taskfile.yaml)
+Employ a pre-execution script that operates above the `ansible-playbook` command:
   - Accomplishes the same as the above, but in more uniform manner
-  - Each `tasks` playbook behaves like a command-line script
   - Support for command-line parameters/flags
   - Embedded dynamic inventory
   - Embedded shell functions
+  - Each `tasks` playbook 
+    - acts like a command-line script
+    - is a valid ansible playbook (Taskfile.yaml), and can thus be launched with the `ansible-playbook` command
+  - Variables available to the pre-execution phase are also available to the ansible execution phase
 
 Advantages to this approach:
 - Easier to manage
@@ -118,6 +133,7 @@ Advantages to this approach:
 Disadvantages:
 - Target ansible controller needs to have the `tasks` command installed
 
+[Back To Top](#top)
 <a name="technical-details"></a>
 # Technical Details
 
@@ -127,6 +143,7 @@ We create a specially formatted ansible-playbook that serves as a task definitio
 
 In the following sections, we'll be building a sample manifest/playbook named *Taskfile.yaml*
 
+[Back To Top](#top)
 <a name="add-hosts-designation"></a>
 ## Add hosts designation
 
@@ -143,6 +160,7 @@ In the following sections, we'll be building a sample manifest/playbook named *T
 
 </details>
 
+[Back To Top](#top)
 <a name="add-vars-key"></a>
 ## Add vars key
 
@@ -162,6 +180,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---defaults"></a>
 ## Populate the vars block - defaults
 
@@ -190,6 +209,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---cli-options"></a>
 ## Populate the vars block - cli options
 
@@ -265,6 +285,7 @@ More flexibility can be achieved through the use of [parameter sets](#parameter-
 
 See the [appendix](#parameter_set) for more information.
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---cli-options---mapped-variables"></a>
 ### Populate the vars block - cli options - mapped variables
 
@@ -323,6 +344,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---inventory"></a>
 ## Populate the vars block - inventory
 
@@ -454,6 +476,7 @@ will short-circuit normal operation and execute the corresponding functions in t
 
 For usage examples, see the [appendix](#usage-examples).
 
+[Back To Top](#top)
 <a name="add-tasks"></a>
 ## Add tasks
 
@@ -541,6 +564,7 @@ Quick usage examples:
 * Run the embedded functions `hello` and `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -A -PR`
 
+[Back To Top](#top)
 <a name="installation"></a>
 # Installation
 
@@ -583,6 +607,7 @@ Upon invoking the `tasks` command with the `--echo` flag, the underlying shell c
 
 `python ${HOME}/ansible_2.7.8/ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
 
+[Back To Top](#top)
 <a name="cli_provider"></a>
 ### cli_provider
 
@@ -617,6 +642,7 @@ The **__tasks_file__** variable points to the current Taskfile.
 
 It is available to the underlying subprocess shell.
 
+[Back To Top](#top)
 <a name="parameter_sets"></a>
 ## Parameter Sets
 
@@ -657,6 +683,7 @@ Another thing to note is that the parameter set you specify is tracked during ru
 
 You can use this behavior to detect when a given parameter set has been activated.
 
+[Back To Top](#top)
 <a name="single-executable-releases"></a>
 ## Single-Executable Releases
 
@@ -673,6 +700,7 @@ You can also build your own single-executable zipapp, as follows:
 
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
 
+[Back To Top](#top)
 <a name="license-and-credits"></a>
 # License and Credits
 
