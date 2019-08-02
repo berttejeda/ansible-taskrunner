@@ -2,8 +2,14 @@ import os
 import sys
 from subprocess import PIPE, Popen, STDOUT
 
+# Define how we handle different shell invocations
+shell_invocation_mappings = { 
+    'bash': '{src}',
+    'python': 'python -c """{src}"""',
+    'ruby': 'ruby < <(echo -e """{src}""")'
+}
 
-class YamlCLIInvocation:
+class CLIInvocation:
 
     def __init__(self):
         self.invocation = type('obj', (object,),
@@ -39,14 +45,14 @@ class YamlCLIInvocation:
                     return exe_file
         return None
 
-    def call(self, cmd):
+    def call(self, cmd, exe='bash'):
         """Call specified command using subprocess library"""
-        bash_binary = self.which('bash')
+        executable = self.which(exe)
         # Execute the command, catching failures
         try:
             if sys.version_info[0] >= 3:
                 # Invoke process and poll for new output until finished
-                with Popen([bash_binary, '-c', cmd], stdout=PIPE, stderr=STDOUT, bufsize=1, universal_newlines=True) as p:
+                with Popen([executable, '-c', cmd], stdout=PIPE, stderr=STDOUT, bufsize=1, universal_newlines=True) as p:
                     for line in p.stdout:
                         sys.stdout.write(line)  # process line here
                     if p.returncode != 0:
@@ -58,7 +64,7 @@ class YamlCLIInvocation:
             else:
                 # Invoke process
                 process = Popen(
-                    [bash_binary, '-c', cmd],
+                    [executable, '-c', cmd],
                     stdout=PIPE,
                     stderr=STDOUT)
                 # Poll for new output until finished

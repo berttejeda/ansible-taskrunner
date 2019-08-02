@@ -3,6 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Overview](#overview)
+- [TL;DR](#tldr)
 - [Use case and example](#use-case-and-example)
   - [Given](#given)
   - [Task](#task)
@@ -17,19 +18,27 @@
     - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
   - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
   - [Populate the vars block - inventory](#populate-the-vars-block---inventory)
-  - [Populate the vars block - embedded functions](#populate-the-vars-block---embedded-functions)
+  - [Populate the vars block - embedded make-style functions](#populate-the-vars-block---embedded-make-style-functions)
+    - [About make-style functions](#about-make-style-functions)
+      - [Bash example:](#bash-example)
+      - [Python example:](#python-example)
+      - [Ruby example:](#ruby-example)
   - [Add tasks](#add-tasks)
 - [Usage Examples](#usage-examples)
+- [Installation](#installation)
   - [More Examples](#more-examples)
 - [Appendix](#appendix)
   - [Special Variables](#special-variables)
     - [ansible_playbook_command](#ansible_playbook_command)
-    - [parameter_set](#parameter_set)
+    - [cli_provider](#cli_provider)
+    - [__ansible_extra_options](#__ansible_extra_options)
+    - [__tasks_file__](#__tasks_file__)
+  - [Parameter Sets](#parameter-sets)
   - [Single-Executable Releases](#single-executable-releases)
 - [License and Credits](#license-and-credits)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
+<a name="top"></a>
 <a name="overview"></a>
 # Overview
 
@@ -44,9 +53,19 @@ The inspiration for the tool comes from the gnu make command, which operates in 
 - A Makefile defines available build steps
 - The make command consumes the Makefile at runtime and exposes these steps as command-line options
 
-Jump down to the [usage examples](#usage-examples) to see this in action.
+# TL;DR
 
-[Installation Instructions](#installation)
+- Ever wanted to add custom switches to the `ansible-playbook` command? Something like this:<br /> 
+`ansible-playbook -i myinventory.txt -d dbhost1 -w webhost1 -t value1 myplaybook.yaml`
+- Well, you can through the use of an ansible-playbook wrapper
+- That's where `tasks` comes in:<br />
+`tasks run -d dbhost1 -w webhost1 -t value1`<br />
+translates to:<br />
+`ansible-playbook -i /tmp/ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
+
+1. Jump down to the [usage examples](#usage-examples) to see this in action
+2. Review the [installation](#installation) instructions if you want to test-drive it
+3. Read on if you want to dig deeper into the tool
 
 <a name="use-case-and-example"></a>
 # Use case and example
@@ -101,12 +120,11 @@ Disadvantages:
 <a name="proposed-solution"></a>
 ## Proposed Solution
 
-Create ansible task runner that reads a specially formatted ansible playbook (Taskfile.yaml)
+Employ a pre-execution script that operates above the `ansible-playbook` command:
   - Accomplishes the same as the above, but in more uniform manner
-  - Each `tasks` playbook behaves like a command-line script
-  - Support for command-line parameters/flags
+  - Support for custom command-line parameters/flags
   - Embedded dynamic inventory
-  - Embedded shell functions
+  - Embedded make-style shell functions
 
 Advantages to this approach:
 - Easier to manage
@@ -116,6 +134,7 @@ Advantages to this approach:
 Disadvantages:
 - Target ansible controller needs to have the `tasks` command installed
 
+[Back To Top](#top)
 <a name="technical-details"></a>
 # Technical Details
 
@@ -123,8 +142,15 @@ As stated in the [overview](#overview), this tool functions much like the *make*
 
 We create a specially formatted ansible-playbook that serves as a task definition file (by default, Taskfile.yaml).
 
+This task definition file:
+
+- Acts like a command-line script
+- Is a valid ansible playbook (Taskfile.yaml), and can thus be launched with the `ansible-playbook` command
+- Variables available to the pre-execution phase are also available to the ansible execution phase
+
 In the following sections, we'll be building a sample manifest/playbook named *Taskfile.yaml*
 
+[Back To Top](#top)
 <a name="add-hosts-designation"></a>
 ## Add hosts designation
 
@@ -141,6 +167,7 @@ In the following sections, we'll be building a sample manifest/playbook named *T
 
 </details>
 
+[Back To Top](#top)
 <a name="add-vars-key"></a>
 ## Add vars key
 
@@ -160,6 +187,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---defaults"></a>
 ## Populate the vars block - defaults
 
@@ -188,6 +216,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---cli-options"></a>
 ## Populate the vars block - cli options
 
@@ -213,14 +242,14 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
-      -l|--another-parameter: another_value
-      -A: hello
-      -PR: preflight_and_run
-      --debug-mode: debug_mode
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Shortcut to the hello make-style function
+      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      --debug-mode: debug_mode ## Enable debug mode
 ```   
 
 </details>
@@ -236,31 +265,34 @@ The syntax for the options is as follows:
 ```
 Options                                      | Mapped Variable
 -------------------------------------------- | ----------------------
--{{ short_option }}|--{{ long_option }}      | {{ mapped_variable }}
--{{ switch }}                                | {{ mapped_variable }} (boolean)
---{{ switch }}                               | {{ mapped_variable }} (boolean)
+-{{ short_option }}|--{{ long_option }}      | {{ mapped_variable }} ## {{ Help Text }}
+-{{ switch }}                                | {{ mapped_variable }} (boolean) ## {{ Help Text }}
+--{{ switch }}                               | {{ mapped_variable }} (boolean) ## {{ Help Text }}
 ```
 
-Essentially, any option whose key contains a pipe '|' character is evaluated as a click option, which means you must provide an argument to said option.
+Essentially, any option with a pipe '|' character in its name is evaluated as a click option, which means you must provide an argument to said option.
 
 Anything else is treated as a switch, which evaluates to `True` if specified, and undefined otherwise (unless you provide a default in your `vars` declaration).
 
-Examples:
+Also, an option's help text can be included alongside the mapped variable, and must conform to the following syntax: `## {{ HELP TEXT }}`
+
+More Examples:
 
 ```
 Options       | Mapped Variable
 ------------- | -------------
--f|--foo      | some_foo_variable
--b|--bar      | some_bar_variable
--F|--foo-bar  | some_other_variable
--a|--all-else | [remaining_args] (behaves like click's variadic arguments (nargs=*))
---some-option | some_switch (behaves like click switches, holds the value of True if specified)
+-f|--foo      | some_foo_variable ## This is some foo option
+-b|--bar      | some_bar_variable ## This is some bar option
+-F|--foo-bar  | some_other_variable ## This is some foo bar option
+-a|--all-else | [remaining_args] (behaves like click's variadic arguments (nargs=*)) ## This option will 'eat' up all remaining commandline arguments
+--some-option | some_switch (behaves like click switches, holds the value of True if specified) ## This is some boolean option
 ```
 
-More flexibility can be achieved through the use of parameter sets.
+More flexibility can be achieved through the use of [parameter sets](#parameter-sets).
 
 See the [appendix](#parameter_set) for more information.
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---cli-options---mapped-variables"></a>
 ### Populate the vars block - cli options - mapped variables
 
@@ -297,14 +329,14 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
-      -l|--another-parameter: another_value
-      -A: hello
-      -PR: preflight_and_run
-      --debug-mode: debug_mode
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Shortcut to the hello make-style function
+      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
         Do something against db and web hosts
@@ -319,6 +351,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
+[Back To Top](#top)
 <a name="populate-the-vars-block---inventory"></a>
 ## Populate the vars block - inventory
 
@@ -344,14 +377,14 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
-      -l|--another-parameter: another_value
-      -A: hello
-      -PR: preflight_and_run
-      --debug-mode: debug_mode
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Shortcut to the hello make-style function
+      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
         Do something against db and web hosts
@@ -375,11 +408,11 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
-<a name="populate-the-vars-block---embedded-functions"></a>
-## Populate the vars block - embedded functions
+<a name="populate-the-vars-block---embedded-make-style-functions"></a>
+## Populate the vars block - embedded make-style functions
 
 <details>
-  <summary>Add embedded functions: </summary>
+  <summary>Add embedded make-style functions: </summary>
 
 *Taskfile.yaml*
 
@@ -400,14 +433,14 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
-      -l|--another-parameter: another_value
-      -A: hello
-      -PR: preflight_and_run
-      --debug-mode: debug_mode
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Shortcut to the hello make-style function
+      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
         Do something against db and web hosts
@@ -430,10 +463,14 @@ Again, this variable is made available to the underlying subprocess call, and wi
     functions:
       hello:
         shell: bash
+        help: Say Hello
+        hidden: false
         source: |-
           echo hello
       preflight_and_run:
         shell: bash
+        help: Execute Preflight Tasks and Run
+        hidden: false
         source: |-
           echo 'Running Preflight Tasks!'
           tasks run -d dbhost1 -w webhost1 -t value1
@@ -443,13 +480,66 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 Notice the two switches `-A` and `-PR`.
 
-These map to the variables `hello` and `preflight_and_run`, respectively.
-
-Now, because these mappings have corresponding keys in the embedded `functions` stanza, specifying the options in your `tasks` invocation 
+These map to corresponding keys in the embedded `functions` stanza.
+As such, specifying the options in your `tasks` invocation 
 will short-circuit normal operation and execute the corresponding functions in the order you called them.
 
 For usage examples, see the [appendix](#usage-examples).
 
+<a name="about-make-style-functions"></a>
+### About make-style functions
+
+Let's briefly side-step into make-style functions 
+
+The syntax for nesting these under the _functions_ key is as follows:
+
+```
+      name_of_function:
+        shell: bash, ruby, or python
+        help: Help Text to Display
+        hidden: false/true
+        source: |-
+          {{ code }}
+```
+
+[Back To Top](#top)
+<a name="bash-example"></a>
+#### Bash example:
+
+```
+      hello:
+        shell: bash
+        help: Hello World in Bash
+        hidden: false
+        source: |-
+          echo 'Hello World!'
+```
+
+<a name="python-example"></a>
+#### Python example:
+
+```
+      hello:
+        shell: python
+        help: Hello World in Python
+        hidden: false
+        source: |-
+          print('Hello World!')
+```
+
+<a name="ruby-example"></a>
+#### Ruby example:
+
+```
+      hello:
+        shell: ruby
+        help: Hello World in Ruby
+        hidden: false
+        source: |-
+          puts 'Hello World!'
+```
+
+[Back To Top](#top)
 <a name="add-tasks"></a>
 ## Add tasks
 
@@ -475,14 +565,14 @@ For usage examples, see the [appendix](#usage-examples).
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
-      -l|--another-parameter: another_value
-      -A: hello
-      -PR: preflight_and_run
-      --debug-mode: debug_mode
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Shortcut to the hello make-style function
+      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
         Do something against db and web hosts
@@ -505,6 +595,8 @@ For usage examples, see the [appendix](#usage-examples).
     functions:
       hello:
         shell: bash
+        help: Say Hello
+        hidden: false
         source: |-
           echo hello
   tasks:
@@ -512,7 +604,6 @@ For usage examples, see the [appendix](#usage-examples).
         msg: |
           Hello from Ansible!
           You specified: {{ some_value }}
-          You specified: {{ another_value }}
 ```
 
 </details>
@@ -522,21 +613,26 @@ For usage examples, see the [appendix](#usage-examples).
 
 Quick usage examples:
 
-* Display help for main command
+* Display help for main command<br />
   `tasks --help`
-* Display help for the *run* subcommand
+* Display help for the *run* subcommand<br />
   `tasks run --help`
-* Don't do anything, just echo the underlying shell command
-  `tasks run -d dbhost1 -w webhost1 -t value1 --echo`
-  Result should be similar to:
+* Initialize your workspace<br />
+  `tasks init`<br />
+* Run the Tasksfile.yaml playbook, passing in additional options to the underlying subprocess<br />
+  `tasks run -d dbhost1 -w webhost1 -t value1 ---raw '-vvv'`</br>
+* Don't do anything, just echo the underlying shell command<br />
+  `tasks run -d dbhost1 -w webhost1 -t value1 ---echo`<br />
+  Result should be similar to:<br />
   `ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
-* Run the playbook
+* Run the Tasksfile.yaml playbook<br />
   `tasks run -d dbhost1 -w webhost1 -t value1`
-* Run the embedded function `preflight_and_run`
+* Run the embedded function `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -PR`
-* Run the embedded functions `hello` and `preflight_and_run`
+* Run the embedded functions `hello` and `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -A -PR`
 
+[Back To Top](#top)
 <a name="installation"></a>
 # Installation
 
@@ -575,12 +671,53 @@ As an example, suppose I define this variable in the above *Taskfile.yaml*, as f
     myvar3: myvalue3
     # ...
 ```
-Upon invoking the `tasks` command with the `--echo` flag, the underlying shell command would then be revealed as:
+Upon invoking the `tasks` command with the `---echo` flag, the underlying shell command would then be revealed as:
 
 `python ${HOME}/ansible_2.7.8/ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
 
-<a name="parameter_set"></a>
-### parameter_set
+[Back To Top](#top)
+<a name="cli_provider"></a>
+### cli_provider
+
+You can override the underlying command-line provider in two ways:
+
+- Via the tasks config file (see [examples](#examples))
+- By defining the variable *cli_provider* in the specified Taskfile
+
+As an example, suppose I define this variable in the above *Taskfile.yaml*, as follows:
+
+```
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  vars:
+    cli_provider: bash
+    # ...
+```
+
+Upon invoking the `tasks` command, you will note that the app no longer operates in an **ansible-playbook** mode, but rather as yaml-abstracted bash-script.
+
+There are three cli-providers built in to the tasks command:
+
+- ansible
+- bash
+- vagrant
+
+<a name="__ansible_extra_options"></a>
+### __ansible_extra_options
+
+Apart from utilizing the `---raw` flag, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **__ansible_extra_options** Environmental variable.
+
+<a name="__tasks_file__"></a>
+### __tasks_file__
+
+The **__tasks_file__** variable points to the current Taskfile.
+
+It is available to the underlying subprocess shell.
+
+[Back To Top](#top)
+<a name="parameter_sets"></a>
+## Parameter Sets
 
 What if you wanted to operate under multiple contexts?
 
@@ -602,9 +739,9 @@ Here's an example:
         -aws|--some-aws-option: aws_option
       gcp:
         -gcp|--some-gcp-option: gcp_option
-      -d|--db-hosts: dbhosts
-      -w|--web-hosts: webhosts
-      -t|--some-parameter: some_value
+      -d|--db-hosts: dbhosts ## Specify DB Host targets
+      -w|--web-hosts: webhosts ## Specify Web Host targets
+      -t|--some-parameter: some_value ## Specify some value
 ```
 
 Note the _aws_ and _gcp_ keys.
@@ -619,6 +756,7 @@ Another thing to note is that the parameter set you specify is tracked during ru
 
 You can use this behavior to detect when a given parameter set has been activated.
 
+[Back To Top](#top)
 <a name="single-executable-releases"></a>
 ## Single-Executable Releases
 
@@ -635,6 +773,7 @@ You can also build your own single-executable zipapp, as follows:
 
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
 
+[Back To Top](#top)
 <a name="license-and-credits"></a>
 # License and Credits
 
@@ -645,7 +784,7 @@ This project adopts the the MIT distribution License.
 - [click](https://github.com/pallets/click), licensed under BSD-3-Clause
 - [pyYaml](https://github.com/yaml/pyyaml), licensed under MIT
 
-Lastly, this package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+Lastly, this package was created with Cookiecutter and the `audreyr/cookiecutter-pypackage` project template.
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+- Cookiecutter: https://github.com/audreyr/cookiecutter
+- audreyr/cookiecutter-pypackage: https://github.com/audreyr/cookiecutter-pypackage

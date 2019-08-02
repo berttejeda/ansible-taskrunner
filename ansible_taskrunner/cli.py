@@ -4,6 +4,7 @@ from __future__ import print_function
 import logging
 import logging.handlers
 import os
+import re
 import sys
 
 # For zip-app
@@ -40,7 +41,8 @@ try:
     from click_extras import ExtendedEpilog
     from click_extras import ExtendedHelp
     from click_extras import ExtendCLI
-    from yamlc import YamlCLIInvocation
+    from yamlc import shell_invocation_mappings
+    from yamlc import CLIInvocation
     from yamlr import YamlReader
     # TODO
     # Employ language/regional options    
@@ -69,7 +71,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '0.0.18'
+__version__ = '1.0.0'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -94,15 +96,95 @@ config = superconf.load_config(config_file)
 
 def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # We'll pass this down to the run invocation
-    global _param_set
+    global _param_set 
+    global _tasks_file_normalized_path
     _param_set = param_set
+
+    # Parameter set var (if it has been specified)
+    paramset_var = "parameter_set=%s" % (
+        _param_set if _param_set else 'False')
+
+    _tasks_file_normalized_path = os.path.normpath(os.path.expanduser(tasks_file))
 
     # Instantiate YAML Reader Class
     yamlr = YamlReader()
+    # Instantiate the cli invocation class
+    yamlcli = CLIInvocation()
+    # Load Tasks Manifest
+    yaml_input_file = tasks_file
+    if os.path.exists(yaml_input_file):
+        yaml_data = superconf.load_config(yaml_input_file, data_key=0)
+    else:
+        logger.warning(
+            "Couln't find %s or any other Tasks Manifest" % yaml_input_file
+        )
+        yaml_data = {}
+    # Extend CLI Options as per Tasks Manifest
+    yaml_vars = yamlr.get(yaml_data, path_string)    
 
-    global provider_cli
+    # Create a dictionary object holding option help messages
+    option_help_messages = {}
+    if os.path.exists(_tasks_file_normalized_path):
+        string_pattern = re.compile('(.*-.*)##(.*)')
+        for line in open(_tasks_file_normalized_path).readlines():
+          match = string_pattern.match(line)
+          if match:
+            opt = match.groups()[0].strip().split(':')[0]
+            oph = match.groups()[1].strip()
+            option_help_messages[opt] = oph
+    # Instantiate the class for extending click options
+    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set, help_msg_map=option_help_messages)
+    # Default variables
+    default_vars = dict(
+        [(key, value) for key, value in yaml_vars.items()
+         if not isinstance(value, dict)])
+    # List-type variables
+    list_vars = []
+    for var in default_vars:
+        if isinstance(default_vars[var], list):
+            list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
+                k=var, v='\n'.join(default_vars[var])))
+    # String-type variables
+    defaults_string_vars = []
+    for var in default_vars:
+        if isinstance(default_vars[var], str):
+            defaults_string_vars.append(
+                '{k}="""{v}"""'.format(k=var, v=default_vars[var]))
+    # Append the __tasks_file variable to the above list
+    defaults_string_vars.append(
+        '__tasks_file__=%s' % _tasks_file_normalized_path
+        )
+    # Bash functions
+    bash_functions = []
+    yaml_vars_functions = yaml_vars.get('functions', {})
+    internal_functions = {}
+    if yaml_vars_functions:
+        internal_functions = yaml_vars_functions
+        # Append the special make_mode_engage bash function
+        internal_functions['make_mode_engage'] = {
+            'help': 'Engage Make Mode',
+            'shell': 'bash',
+            'hidden': 'true',
+            'source': '''
+                echo Make Mode Engaged
+                echo Invoking ${1} function
+                ${1}
+                '''
+        }    
+        for f in internal_functions:
+            f_shell = yamlr.deep_get(yaml_vars, 'functions.%s.shell' % f, {})
+            source = yamlr.deep_get(yaml_vars, 'functions.%s.source' % f, {})
+            if f_shell and source:
+                function_source = shell_invocation_mappings[f_shell].format(src=source)
+                bash_functions.append(
+                    'function {fn}(){{\n{fs}\n}}'.format(
+                        fn=f, fs=function_source)
+                )
+
     # Detect command provider
+    global provider_cli
     cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
+    cli_provider = yaml_vars.get('cli_provider', cli_provider)
     if cli_provider == 'bash':
         from providers import bash as bash_cli
         provider_cli = bash_cli.ProviderCLI()
@@ -112,22 +194,6 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     else:
         from providers import ansible as ansible_cli
         provider_cli = ansible_cli.ProviderCLI()
-
-    # Load Tasks Manifest
-    yaml_input_file = tasks_file
-    yaml_path_string = path_string
-    if os.path.exists(yaml_input_file):
-        yaml_data = superconf.load_config(yaml_input_file, data_key=0)
-    else:
-        logger.warning(
-            "Couln't find %s or any other Tasks Manifest" % yaml_input_file
-        )
-        yaml_data = {}
-
-    # Extend CLI Options as per Tasks Manifest
-    yaml_vars = yamlr.get(yaml_data, yaml_path_string)
-    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set)
-
     # Activate any plugins if found
     if os.path.isdir("plugins/providers"):
         import plugins
@@ -139,6 +205,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         for provider in plugins.providers:
             provider_cli = provider.ProviderCLI()
 
+    # Main CLI interface
     click_help = """\b
     Ansible Taskrunner - ansible-playbook wrapper
     - YAML-abstracted python click cli options
@@ -186,7 +253,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         logger.debug('Debug Mode Enabled, keeping any generated temp files')
         return 0
 
-    # Examples command
+    # Init command
     @cli.command(help='Initialize local directory with sample files')
     @click.version_option(version=__version__)
     @click.option('--show-samples', '-m', is_flag=True,
@@ -216,11 +283,20 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
                 logger.info(
                     'File exists, not writing manifest %s' % tasks_file)
 
+    # Run command
     # Parse help documentation
     help_string = yamlr.deep_get(yaml_vars, 'help.message', '')
     epilog_string = yamlr.deep_get(yaml_vars, 'help.epilog', '')
     examples = yamlr.deep_get(yaml_vars, 'help.examples', '')
     examples_string = ''
+    # Treat the make-mode internal bash functions
+    function_help_string = ''    
+    for f in internal_functions:
+        if yamlr.deep_get(internal_functions, '%s.hidden' % f, {}) or \
+        not yamlr.deep_get(internal_functions, '%s.help' % f, {}):
+            continue
+        f_help_string = internal_functions[f].get('help')
+        function_help_string += '{fn}: {hs}\n'.format(fn=f, hs=f_help_string)        
     if isinstance(examples, list):
         for example in examples:
             if isinstance(example, dict):
@@ -232,17 +308,22 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     {ep}
     Examples:
     {ex}
-    '''.format(ep=epilog_string, ex=examples_string)
+    Available make-style functions:
+    {fh}
+    '''.format(ep=epilog_string, 
+        ex=examples_string, 
+        fh=function_help_string)
     epilog = reindent(epilog, 0)
-
-    # Run command
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
-    @click.option('---raw', '---r', is_flag=False,
+    @click.option('---make', '---m', 'make_mode_engage', is_flag=False,
+                  help='Call make-style function',
+                  required=False)    
+    @click.option('---raw', is_flag=False,
                   help='Specify raw options for underlying subprocess',
                   required=False)
-    @click.option('--echo',
+    @click.option('---echo',
                   is_flag=True,
                   help='Don\'t run, simply echo underlying commands')
     @extend_cli.options
@@ -250,56 +331,24 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     def run(args=None, **kwargs):
         # Process Raw Args
         raw_args = kwargs['_raw'] if kwargs.get('_raw') else ''
-        # Instantiate the cli invocation class
-        yamlcli = YamlCLIInvocation()
+        # Process run args, if any
         args = ' '.join(args) if args else ''
         # Initialize values for subshell
-        prefix = 'echo' if kwargs.get('echo') else ''
-        # Default variables
-        default_vars = dict(
-            [(key, value) for key, value in yaml_vars.items()
-             if not isinstance(value, dict)])
-        # Parameter set var (if it has been specified)
-        paramset_var = "parameter_set=%s" % (
-            _param_set if _param_set else 'False')
-        # List-type variables
-        list_vars = []
-        for var in default_vars:
-            if isinstance(default_vars[var], list):
-                list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
-                    k=var, v='\n'.join(default_vars[var])))
-        # String-type variables
-        defaults_string_vars = []
-        for var in default_vars:
-            if isinstance(default_vars[var], str):
-                defaults_string_vars.append(
-                    '{k}="""{v}"""'.format(k=var, v=default_vars[var]))
-                # Bash functions
-        bash_functions = []
-        functions = yaml_vars.get('functions', {})
-        for f in functions:
-            has_shell = yaml_vars['functions'][f].get('shell')
-            source = yaml_vars['functions'][f].get('source')
-            if has_shell and source:
-                if yaml_vars['functions'][f]['shell'] == 'bash':
-                    bash_functions.append(
-                        'function {fn}(){{\n{fs}\n}}'.format(
-                            fn=f, fs=source)
-                    )
-                    # Gather variables from commandline for interpolation
+        prefix = 'echo' if kwargs.get('_echo') else ''
+        # Gather variables from commandline for interpolation
         cli_vars = ''
         for key, value in kwargs.items():
-            if value and key not in functions.keys():
+            if value and key not in internal_functions.keys():
                 if isinstance(value, list) or isinstance(value, tuple):
                     list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
                         k=key, v='\n'.join(value)))
                 else:
                     cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
-        cli_functions = ['{k} {v}'.format(
-            k=key, v=value) for key, value in kwargs.items() if
-                         value and key in functions.keys()]
         # Short-circuit the task runner
         # if we're calling functions from the commandline
+        cli_functions = ['{k} {v}'.format(
+            k=key, v=value) for key, value in kwargs.items() if
+                         value and key in internal_functions.keys()]
         if cli_functions:
             for cli_function in cli_functions:
                 command = '''
@@ -310,17 +359,17 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
                 {bfn}
                 {clf} {arg} {raw}
                 '''.format(
-                    dsv='\n'.join(defaults_string_vars),
-                    psv=paramset_var,
-                    dlv='\n'.join(list_vars),
-                    clv=cli_vars,
+                    dsv=reindent('\n'.join(defaults_string_vars), 0),
+                    psv=reindent(paramset_var,0),
+                    dlv=reindent('\n'.join(list_vars),0 ),
+                    clv=reindent(cli_vars,0 ),
                     bfn='\n'.join(bash_functions),
                     clf=cli_function,
                     arg=args,
                     raw=raw_args
                 )
                 if prefix == 'echo':
-                    print(reindent(command, 0))
+                    print(command)
                 else:
                     yamlcli.call(command)
         else:
@@ -403,9 +452,6 @@ def entrypoint():
                 quit(ERR_ARGS_TASKF_OVERRIDE.format(script=script_name))
         else:
             sys.exit(main(sys.argv[1:]))
-
-        # CLI entry point
-
 
 if __name__ == '__main__':
     entrypoint()

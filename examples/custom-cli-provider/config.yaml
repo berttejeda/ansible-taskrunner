@@ -1,0 +1,5 @@
+---
+cli:
+  providers:
+    default: example
+...

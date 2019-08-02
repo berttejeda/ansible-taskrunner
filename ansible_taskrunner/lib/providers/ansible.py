@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 try:
     import click
     from formatting import ansi_colors, reindent
-    from yamlc import YamlCLIInvocation
+    from yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -85,26 +85,32 @@ class ProviderCLI:
             '-e {k}="{v}"'.format(k=key, v=value) for key, value in kwargs.items() if value]
         ansible_extra_options.append('-e %s' % paramset_var)
         # Build command string
+        inventory_command = '''
+            if [[ ($inventory) && ( '{emb}' == 'True') ]];then
+              echo -e """{ins}""" | while read line;do
+                  eval "echo -e ${{line}}" >> "{inf}"
+              done
+            fi
+            '''.format(
+                emb=embedded_inventory,
+                ins=inventory_input,
+                inf=ansible_inventory_file_path,
+                )
+        inventory_command = reindent(inventory_command,0)
         pre_commands = '''
         {anc}
         {dsv}
         {dlv}
         {clv}
         {bfn}
-        if [[ ($inventory) && ( '{emb}' == 'True') ]];then
-          echo -e """{ins}""" | while read line;do
-              eval "echo -e ${{line}}" >> "{inf}"
-          done
-        fi
+        {inc}
         '''.format(
             anc=ansi_colors,
             dlv='\n'.join(list_vars),
             dsv='\n'.join(string_vars),
             clv=cli_vars,
             bfn='\n'.join(bash_functions),
-            ins=inventory_input,
-            inf=ansible_inventory_file_path,
-            emb=embedded_inventory,
+            inc=inventory_command,
             deb=debug
         )
         ansible_command = '''
@@ -122,9 +128,12 @@ class ProviderCLI:
         if prefix == 'echo':
             if debug:
                 print(pre_commands)
-            print(ansible_command)
+                print(ansible_command)
+            else:
+                print(inventory_command)
+                print(ansible_command)
         else:
-            YamlCLIInvocation().call(command)
+            CLIInvocation().call(command)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
