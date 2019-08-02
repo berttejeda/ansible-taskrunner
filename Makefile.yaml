@@ -19,7 +19,7 @@
       --pypi-password|-P: pypi_password ## Specify the password for authenticating against pypi.org
       --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
       -bz: build_zip ## Shortcut to the build_zip make-style function
-      -br: build_pypi_release ## Shortcut to the build_pypi_release make-style function
+      -br: pypi ## Shortcut to the pypi make-style function
       -c: clean ## Shortcut to the clean make-style function
       -bp|--build-and-push: deployment_host_and_path ## Build and Deploy to Specified Host via SCP
       --replace-exe: REPLACE_EXE ## Replace exe (used with build)
@@ -92,7 +92,7 @@
         shell: bash
         source: |-
             python setup.py test      
-      build_pypi_release:
+      pypi:
         shell: bash
         help: Calls dist and release make-style functions
         source: |-
@@ -126,7 +126,7 @@
         help: Check style with flake8
         source: |-
             flake8 ansible_taskrunner tests   
-      check.exe:
+      check_exe:
         shell: bash
         hidden: true
         source: |-
@@ -134,7 +134,7 @@
             echo "This function requires ${1}, see installation instructions: ${2}"
             return 1
           fi          
-      init.libs:
+      init_libs:
         shell: bash
         hidden: true
         source: |-
@@ -145,7 +145,7 @@
               mkdir lib/${pyver}
               if ! $(conda info --envs | grep -v '^#' | awk '{print $1}' | grep -q $pyver);then 
                 echo Python environment $pyver not found, creating ... 
-                conda.env.create ${pyver} ${pyver: -1}
+                conda_env_create ${pyver} ${pyver: -1}
               fi
               echo Activating python virtual environment $pyver ...
               source activate $pyver
@@ -153,7 +153,7 @@
               pip install -t lib/${pyver} -r ${workdir}/requirements.txt
             fi
           done        
-      make.zip.release:
+      make_zip_release:
         shell: bash
         hidden: true
         source: |-
@@ -163,7 +163,7 @@
             echo "Replacing current executable: $(which tasks)"
             pip install -U .
           fi     
-      make.zip:
+      make_zip:
         shell: bash
         hidden: true
         source: |-
@@ -184,7 +184,7 @@
             echo "Creating zip-app"
             make-zipapp -f cli.py -X __pycache__ -x .pyc
           fi        
-      conda.env.create:
+      conda_env_create:
         shell: bash
         hidden: true
         source: |-
@@ -195,31 +195,31 @@
           environment=$1
           ver=${2-2.7}
           conda create --name ${environment} python=$ver
-      build_zip:
+      zipapp:
         shell: bash
         help: Build self-contained zip-app
         source: |-
           set -o errexit
           cd ${app_dir}
           echo Checking for conda ...
-          if ! check.exe conda https://www.continuum.io/downloads;then 
+          if ! check_exe conda https://www.continuum.io/downloads;then 
             return 1
           fi
           echo Checking for make-zipapp ...
-          if ! check.exe make-zipapp https://github.com/berttejeda/make-zipapp;then 
+          if ! check_exe make-zipapp https://github.com/berttejeda/make-zipapp;then 
             return 1
           fi
-          init.libs
+          init_libs
           __version=$(cat ${workdir}/VERSION)
           echo "Version is ${__version}"
           __release_dir=../release/${__version}
           lint_result=$(python cli.py --help)
           echo "Initial lint OK, proceeding with build"
-          make.zip
+          make_zip
           mv cli tasks
           lint_result=$(./tasks --help)
           echo "Initial lint OK, proceeding with zipapp release"
-          make.zip.release
+          make_zip_release
           echo "Cleaning up"
           rm -rf lib/py{2,3}
           if [[ -n $deployment_host_and_path ]];then
