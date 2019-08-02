@@ -453,8 +453,5 @@ def entrypoint():
         else:
             sys.exit(main(sys.argv[1:]))
 
-        # CLI entry point
-
-
 if __name__ == '__main__':
     entrypoint()
