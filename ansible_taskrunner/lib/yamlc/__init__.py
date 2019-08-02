@@ -4,8 +4,9 @@ from subprocess import PIPE, Popen, STDOUT
 
 # Define how we handle different shell invocations
 shell_invocation_mappings = { 
+    'bash': '{src}',
     'python': 'python -c """{src}"""',
-    'bash': '{src}'
+    'ruby': 'ruby < <(echo -e """{src}""")'
 }
 
 class CLIInvocation:
