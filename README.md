@@ -18,7 +18,11 @@
     - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
   - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
   - [Populate the vars block - inventory](#populate-the-vars-block---inventory)
-  - [Populate the vars block - embedded functions](#populate-the-vars-block---embedded-functions)
+  - [Populate the vars block - embedded make-style functions](#populate-the-vars-block---embedded-make-style-functions)
+    - [About make-style functions](#about-make-style-functions)
+      - [Bash example:](#bash-example)
+      - [Python example:](#python-example)
+      - [Ruby example:](#ruby-example)
   - [Add tasks](#add-tasks)
 - [Usage Examples](#usage-examples)
 - [Installation](#installation)
@@ -27,6 +31,7 @@
   - [Special Variables](#special-variables)
     - [ansible_playbook_command](#ansible_playbook_command)
     - [cli_provider](#cli_provider)
+    - [__ansible_extra_options](#__ansible_extra_options)
     - [__tasks_file__](#__tasks_file__)
   - [Parameter Sets](#parameter-sets)
   - [Single-Executable Releases](#single-executable-releases)
@@ -117,13 +122,9 @@ Disadvantages:
 
 Employ a pre-execution script that operates above the `ansible-playbook` command:
   - Accomplishes the same as the above, but in more uniform manner
-  - Support for command-line parameters/flags
+  - Support for custom command-line parameters/flags
   - Embedded dynamic inventory
-  - Embedded shell functions
-  - Each `tasks` playbook 
-    - acts like a command-line script
-    - is a valid ansible playbook (Taskfile.yaml), and can thus be launched with the `ansible-playbook` command
-  - Variables available to the pre-execution phase are also available to the ansible execution phase
+  - Embedded make-style shell functions
 
 Advantages to this approach:
 - Easier to manage
@@ -140,6 +141,12 @@ Disadvantages:
 As stated in the [overview](#overview), this tool functions much like the *make* command in that it accepts an input file that essentially extends its cli options.
 
 We create a specially formatted ansible-playbook that serves as a task definition file (by default, Taskfile.yaml).
+
+This task definition file:
+
+- Acts like a command-line script
+- Is a valid ansible playbook (Taskfile.yaml), and can thus be launched with the `ansible-playbook` command
+- Variables available to the pre-execution phase are also available to the ansible execution phase
 
 In the following sections, we'll be building a sample manifest/playbook named *Taskfile.yaml*
 
@@ -401,11 +408,11 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
-<a name="populate-the-vars-block---embedded-functions"></a>
-## Populate the vars block - embedded functions
+<a name="populate-the-vars-block---embedded-make-style-functions"></a>
+## Populate the vars block - embedded make-style functions
 
 <details>
-  <summary>Add embedded functions: </summary>
+  <summary>Add embedded make-style functions: </summary>
 
 *Taskfile.yaml*
 
@@ -456,10 +463,14 @@ Again, this variable is made available to the underlying subprocess call, and wi
     functions:
       hello:
         shell: bash
+        help: Say Hello
+        hidden: false
         source: |-
           echo hello
       preflight_and_run:
         shell: bash
+        help: Execute Preflight Tasks and Run
+        hidden: false
         source: |-
           echo 'Running Preflight Tasks!'
           tasks run -d dbhost1 -w webhost1 -t value1
@@ -469,12 +480,64 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 Notice the two switches `-A` and `-PR`.
 
-These map to the variables `hello` and `preflight_and_run`, respectively.
-
-Now, because these mappings have corresponding keys in the embedded `functions` stanza, specifying the options in your `tasks` invocation 
+These map to corresponding keys in the embedded `functions` stanza.
+As such, specifying the options in your `tasks` invocation 
 will short-circuit normal operation and execute the corresponding functions in the order you called them.
 
 For usage examples, see the [appendix](#usage-examples).
+
+<a name="about-make-style-functions"></a>
+### About make-style functions
+
+Let's briefly side-step into make-style functions 
+
+The syntax for nesting these under the _functions_ key is as follows:
+
+```
+      name_of_function:
+        shell: bash, ruby, or python
+        help: Help Text to Display
+        hidden: false/true
+        source: |-
+          {{ code }}
+```
+
+[Back To Top](#top)
+<a name="bash-example"></a>
+#### Bash example:
+
+```
+      hello:
+        shell: bash
+        help: Hello World in Bash
+        hidden: false
+        source: |-
+          echo 'Hello World!'
+```
+
+<a name="python-example"></a>
+#### Python example:
+
+```
+      hello:
+        shell: python
+        help: Hello World in Python
+        hidden: false
+        source: |-
+          print('Hello World!')
+```
+
+<a name="ruby-example"></a>
+#### Ruby example:
+
+```
+      hello:
+        shell: ruby
+        help: Hello World in Ruby
+        hidden: false
+        source: |-
+          puts 'Hello World!'
+```
 
 [Back To Top](#top)
 <a name="add-tasks"></a>
@@ -532,6 +595,8 @@ For usage examples, see the [appendix](#usage-examples).
     functions:
       hello:
         shell: bash
+        help: Say Hello
+        hidden: false
         source: |-
           echo hello
   tasks:
@@ -539,7 +604,6 @@ For usage examples, see the [appendix](#usage-examples).
         msg: |
           Hello from Ansible!
           You specified: {{ some_value }}
-          You specified: {{ another_value }}
 ```
 
 </details>
@@ -553,11 +617,15 @@ Quick usage examples:
   `tasks --help`
 * Display help for the *run* subcommand<br />
   `tasks run --help`
+* Initialize your workspace<br />
+  `tasks init`<br />
+* Run the Tasksfile.yaml playbook, passing in additional options to the underlying subprocess<br />
+  `tasks run -d dbhost1 -w webhost1 -t value1 ---raw '-vvv'`</br>
 * Don't do anything, just echo the underlying shell command<br />
-  `tasks run -d dbhost1 -w webhost1 -t value1 --echo`<br />
+  `tasks run -d dbhost1 -w webhost1 -t value1 ---echo`<br />
   Result should be similar to:<br />
   `ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
-* Run the playbook<br />
+* Run the Tasksfile.yaml playbook<br />
   `tasks run -d dbhost1 -w webhost1 -t value1`
 * Run the embedded function `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -PR`
@@ -603,7 +671,7 @@ As an example, suppose I define this variable in the above *Taskfile.yaml*, as f
     myvar3: myvalue3
     # ...
 ```
-Upon invoking the `tasks` command with the `--echo` flag, the underlying shell command would then be revealed as:
+Upon invoking the `tasks` command with the `---echo` flag, the underlying shell command would then be revealed as:
 
 `python ${HOME}/ansible_2.7.8/ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
 
@@ -634,6 +702,11 @@ There are three cli-providers built in to the tasks command:
 - ansible
 - bash
 - vagrant
+
+<a name="__ansible_extra_options"></a>
+### __ansible_extra_options
+
+Apart from utilizing the `---raw` flag, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **__ansible_extra_options** Environmental variable.
 
 <a name="__tasks_file__"></a>
 ### __tasks_file__
