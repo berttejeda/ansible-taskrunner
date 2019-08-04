@@ -746,7 +746,7 @@ Here's an example:
 
 Note the _aws_ and _gcp_ keys.
 
-You'll notice that the output of `--help` will change depending on which parameters set you specify, e.g.
+You'll notice that the output of `--help` will change depending on which parameter set you specify, e.g.
 
 `tasks aws run --help`
 
@@ -768,8 +768,8 @@ You can also build your own single-executable zipapp, as follows:
 
 1. Make sure you have the [make-zipapp](https://github.com/berttejeda/make-zipapp) executable in your path
 1. Invoking build tasks
-  - Build zipapp: `./tasks.py -f build.yaml run -b`
-  - Build zipapp and push to remote host (via scp): `./tasks.py -f build.yaml run -b -bp someserver.somedomain.local:/home/${USER-USERNAME}`
+  - Build zipapp: `python ansible_taskrunner/cli.py -f Makefile.yaml run ---make zipapp`
+  - Build zipapp and push to remote host (via scp): `python ansible_taskrunner/cli.py -f Makefile.yaml run ---make zipapp -bp someserver.somedomain.local:/home/${USER-USERNAME}`
 
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
 
