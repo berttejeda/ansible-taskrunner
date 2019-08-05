@@ -4,7 +4,7 @@
 
 - [Bash Example](#bash-example)
 - [Exercises](#exercises)
-  - [Obtain Project Files](#obtain-project-files)
+  - [Install and Obtain Project Files](#install-and-obtain-project-files)
   - [Ping Google Function](#ping-google-function)
 - [Learning Points](#learning-points)
 - [Caveats](#caveats)
@@ -14,22 +14,56 @@
 <a name="bash-example"></a>
 # Bash Example
 
-The Tasksfile here consists of an ansible playbook that has been repurposed as a bastardized bash script.
+The Taskfile here consists of an ansible playbook that has been repurposed as a bastardized bash script.
 
 Essentially, it's a stripped down ansible playbook that holds bash functions represented in YAML syntax.
 
 <a name="exercises"></a>
 # Exercises
 
-<a name="obtain-project-files"></a>
-## Obtain Project Files
+<a name="install-and-obtain-project-files"></a>
+## Install and Obtain Project Files
 
+* `pip install ansible-taskrunner` OR<br />
+* `pip install git+https://github.com/berttejeda/ansible-taskrunner.git` OR<br />
 * Download the latest [release](https://github.com/berttejeda/ansible-taskrunner/releases)<br />
 * Clone the git repository and navigate to the example<br />
 
 ```
 git clone https://github.com/berttejeda/ansible-taskrunner.git
 cd ansible-taskrunner/exercises/bash
+```
+
+<a name="display-usage"></a>
+## Display Usage
+
+`tasks run --help`
+
+```
+This is essentially a stripped down ansible playbook that holds bash functions
+represented in YAML syntax
+The neat part about this is that you get to easily adjust cli options for your
+YAML-organized Bash script :)
+
+Options:
+  --version                Show the version and exit.
+  ---make, ---m TEXT       Call make-style function
+  ---raw TEXT              Specify raw options for underlying subprocess
+  ---echo                  Don't run, simply echo underlying commands
+  --ping-google            Invoke the 'ping_google' make-style function
+  -h, --target-hosts TEXT  Specify target hosts to ping
+  --help                   Show this message and exit.
+
+
+None
+Examples:
+- You want to ping google's dns servers:
+tasks run -h 8.8.8.8
+- You want to run the ping_google embedded function:
+tasks run --ping-google
+
+Available make-style functions:
+ping_google: Ping Google's DNS Server
 ```
 
 <a name="ping-google-function"></a>

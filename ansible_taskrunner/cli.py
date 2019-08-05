@@ -336,7 +336,11 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         # Initialize values for subshell
         prefix = 'echo' if kwargs.get('_echo') else ''
         # Gather variables from commandline for interpolation
-        cli_vars = ''
+        provider_vars = ''
+        for key, value in kwargs.items():
+            if key.startswith('_'):
+                provider_vars += '{k}="{v}"\n'.format(k=key, v=value)
+        cli_vars = provider_vars
         for key, value in kwargs.items():
             if value and key not in internal_functions.keys():
                 if isinstance(value, list) or isinstance(value, tuple):

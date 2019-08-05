@@ -18,10 +18,10 @@
       --pypi-username|-U: pypi_username ## Specify the username for authenticating against pypi.org
       --pypi-password|-P: pypi_password ## Specify the password for authenticating against pypi.org
       --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
-      -bz: build_zip ## Shortcut to the build_zip make-style function
-      -br: pypi ## Shortcut to the pypi make-style function
-      -c: clean ## Shortcut to the clean make-style function
-      -bp|--build-and-push: deployment_host_and_path ## Build and Deploy to Specified Host via SCP
+      -bz: build_zip ## Invoke the 'build_zip' make-style function
+      -br: pypi ## Invoke the 'pypi' make-style function
+      -c: clean ## Invoke the 'clean' make-style function
+      -dp|--deploy: deployment_host_and_path ## Specify host:/path to deploy tasks zipapp to via SCP
       --replace-exe: REPLACE_EXE ## Replace exe (used with build)
     functions:
       clean:

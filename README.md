@@ -247,8 +247,8 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Shortcut to the hello make-style function
-      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
       --debug-mode: debug_mode ## Enable debug mode
 ```   
 
@@ -334,8 +334,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Shortcut to the hello make-style function
-      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -382,8 +382,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Shortcut to the hello make-style function
-      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -438,8 +438,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Shortcut to the hello make-style function
-      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -570,8 +570,8 @@ The syntax for nesting these under the _functions_ key is as follows:
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Shortcut to the hello make-style function
-      -PR: preflight_and_run ## Shortcut to the preflight_and_run make-style function
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -619,13 +619,13 @@ Quick usage examples:
   `tasks run --help`
 * Initialize your workspace<br />
   `tasks init`<br />
-* Run the Tasksfile.yaml playbook, passing in additional options to the underlying subprocess<br />
+* Run the Taskfile.yaml playbook, passing in additional options to the underlying subprocess<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 ---raw '-vvv'`</br>
 * Don't do anything, just echo the underlying shell command<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 ---echo`<br />
   Result should be similar to:<br />
   `ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
-* Run the Tasksfile.yaml playbook<br />
+* Run the Taskfile.yaml playbook<br />
   `tasks run -d dbhost1 -w webhost1 -t value1`
 * Run the embedded function `preflight_and_run`<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 -PR`
@@ -671,7 +671,27 @@ As an example, suppose I define this variable in the above *Taskfile.yaml*, as f
     myvar3: myvalue3
     # ...
 ```
-Upon invoking the `tasks` command with the `---echo` flag, the underlying shell command would then be revealed as:
+Upon invoking the `tasks` command with the `---echo` flag:
+
+- The temporary inventory is revealed as:<br />
+
+```
+if [[ ($inventory) && ( 'True' == 'True') ]];then
+echo -e """[web-hosts]
+$(echo ${webhosts} | tr ',' '\\n')
+[db-hosts]
+$(echo ${dbhosts} | tr ',' '\\n')
+[myhosts:children]
+deployment-hosts
+web-hosts
+db-hosts
+""" | while read line;do
+eval "echo -e ${line}" >> "C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini"
+done
+fi
+```
+
+- And the underlying shell command would be revealed as:<br />
 
 `python ${HOME}/ansible_2.7.8/ansible-playbook -i C:\Users\${USERNAME}\AppData\Local\Temp\ansible-inventory16xdkrjd.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
 
@@ -736,12 +756,11 @@ Here's an example:
 ```
     required_parameters:
       aws:
-        -aws|--some-aws-option: aws_option
+        -d|--db-hosts: dbhosts_aws ## Specify AWS DBHost
+        -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
       gcp:
-        -gcp|--some-gcp-option: gcp_option
-      -d|--db-hosts: dbhosts ## Specify DB Host targets
-      -w|--web-hosts: webhosts ## Specify Web Host targets
-      -t|--some-parameter: some_value ## Specify some value
+        -d|--db-hosts: dbhosts_gcp ## Specify GCP DBHost
+        -g|--some-special-gcp-flag: gcp_flag ## Specify Some Special GCP Option
 ```
 
 Note the _aws_ and _gcp_ keys.
