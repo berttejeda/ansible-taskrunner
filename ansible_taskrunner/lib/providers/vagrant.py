@@ -31,8 +31,10 @@ class ProviderCLI:
     @staticmethod
     def options(func):
         """Add provider-specific click options"""
-        option = click.option('--is-vagrant',
-                              is_flag=True, default=False, required=False)
+        option = click.option('---vagrant-test-flag',
+                              is_flag=True, default=False, 
+                              help='Set the _vagrant_test_flag value to true', 
+                              required=False)
         func = option(func)
         return func
 
