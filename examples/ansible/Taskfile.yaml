@@ -21,14 +21,15 @@
       [all_hosts:children]
       target_hosts
     required_parameters:
-      -h|--target-hosts: target_hosts
-      -p|--local-path: local_path
-      -t|--target-path: target_path
+      -h|--target-hosts: target_hosts ## Target host you're copying files to
+      -t|--target-path: target_path ## Target path on host you're copying files to
+      -p|--local-path: local_path ## Local path you're copying from
     optional_parameters:
-      --mock: mock_test
+      --mock: mock_test ## Invoke the 'mock_test' make-style function
     functions:
       mock_test:
         shell: bash
+        help: Create mock data and invoke playbook
         source: |-
           echo 'Mock mode!'
           if ! test -f ${local_path}/mock_data;then 

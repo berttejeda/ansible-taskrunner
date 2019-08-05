@@ -4,7 +4,8 @@
 
 - [Ansible Example](#ansible-example)
 - [Exercises](#exercises)
-  - [Obtain Project Files](#obtain-project-files)
+  - [Install and Obtain Project Files](#install-and-obtain-project-files)
+  - [Display Usage](#display-usage)
   - [Mock Test](#mock-test)
   - [Copy file(s) to target host](#copy-files-to-target-host)
   - [Equivalent ansible-playbook command](#equivalent-ansible-playbook-command)
@@ -16,20 +17,58 @@
 <a name="ansible-example"></a>
 # Ansible Example
 
-The Tasksfile here is an ansible playbook that copies a file/directory to a destination path on the target machine(s).
+The Taskfile here is an ansible playbook that copies a file/directory to a destination path on the target machine(s).
 
 <a name="exercises"></a>
 # Exercises
 
-<a name="obtain-project-files"></a>
-## Obtain Project Files
+<a name="install-and-obtain-project-files"></a>
+## Install and Obtain Project Files
 
+* `pip install ansible-taskrunner` OR<br />
+* `pip install git+https://github.com/berttejeda/ansible-taskrunner.git` OR<br />
 * Download the latest [release](https://github.com/berttejeda/ansible-taskrunner/releases)<br />
 * Clone the git repository and navigate to the example<br />
 
 ```
 git clone https://github.com/berttejeda/ansible-taskrunner.git
 cd ansible-taskrunner/exercises/ansible
+```
+
+<a name="display-usage"></a>
+## Display Usage
+
+`tasks run --help`
+
+```
+Copy local file(s)/folder(s) from local to target host(s)
+
+Options:
+  --version                Show the version and exit.
+  ---make, ---m TEXT       Call make-style function
+  ---raw TEXT              Specify raw options for underlying subprocess
+  ---echo                  Don't run, simply echo underlying commands
+  --mock                   Invoke the 'mock_test' make-style function
+  -p, --local-path TEXT    Local path you're copying from  [required]
+  -t, --target-path TEXT   Target path on host you're copying files to
+                           [required]
+  -h, --target-hosts TEXT  Target host you're copying files to  [required]
+  ---inventory, ---i TEXT  Override embedded inventory specification
+  ---debug, ---d TEXT      Start task run with ansible in debug mode
+  --help                   Show this message and exit.
+
+
+After playbook run, the specified file system objects should
+be mirrored onto the target host(s)
+
+Examples:
+- You want to synchronize files to your target hosts:
+tasks run -p myfolder -h host1 -t /data
+- You want to synchronize mock data:
+tasks run -p myfolder -h host1 -t /data --mock
+
+Available make-style functions:
+mock_test: Create mock data and invoke playbook
 ```
 
 <a name="mock-test"></a>
@@ -54,12 +93,22 @@ tasks run -h some-host.somedomain -p ${HOME}/some/directory -t /tmp
 
 * Let's echo the underlying ansible command<br />
 ```
-tasks run -h localhost -p ${HOME}/some/directory -t /tmp --echo
+tasks run -h localhost -p ${HOME}/some/directory -t /tmp ---echo
 ```
 
 * The output should be similar to:<br />
 
 ```
+if [[ ($inventory) && ( 'True' == 'True') ]];then
+echo -e """[target_hosts]
+$(echo -e "${target_hosts}" | tr ',' '\n')
+[all_hosts:children]
+target_hosts
+""" | while read line;do
+eval "echo -e ${line}" >> "/tmp/ansible-inventoryrUXgPX.tmp.ini"
+done
+fi
+
 ansible-playbook ${__ansible_extra_options} -i /tmp/ansible-inventoryrUXgPX.tmp.ini -e target_hosts="localhost" -e echo="True" -e target_path="/tmp" -e local_path="/home/vagrant/some/directory" -e parameter_set=False   Taskfile.yaml
 ```
 

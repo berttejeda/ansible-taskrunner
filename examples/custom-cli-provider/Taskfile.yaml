@@ -15,11 +15,12 @@
             tasks run --ping-google
     required_parameters:
     optional_parameters:
-      -h|--target-hosts: target_hosts
-      --ping-google: ping_google
+      -h|--target-hosts: target_hosts ## Specify target hosts to ping
+      --ping-google: ping_google ## Invoke the 'ping_google' make-style function
     functions:
       ping_google:
         shell: bash
+        help: Ping Google's DNS Server
         source: |-
           echo Attempting to ping Google DNS ...
           if ping -c 1 -w 1 8.8.8.8 > /dev/null;then 

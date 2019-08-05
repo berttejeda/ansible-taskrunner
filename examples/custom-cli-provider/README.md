@@ -4,8 +4,8 @@
 
 - [Custom CLI Provider Example](#custom-cli-provider-example)
 - [Exercises](#exercises)
-  - [Obtain Project Files](#obtain-project-files)
-  - [Show help message](#show-help-message)
+  - [Install and Obtain Project Files](#install-and-obtain-project-files)
+  - [Display Usage](#display-usage)
 - [Learning Points](#learning-points)
 - [Caveats](#caveats)
 
@@ -21,7 +21,7 @@ Here we employ a custom cli-provider named _example_
 
 The cli-provider is located in the [plugins](plugins) directory adjacent to this document.
 
-The Tasksfile here consists of an ansible playbook that has been repurposed as a bastardized bash script.
+The Taskfile here consists of an ansible playbook that has been repurposed as a bastardized bash script.
 
 Essentially, it's a stripped down ansible playbook that holds bash functions represented in YAML syntax.
 
@@ -31,9 +31,11 @@ through the use of custom cli-provider plugins.
 <a name="exercises"></a>
 # Exercises
 
-<a name="obtain-project-files"></a>
-## Obtain Project Files
+<a name="install-and-obtain-project-files"></a>
+## Install and Obtain Project Files
 
+* `pip install ansible-taskrunner` OR<br />
+* `pip install git+https://github.com/berttejeda/ansible-taskrunner.git` OR<br />
 * Download the latest [release](https://github.com/berttejeda/ansible-taskrunner/releases)<br />
 * Clone the git repository and navigate to the example<br />
 
@@ -41,8 +43,8 @@ through the use of custom cli-provider plugins.
 git clone https://github.com/berttejeda/ansible-taskrunner.git
 cd ansible-taskrunner/exercises/custom-cli-provider
 ```
-<a name="show-help-message"></a>
-## Show help message
+<a name="display-usage"></a>
+## Display Usage
 
 * Let's review the output of the the `run` subcommand help<br />
 ```
@@ -51,9 +53,11 @@ tasks run --help
 
 You should see `--this-is-an-example-switch` in the option listing.
 
-You can get creative by adjusting the `invocation` function in the [example](plugins/providers/example) plugin.
+This switch is made available through the use of a custom cli provider plugin located in the plugins folder adjacent to this README.
 
-It's all python, so code away to your heart's content!
+As such, you can get creative by adjusting the plugin's `invocation` function. 
+
+It's all python, so code away to your heart's content: [example](plugins/providers/example)
 
 <a name="learning-points"></a>
 # Learning Points

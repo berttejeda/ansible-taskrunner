@@ -5,6 +5,7 @@
   vars:
     oel76_box_url: https://yum.oracle.com/boxes/oraclelinux/ol76/ol76.box
     oel76_box_name: ubuntu/xenial64
+    cli_provider: vagrant
     ubuntu_xenial_box_name: ubuntu/xenial64
     help:
       message: |
@@ -19,12 +20,12 @@
             tasks run --oel76
     required_parameters:
     optional_parameters:
-      -h|--target-hosts: target_hosts
-      --xenial: vagrant_up_xenial
-      --oel76: vagrant_up_oel76
+      --xenial: vagrant_up_xenial ## Invoke the 'vagrant_up_xenial' make-style function
+      --oel76: vagrant_up_oel76 ## Invoke the 'vagrant_up_oel76' make-style function
     functions:
       vagrant_up_oel76:
         shell: bash
+        help: Bring up an Oracle Enterprise Linux 7.6 x64 Virtual Machine
         source: |-
           vagrant box add --name ${oel76_box_name} ${oel76_box_url}
           vagrant init ol76
@@ -32,6 +33,7 @@
           vagrant up
       vagrant_up_xenial:
         shell: bash
+        help: Bring up an Ubuntu Xenial x64 Virtual Machine
         source: |-
           vagrant box add ${ubuntu_xenial_box_name}
           vagrant init ${ubuntu_xenial_box_name}
