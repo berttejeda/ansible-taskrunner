@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2019-05-08 v1.0.1
+
+* Deleted unused library [255fcf1](https://github.com/berttejeda/ansible-taskrunner/commit/255fcf1999f901ef9d01318c40c916fcd8461f02)
+* Added logic to automatically add triple-dashed options as bash vars in subprocess [2e06029](https://github.com/berttejeda/ansible-taskrunner/commit/2e060299b297dd1821ae4a9862b46658e0d211a2)
+
 ## Release 2019-30-07 v1.0.0
 
 * Added support for make-style functions with ruby source [a07bd96](https://github.com/berttejeda/ansible-taskrunner/commit/a07bd96c84f0a1f41c79fe9e1c66d920d0bf1272)

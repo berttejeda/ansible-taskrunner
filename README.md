@@ -212,9 +212,31 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
 ```
 
 </details>
+
+As you can see, we've defined a number of variables holding different values.
+
+The rules for defining these play out as follows:
+
+```
+Variable                                     | Ansible Evaluation      | Bash Evaluation
+-------------------------------------------- | ----------------------- | -----------------------
+str_var: myvalue1                            | String                  | String
+num_var: 3                                   | Digit                   | String
+multiline_var: |                             | Multiline String        | String (heredoc)
+  This is a multi-line value
+  of type string
+list_var:                                    | List Object             | String (heredoc)
+  - item1
+  - item2
+dict_var:                                    | Dictionary Object       | None, Skipped # TODO Add interpolation of yaml dictionary objects for subprocess
+  key1: somevalue1
+  key2: somevalue2
+shell_var: $(grep somestring /some/file.txt) | Depends on output       | String
+```
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---cli-options"></a>
@@ -241,6 +263,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
     required_parameters:
       -d|--db-hosts: dbhosts ## Specify DB Host targets
       -w|--web-hosts: webhosts ## Specify Web Host targets
@@ -328,6 +351,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
     required_parameters:
       -d|--db-hosts: dbhosts ## Specify DB Host targets
       -w|--web-hosts: webhosts ## Specify Web Host targets
@@ -376,6 +400,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
     required_parameters:
       -d|--db-hosts: dbhosts ## Specify DB Host targets
       -w|--web-hosts: webhosts ## Specify Web Host targets
@@ -432,6 +457,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
     required_parameters:
       -d|--db-hosts: dbhosts ## Specify DB Host targets
       -w|--web-hosts: webhosts ## Specify Web Host targets
@@ -564,6 +590,7 @@ The syntax for nesting these under the _functions_ key is as follows:
       - mylistvalue2
       - mylistvalue3
       - mylistvalue4
+    myvar6: $(grep somestring /some/file.txt)
     required_parameters:
       -d|--db-hosts: dbhosts ## Specify DB Host targets
       -w|--web-hosts: webhosts ## Specify Web Host targets
