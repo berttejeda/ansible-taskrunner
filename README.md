@@ -758,7 +758,7 @@ Apart from utilizing the `---raw` flag, you can specify additional options to pa
 <a name="__tasks_file__"></a>
 ### __tasks_file__
 
-The **__tasks_file__** variable points to the current Taskfile.
+The **\_\_tasks_file\_\_** variable points to the current Taskfile.
 
 It is available to the underlying subprocess shell.
 
