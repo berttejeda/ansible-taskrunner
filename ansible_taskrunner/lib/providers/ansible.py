@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 # Import third-party and custom modules
 try:
     import click
-    from formatting import ansi_colors, reindent
+    from formatting import ansi_colors
     from yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
@@ -86,35 +86,32 @@ class ProviderCLI:
         ansible_extra_options.append('-e %s' % paramset_var)
         # Build command string
         inventory_command = '''
-            if [[ ($inventory) && ( '{emb}' == 'True') ]];then
-              echo -e """{ins}""" | while read line;do
-                  eval "echo -e ${{line}}" >> "{inf}"
-              done
-            fi
+if [[ ($inventory) && ( '{emb}' == 'True') ]];then
+  echo -e """{ins}""" | while read line;do
+      eval "echo -e ${{line}}" >> "{inf}"
+  done
+fi
             '''.format(
                 emb=embedded_inventory,
                 ins=inventory_input,
                 inf=ansible_inventory_file_path,
                 )
-        inventory_command = reindent(inventory_command,0)
-        pre_commands = '''
-        {anc}
-        {dsv}
-        {dlv}
-        {clv}
-        {bfn}
-        {inc}
-        '''.format(
-            anc=ansi_colors,
+        pre_commands = '''{anc}
+{clv}
+{dsv}
+{dlv}
+{bfn}
+{inc}'''.format(
+            anc=ansi_colors.strip(),
             dlv='\n'.join(list_vars),
             dsv='\n'.join(string_vars),
-            clv=cli_vars,
+            clv=cli_vars.strip(),
             bfn='\n'.join(bash_functions),
             inc=inventory_command,
             deb=debug
         )
         ansible_command = '''
-        {apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply}
+{apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply}
         '''.format(
             apc=ansible_playbook_command,
             inf=ansible_inventory_file_path,
@@ -123,7 +120,7 @@ class ProviderCLI:
             arg=args,
             raw=raw_args
         )
-        command = reindent(pre_commands + ansible_command, 0)
+        command = pre_commands + ansible_command
         # Command invocation
         if prefix == 'echo':
             if debug:
