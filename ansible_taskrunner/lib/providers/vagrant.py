@@ -53,6 +53,7 @@ class ProviderCLI:
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Vagrant Command Provider')
+        yamlcli = CLIInvocation()
         command = '''{clv}
 {dsv}
 {psv}
@@ -72,4 +73,4 @@ class ProviderCLI:
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            CLIInvocation().call(command)
+            yamlcli.call(command, debug_enabled=debug)

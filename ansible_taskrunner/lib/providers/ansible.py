@@ -60,6 +60,7 @@ class ProviderCLI:
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
+        yamlcli = CLIInvocation()
         ansible_playbook_command = default_vars.get(
             'ansible_playbook_command', 'ansible-playbook')
         # Embedded inventory logic
@@ -130,7 +131,7 @@ fi
                 print(inventory_command)
                 print(ansible_command)
         else:
-            CLIInvocation().call(command)
+            yamlcli.call(command, debug_enabled=debug)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',

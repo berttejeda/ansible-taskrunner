@@ -413,7 +413,7 @@ Available make-style functions:
             if prefix == 'echo':
                 print(command)
             else:
-                yamlcli.call(command)
+                yamlcli.call(command, debug_enabled=__debug)
         else:
             # Invoke the cli provider
             provider_cli.invocation(
