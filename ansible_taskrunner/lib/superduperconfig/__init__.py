@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from collections import OrderedDict 
 import yaml
 
 # Logging
@@ -14,6 +15,18 @@ class SuperDuperConfig():
         self.program_name = prog_name
         self.logger = logger
         pass
+
+    def ordered_load(self, stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+        class OrderedLoader(Loader):
+            pass
+        def construct_mapping(loader, node):
+            loader.flatten_mapping(node)
+            return object_pairs_hook(loader.construct_pairs(node))
+        OrderedLoader.add_constructor(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            construct_mapping)
+        return yaml.load(stream, OrderedLoader)            
+
 
     def load_config(self, config_file, req_keys=[], failfast=False, data_key=None, debug=False):
         """ Load config file
@@ -33,7 +46,12 @@ class SuperDuperConfig():
                 config_found = True
                 try:
                     with open(config_path, 'r') as ymlfile:
-                        cfg = yaml.load(ymlfile, yaml.Loader)
+                        # Preserve dictionary order for python 2
+                        # https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts
+                        if sys.version_info[0] < 3:
+                            cfg = self.ordered_load(ymlfile, yaml.Loader)
+                        else:
+                            cfg = yaml.load(ymlfile, yaml.Loader)
                     config_dict = cfg[data_key] if data_key is not None else cfg
                     config_is_valid = all([m[m.keys()[0]].get(k)
                                            for k in req_keys for m in config_dict])

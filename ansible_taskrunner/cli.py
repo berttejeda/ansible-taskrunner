@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Import builtins
 from __future__ import print_function
+from collections import OrderedDict
 import logging
 import logging.handlers
 import os
@@ -318,6 +319,30 @@ Available make-style functions:
         prefix = 'echo' if kwargs.get('_echo') else ''
         # Gather variables from commandline for interpolation
         cli_vars = ''
+        # python 2.x
+        # Make sure kwargs adhere to the order in 
+        # which they were called
+        if sys.version_info[0] < 3:
+            # First we build a mapping of cli variables to corresponding yaml variables
+            req_parameters = yaml_vars.get('required_parameters', {}) or {}
+            opt_parameters = yaml_vars.get('optional_parameters', {}) or {}
+            if req_parameters:
+                parameter_mapping = dict(opt_parameters).update(dict(req_parameters))
+            else:
+                parameter_mapping = dict(opt_parameters)
+            # Next, we create a dictionary that holds cli arguments 
+            # in the order they were called, as per the parameter mapping
+            ordered_args = {}
+            for k, v in parameter_mapping.items():
+                for a in sys.argv:
+                    if re.search(k, a):
+                        for o in k.split('|'):
+                            if o in sys.argv:
+                                i = sys.argv.index(o)
+                                ordered_args[k] = i
+            # Lastly, we convert our kwargs object to
+            # an ordered dictionary object as per the above
+            kwargs = OrderedDict([(parameter_mapping[k],kwargs.get(parameter_mapping[k])) for k, v in sorted(ordered_args.items(), key=lambda item: item[1])])
         for key, value in kwargs.items():
             if key.startswith('_'):
                 cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
@@ -341,7 +366,10 @@ Available make-style functions:
                 vars_list.append((var[0],var[1]))
             else:
                 vars_list.append((var[0], kwargs_dict_filtered[var[0]]))
-        default_vars = dict(vars_list)
+        if sys.version_info[0] < 3:
+            default_vars = OrderedDict(vars_list)
+        else:
+            default_vars = dict(vars_list)
         # List-type variables
         list_vars = []
         for var in default_vars:
@@ -363,30 +391,29 @@ Available make-style functions:
         # Short-circuit the task runner
         # if we're calling functions from the commandline
         cli_functions = ['{k} {v}'.format(
-            k=key, v=value) for key, value in kwargs.items() if
+            k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
                          value and key in internal_functions.keys()]
         if cli_functions:
-            for cli_function in cli_functions:
-                command = '''{clv}
+            command = '''{clv}
 {dsv}
 {psv}
 {dlv}
 {bfn}
 {clf} {arg} {raw}
-                '''.format(
-                    dsv='\n'.join(defaults_string_vars),
-                    psv=paramset_var,
-                    dlv='\n'.join(list_vars),
-                    clv=cli_vars,
-                    bfn='\n'.join(bash_functions),
-                    clf=cli_function,
-                    arg=args,
-                    raw=raw_args
-                )
-                if prefix == 'echo':
-                    print(command)
-                else:
-                    yamlcli.call(command)
+            '''.format(
+                dsv='\n'.join(defaults_string_vars),
+                psv=paramset_var,
+                dlv='\n'.join(list_vars),
+                clv=cli_vars,
+                bfn='\n'.join(bash_functions),
+                clf='\n'.join(cli_functions),
+                arg=args,
+                raw=raw_args
+            )
+            if prefix == 'echo':
+                print(command)
+            else:
+                yamlcli.call(command)
         else:
             # Invoke the cli provider
             provider_cli.invocation(
