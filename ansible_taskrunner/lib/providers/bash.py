@@ -11,7 +11,8 @@ logger.setLevel(logging.INFO)
 # Import third-party and custom modules
 try:
     import click
-    from yamlc import CLIInvocation
+    from proc_mgmt import shell_invocation_mappings
+    from proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -48,7 +49,7 @@ class ProviderCLI:
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')
-        yamlcli = CLIInvocation()
+        sub_process = CLIInvocation()
         command = '''
 {clv}
 {dsv}
@@ -69,4 +70,4 @@ class ProviderCLI:
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            yamlcli.call(command, debug_enabled=debug)
+            sub_process.call(command, debug_enabled=debug)
