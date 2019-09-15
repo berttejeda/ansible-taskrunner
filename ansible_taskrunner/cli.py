@@ -41,8 +41,8 @@ try:
     from click_extras import ExtendedEpilog
     from click_extras import ExtendedHelp
     from click_extras import ExtendCLI
-    from yamlc import shell_invocation_mappings
-    from yamlc import CLIInvocation
+    from proc_mgmt import shell_invocation_mappings
+    from proc_mgmt import CLIInvocation
     from yamlr import YamlReader
     # TODO
     # Employ language/regional options    
@@ -71,7 +71,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -109,7 +109,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # Instantiate YAML Reader Class
     yamlr = YamlReader()
     # Instantiate the cli invocation class
-    yamlcli = CLIInvocation()
+    sub_process = CLIInvocation()
     # Load Tasks Manifest
     yaml_input_file = tasks_file
     if os.path.exists(yaml_input_file):
@@ -418,7 +418,7 @@ Available make-style functions:
             if prefix == 'echo':
                 print(command)
             else:
-                yamlcli.call(command, debug_enabled=__debug)
+                sub_process.call(command, debug_enabled=__debug)
         else:
             # Invoke the cli provider
             provider_cli.invocation(

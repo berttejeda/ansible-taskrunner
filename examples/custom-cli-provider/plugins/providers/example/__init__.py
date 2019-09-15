@@ -16,7 +16,8 @@ try:
         from lib.py3 import click
     else:
         from lib.py2 import click
-    from lib.common.yamlc import CLIInvocation
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation    
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -51,6 +52,7 @@ class ProviderCLI():
         raw_args='', 
         kwargs={}):
         logger.info('Example Command Provider')
+        sub_process = CLIInvocation()
         command = '''{dsv}
 {dlv}
 {clv}
@@ -68,4 +70,4 @@ class ProviderCLI():
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            CLIInvocation().call(command)
+            sub_process.call(command)

@@ -2,6 +2,17 @@
 History
 =======
 
+## Release 2019-09-15 v1.0.2
+
+* Utilize threading to better handle ctrl-c/breaking out of subprocess calls [c248c99](https://github.com/berttejeda/ansible-taskrunner/commit/c248c99e355e058f9e0d775c4ddd5fe45025a9f7)
+* Renamed yamlc module to proc_mgmt [8e72a54](https://github.com/berttejeda/ansible-taskrunner/commit/8e72a54ff9db57109144ab9855ae6eb4361200dd)
+* Fixed bug in logic for preserving variables/cli order for python 2.x [4c16bd3](https://github.com/berttejeda/ansible-taskrunner/commit/4c16bd3a8493b595bb28e915b02cf18b8d8740ba)
+* Improved debugging for subprocess calls [e00dc4b](https://github.com/berttejeda/ansible-taskrunner/commit/e00dc4bd36e9b7baba860f592a8cd2ad46a2bb0e)
+* Preserve order of variables and cli options for python 2.x [22d330c](https://github.com/berttejeda/ansible-taskrunner/commit/22d330ca8e91af3ff0a287d75e58582391376f23)
+* Refactored handling of variables [ddbc787](https://github.com/berttejeda/ansible-taskrunner/commit/ddbc7870827c304f62a7ca8a733fd021745c7a27)
+* Fixed formatting [ab21879](https://github.com/berttejeda/ansible-taskrunner/commit/ab21879959f1ee1895656c2fc0f1672b3c45f328)
+* Added more documentation for variable declarations [2f4efa7](https://github.com/berttejeda/ansible-taskrunner/commit/2f4efa75f433b71e98f4e954456263697b5e1f45)
+
 ## Release 2019-05-08 v1.0.1
 
 * Deleted unused library [255fcf1](https://github.com/berttejeda/ansible-taskrunner/commit/255fcf1999f901ef9d01318c40c916fcd8461f02)

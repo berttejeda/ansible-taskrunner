@@ -15,7 +15,8 @@ logger.setLevel(logging.INFO)
 try:
     import click
     from formatting import ansi_colors
-    from yamlc import CLIInvocation
+    from proc_mgmt import shell_invocation_mappings
+    from proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -60,7 +61,7 @@ class ProviderCLI:
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
-        yamlcli = CLIInvocation()
+        sub_process = CLIInvocation()
         ansible_playbook_command = default_vars.get(
             'ansible_playbook_command', 'ansible-playbook')
         # Embedded inventory logic
@@ -131,7 +132,7 @@ fi
                 print(inventory_command)
                 print(ansible_command)
         else:
-            yamlcli.call(command, debug_enabled=debug)
+            sub_process.call(command, debug_enabled=debug)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
