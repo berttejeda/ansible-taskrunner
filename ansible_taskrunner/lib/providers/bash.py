@@ -11,7 +11,6 @@ logger.setLevel(logging.INFO)
 # Import third-party and custom modules
 try:
     import click
-    from formatting import reindent
     from yamlc import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
@@ -49,12 +48,13 @@ class ProviderCLI:
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')
+        yamlcli = CLIInvocation()
         command = '''
-        {dsv}
-        {psv}
-        {dlv}
-        {clv}
-        {bfn}
+{clv}
+{dsv}
+{psv}
+{dlv}
+{bfn}
         '''.format(
             dlv='\n'.join(list_vars),
             dsv='\n'.join(string_vars),
@@ -63,10 +63,10 @@ class ProviderCLI:
             bfn='\n'.join(bash_functions),
             deb=debug
         )
-        command = reindent(command, 0)
+        command = command
         # Command invocation
         if prefix == 'echo':
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            CLIInvocation().call(command)
+            yamlcli.call(command, debug_enabled=debug)
