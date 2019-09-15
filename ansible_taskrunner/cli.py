@@ -326,6 +326,11 @@ Available make-style functions:
             # First we build a mapping of cli variables to corresponding yaml variables
             req_parameters = yaml_vars.get('required_parameters', {}) or {}
             opt_parameters = yaml_vars.get('optional_parameters', {}) or {}
+            # We need to 'inject' built-in cli options
+            # since we're artificially re-ordering things
+            opt_parameters['---make|---m'] = 'make_mode_engage'
+            opt_parameters['---raw'] = '_raw'
+            opt_parameters['---echo'] = '_echo'
             if req_parameters:
                 parameter_mapping = dict(opt_parameters).update(dict(req_parameters))
             else:
