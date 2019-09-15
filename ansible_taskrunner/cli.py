@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Import builtins
 from __future__ import print_function
+from collections import OrderedDict
 import logging
 import logging.handlers
 import os
@@ -34,7 +35,6 @@ try:
     from errorhandler import catchException
     from errorhandler import ERR_ARGS_TASKF_OVERRIDE
     from formatting import logging_format
-    from formatting import reindent
     from help import SAMPLE_CONFIG
     from help import SAMPLE_TASKS_MANIFEST
     from superduperconfig import SuperDuperConfig
@@ -134,52 +134,6 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
             option_help_messages[opt] = oph
     # Instantiate the class for extending click options
     extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set, help_msg_map=option_help_messages)
-    # Default variables
-    default_vars = dict(
-        [(key, value) for key, value in yaml_vars.items()
-         if not isinstance(value, dict)])
-    # List-type variables
-    list_vars = []
-    for var in default_vars:
-        if isinstance(default_vars[var], list):
-            list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
-                k=var, v='\n'.join(default_vars[var])))
-    # String-type variables
-    defaults_string_vars = []
-    for var in default_vars:
-        if isinstance(default_vars[var], str):
-            defaults_string_vars.append(
-                '{k}="""{v}"""'.format(k=var, v=default_vars[var]))
-    # Append the __tasks_file variable to the above list
-    defaults_string_vars.append(
-        '__tasks_file__=%s' % _tasks_file_normalized_path
-        )
-    # Bash functions
-    bash_functions = []
-    yaml_vars_functions = yaml_vars.get('functions', {})
-    internal_functions = {}
-    if yaml_vars_functions:
-        internal_functions = yaml_vars_functions
-        # Append the special make_mode_engage bash function
-        internal_functions['make_mode_engage'] = {
-            'help': 'Engage Make Mode',
-            'shell': 'bash',
-            'hidden': 'true',
-            'source': '''
-                echo Make Mode Engaged
-                echo Invoking ${1} function
-                ${1}
-                '''
-        }    
-        for f in internal_functions:
-            f_shell = yamlr.deep_get(yaml_vars, 'functions.%s.shell' % f, {})
-            source = yamlr.deep_get(yaml_vars, 'functions.%s.source' % f, {})
-            if f_shell and source:
-                function_source = shell_invocation_mappings[f_shell].format(src=source)
-                bash_functions.append(
-                    'function {fn}(){{\n{fs}\n}}'.format(
-                        fn=f, fs=function_source)
-                )
 
     # Detect command provider
     global provider_cli
@@ -207,9 +161,11 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
 
     # Main CLI interface
     click_help = """\b
-    Ansible Taskrunner - ansible-playbook wrapper
-    - YAML-abstracted python click cli options
-    - Utilizes a specially-formatted ansible-playbook
+Ansible Taskrunner - ansible-playbook wrapper
+- YAML-abstracted python click cli options
+- Utilizes a specially-formatted ansible-playbook
+  to extend the ansible playbook command via
+  the python click module
     """
     click_help_epilog = ""
 
@@ -291,6 +247,32 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     examples_string = ''
     # Treat the make-mode internal bash functions
     function_help_string = ''    
+    # Bash functions
+    bash_functions = []    
+    yaml_vars_functions = yaml_vars.get('functions', {})
+    internal_functions = {}
+    if yaml_vars_functions:
+        internal_functions = yaml_vars_functions
+        # Append the special make_mode_engage bash function
+        internal_functions['make_mode_engage'] = {
+'help': 'Engage Make Mode',
+'shell': 'bash',
+'hidden': 'true',
+'source': '''
+    echo Make Mode Engaged
+    echo Invoking ${1} function
+    ${1}
+                '''
+        }    
+        for f in internal_functions:
+            f_shell = yamlr.deep_get(yaml_vars, 'functions.%s.shell' % f, {})
+            source = yamlr.deep_get(yaml_vars, 'functions.%s.source' % f, {})
+            if f_shell and source:
+                function_source = shell_invocation_mappings[f_shell].format(src=source)
+                bash_functions.append(
+                    'function {fn}(){{\n{fs}\n}}'.format(
+                        fn=f, fs=function_source)
+                )            
     for f in internal_functions:
         if yamlr.deep_get(internal_functions, '%s.hidden' % f, {}) or \
         not yamlr.deep_get(internal_functions, '%s.help' % f, {}):
@@ -305,15 +287,15 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
             if isinstance(example, str):
                 examples_string += '%s\n' % example
     epilog = '''
-    {ep}
-    Examples:
-    {ex}
-    Available make-style functions:
-    {fh}
+{ep}
+Examples:
+{ex}
+Available make-style functions:
+{fh}
     '''.format(ep=epilog_string, 
         ex=examples_string, 
         fh=function_help_string)
-    epilog = reindent(epilog, 0)
+    epilog = epilog
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
@@ -336,46 +318,107 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         # Initialize values for subshell
         prefix = 'echo' if kwargs.get('_echo') else ''
         # Gather variables from commandline for interpolation
-        provider_vars = ''
+        cli_vars = ''
+        # python 2.x
+        # Make sure kwargs adhere to the order in 
+        # which they were called
+        if sys.version_info[0] < 3:
+            # First we build a mapping of cli variables to corresponding yaml variables
+            req_parameters = yaml_vars.get('required_parameters', {}) or {}
+            opt_parameters = yaml_vars.get('optional_parameters', {}) or {}
+            # We need to 'inject' built-in cli options
+            # since we're artificially re-ordering things
+            opt_parameters['---make|---m'] = 'make_mode_engage'
+            opt_parameters['---raw'] = '_raw'
+            opt_parameters['---echo'] = '_echo'
+            if req_parameters:
+                parameter_mapping = dict(opt_parameters).update(dict(req_parameters))
+            else:
+                parameter_mapping = dict(opt_parameters)
+            # Next, we create a dictionary that holds cli arguments 
+            # in the order they were called, as per the parameter mapping
+            ordered_args = {}
+            for k, v in parameter_mapping.items():
+                for a in sys.argv:
+                    if re.search(k, a):
+                        for o in k.split('|'):
+                            if o in sys.argv:
+                                i = sys.argv.index(o)
+                                ordered_args[k] = i
+            # Lastly, we convert our kwargs object to
+            # an ordered dictionary object as per the above
+            kwargs = OrderedDict([(parameter_mapping[k],kwargs.get(parameter_mapping[k])) for k, v in sorted(ordered_args.items(), key=lambda item: item[1])])
         for key, value in kwargs.items():
             if key.startswith('_'):
-                provider_vars += '{k}="{v}"\n'.format(k=key, v=value)
-        cli_vars = provider_vars
-        for key, value in kwargs.items():
-            if value and key not in internal_functions.keys():
+                cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
+            elif value and key not in internal_functions.keys():
                 if isinstance(value, list) or isinstance(value, tuple):
                     list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
                         k=key, v='\n'.join(value)))
                 else:
                     cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
+        # Gather default variables
+        vars_list = []
+        kwargs_list = [(k,v) for k,v in kwargs.items() if v]
+        kwargs_dict_filtered = dict([(k,v) for k,v in kwargs.items() if v])
+        # Define the list of yaml variables, excluding the 'inventory' variable (if applicable)
+        yaml_variables = [(key,value) for key,value in yaml_vars.items() if not isinstance(value, dict) and not key == 'inventory']
+        # Define the list of default variables, 
+        # ensuring we only keep those that were 
+        # not overridden via cli option
+        for var in yaml_variables:
+            if var[0] not in [d[0] for d in kwargs_list]:
+                vars_list.append((var[0],var[1]))
+            else:
+                vars_list.append((var[0], kwargs_dict_filtered[var[0]]))
+        if sys.version_info[0] < 3:
+            default_vars = OrderedDict(vars_list)
+        else:
+            default_vars = dict(vars_list)
+        # List-type variables
+        list_vars = []
+        for var in default_vars:
+            if isinstance(default_vars[var], list):
+                list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
+                    k=var, v='\n'.join(default_vars[var])))
+        # String-type variables
+        defaults_string_vars = [] 
+        for var in default_vars:
+            if isinstance(default_vars[var], str):
+                defaults_string_vars.append(
+                    '{k}="""{v}"""'.format(k=var, v=default_vars[var]))
+        # Append the __tasks_file variable to the above list
+        defaults_string_vars.append(
+            '__tasks_file__=%s' % _tasks_file_normalized_path
+            )
+        inventory_variable = 'inventory="""{v}"""'.format(v=yaml_vars['inventory'])
+        defaults_string_vars.append(inventory_variable)
         # Short-circuit the task runner
         # if we're calling functions from the commandline
         cli_functions = ['{k} {v}'.format(
-            k=key, v=value) for key, value in kwargs.items() if
+            k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
                          value and key in internal_functions.keys()]
         if cli_functions:
-            for cli_function in cli_functions:
-                command = '''
-                {dsv}
-                {psv}
-                {dlv}
-                {clv}
-                {bfn}
-                {clf} {arg} {raw}
-                '''.format(
-                    dsv=reindent('\n'.join(defaults_string_vars), 0),
-                    psv=reindent(paramset_var,0),
-                    dlv=reindent('\n'.join(list_vars),0 ),
-                    clv=reindent(cli_vars,0 ),
-                    bfn='\n'.join(bash_functions),
-                    clf=cli_function,
-                    arg=args,
-                    raw=raw_args
-                )
-                if prefix == 'echo':
-                    print(command)
-                else:
-                    yamlcli.call(command)
+            command = '''{clv}
+{dsv}
+{psv}
+{dlv}
+{bfn}
+{clf} {arg} {raw}
+            '''.format(
+                dsv='\n'.join(defaults_string_vars),
+                psv=paramset_var,
+                dlv='\n'.join(list_vars),
+                clv=cli_vars,
+                bfn='\n'.join(bash_functions),
+                clf='\n'.join(cli_functions),
+                arg=args,
+                raw=raw_args
+            )
+            if prefix == 'echo':
+                print(command)
+            else:
+                yamlcli.call(command, debug_enabled=__debug)
         else:
             # Invoke the cli provider
             provider_cli.invocation(

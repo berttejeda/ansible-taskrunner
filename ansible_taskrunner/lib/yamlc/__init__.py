@@ -45,14 +45,18 @@ class CLIInvocation:
                     return exe_file
         return None
 
-    def call(self, cmd, exe='bash'):
+    def call(self, cmd, exe='bash', debug_enabled=False):
         """Call specified command using subprocess library"""
         executable = self.which(exe)
+        if debug_enabled:
+            process_invocation = [executable,'-x','-c', cmd]
+        else:
+            process_invocation = [executable, '-c', cmd]
         # Execute the command, catching failures
         try:
             if sys.version_info[0] >= 3:
                 # Invoke process and poll for new output until finished
-                with Popen([executable, '-c', cmd], stdout=PIPE, stderr=STDOUT, bufsize=1, universal_newlines=True) as p:
+                with Popen(process_invocation, stdout=PIPE, stderr=STDOUT, bufsize=1, universal_newlines=True) as p:
                     for line in p.stdout:
                         sys.stdout.write(line)  # process line here
                     if p.returncode != 0:
@@ -64,7 +68,7 @@ class CLIInvocation:
             else:
                 # Invoke process
                 process = Popen(
-                    [executable, '-c', cmd],
+                    process_invocation,
                     stdout=PIPE,
                     stderr=STDOUT)
                 # Poll for new output until finished
