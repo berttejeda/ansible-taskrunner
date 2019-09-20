@@ -2,9 +2,14 @@ import logging
 import os
 import sys
 
-# Logging
-logger = logging.getLogger('logger')
-logger.setLevel(logging.INFO)
+# Setup Logging
+logger = logging.getLogger(__name__)
+if '--debug run' in ' '.join(sys.argv):
+    logger.setLevel(logging.DEBUG)
+else:
+    # Ignore warnings from cryptography module
+    warnings.filterwarnings("ignore", category=UserWarning, module='cryptography')
+    logger.setLevel(logging.INFO)
 
 # Import third-party and custom modules
 try:

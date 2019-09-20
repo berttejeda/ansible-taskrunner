@@ -2,6 +2,7 @@
   gather_facts: true
   become: true
   vars:
+    # cli_provider: bash
     myvar1: myvalue1
     myvar2: myvalue2
     myvar3: myvalue3

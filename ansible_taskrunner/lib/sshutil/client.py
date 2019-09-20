@@ -4,10 +4,17 @@ import re
 import select
 import sys
 import zipfile
+import warnings
 
-# Logging
-logger = logging.getLogger('logger')
-logger.setLevel(logging.INFO)
+
+# Setup Logging
+logger = logging.getLogger(__name__)
+if '--debug run' in ' '.join(sys.argv):
+    logger.setLevel(logging.DEBUG)
+else:
+    # Ignore warnings from cryptography module
+    warnings.filterwarnings("ignore", category=UserWarning, module='cryptography')
+    logger.setLevel(logging.INFO)
 
 # Only if zipapp
 # Extract any dynamic modules/libraries (aka DLLs)
