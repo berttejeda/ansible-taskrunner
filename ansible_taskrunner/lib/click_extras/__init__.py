@@ -7,8 +7,6 @@ logger = logging.getLogger(__name__)
 if '--debug run' in ' '.join(sys.argv):
     logger.setLevel(logging.DEBUG)
 else:
-    # Ignore warnings from cryptography module
-    warnings.filterwarnings("ignore", category=UserWarning, module='cryptography')
     logger.setLevel(logging.INFO)
 
 # Import third-party and custom modules
@@ -68,11 +66,20 @@ class ExtendCLI():
         vanilla_parameters = dict(
             [(k, v) for k, v in parameters.items() if not isinstance(parameters[k], dict)])
         if self.parameter_set:
-            _parameters = parameters.get(self.parameter_set, {})
-            if _parameters:
-                parameters = {}
-                parameters.update(vanilla_parameters)
-                parameters.update(_parameters)
+            existing_parameter_sets = dict(
+                [(k, v) for k, v in parameters.items() if isinstance(parameters[k], dict)])            
+            # Exclude parameter sets we have not activated
+            excluded_parameter_sets = set(existing_parameter_sets) - set(self.parameter_set)
+            for es in excluded_parameter_sets:
+                parameters.pop(es)            
+            # Build the options dictionary
+            for ps in self.parameter_set:
+                _parameters = parameters.get(ps, {})
+                if _parameters:
+                    # Remove the parameter set parent key
+                    parameters.pop(ps)
+                    # Populate the values from the parameter set
+                    parameters.update(_parameters)
         else:
             parameters = vanilla_parameters
         # Variables used in logic for click's variadic arguments (nargs=*)

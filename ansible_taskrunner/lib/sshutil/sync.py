@@ -7,8 +7,6 @@ logger = logging.getLogger(__name__)
 if '--debug run' in ' '.join(sys.argv):
     logger.setLevel(logging.DEBUG)
 else:
-    # Ignore warnings from cryptography module
-    warnings.filterwarnings("ignore", category=UserWarning, module='cryptography')
     logger.setLevel(logging.INFO)
 
 # Import third-party and custom modules

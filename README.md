@@ -762,6 +762,15 @@ The **\_\_tasks_file\_\_** variable points to the current Taskfile.
 
 It is available to the underlying subprocess shell.
 
+<a name="__parameter_sets__"></a>
+### __parameter_sets__
+
+As explained [above](#parameter_sets), the **\_\_parameter_sets\_\_** variable tracks whatever parameter sets you've specified during runtime.
+
+The variable will hod the values as a space-delimited string, and is available to the underlying subprocess.
+
+You can use this behavior to detect when a given parameter set has been activated.
+
 [Back To Top](#top)
 <a name="parameter_sets"></a>
 ## Parameter Sets
@@ -774,9 +783,9 @@ Sure, you could add paramters to your heart's content, but you'll pollute the ou
 
 This is where parameter sets come into play.
 
-The functionality is simple. Precede the `run` subcommand with a single word.
+The functionality is simple. Precede the `run` subcommand with the keys you specify as parameter sets in your task manifest.
 
-This word acts as a _mini_ subcommand, and _unlocks_ the command-line options defined by the corresponding key in the appropriate options section of your manifest.
+These words act as _mini_ subcommands, and _unlock_ the command-line options defined by the corresponding key in the appropriate options section of your manifest.
 
 Here's an example:
 
@@ -792,13 +801,15 @@ Here's an example:
 
 Note the _aws_ and _gcp_ keys.
 
-You'll notice that the output of `--help` will change depending on which parameter set you specify, e.g.
+You'll notice that the output of `--help` will change depending on what parameter sets you specify, e.g.
 
 `tasks aws run --help`
 
 `tasks gcp run --help`
 
-Another thing to note is that the parameter set you specify is tracked during runtime as the variable _parameter_set_
+`tasks aws gcp run --help`
+
+Another thing to note is that the parameter set you specify is tracked during runtime as the variable _parameter_sets_
 
 You can use this behavior to detect when a given parameter set has been activated.
 
