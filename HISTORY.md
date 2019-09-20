@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-09-20 v1.1.0
+
+* Initial commit of bastion-mode codebase [7426a50](https://github.com/berttejeda/ansible-taskrunner/commit/7426a500defa4699d507038400293222f64e03f2)
+
 ## Release 2019-09-15 v1.0.2
 
 * Utilize threading to better handle ctrl-c/breaking out of subprocess calls [c248c99](https://github.com/berttejeda/ansible-taskrunner/commit/c248c99e355e058f9e0d775c4ddd5fe45025a9f7)
