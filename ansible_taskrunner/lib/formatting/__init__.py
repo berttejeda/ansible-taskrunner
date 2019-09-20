@@ -20,3 +20,11 @@ def reindent(s, numSpaces):
     s = [(numSpaces * ' ') + line.lstrip() for line in s]
     s = '\n'.join(s)
     return s
+
+
+class Struct:
+	def __init__(self, **entries):
+		self.__dict__.update(entries)
+
+	def get(self, _key):
+		return self.__dict__.get(_key)

@@ -1,5 +1,6 @@
 # Imports
 import logging
+import os
 import sys
 
 provider_name = 'bash'
@@ -14,6 +15,7 @@ try:
     from proc_mgmt import shell_invocation_mappings
     from proc_mgmt import CLIInvocation
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(__file__))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')

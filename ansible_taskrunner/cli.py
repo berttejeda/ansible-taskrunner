@@ -19,10 +19,12 @@ else:
 # Make the zipapp work for python2/python3
 py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
 project_root = os.path.dirname(os.path.abspath(__file__))
-if sys.platform in ['win32', 'cygwin']:
+is_windows = True if sys.platform in ['win32', 'cygwin'] else False
+is_darwin = True if sys.platform in ['darwin'] else False
+if is_windows:
     sys.path.insert(0, project_root + '\\lib')
     sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
-elif sys.platform in ['darwin']:
+elif is_darwin:
     sys.path.insert(0, project_root + '/lib')
     sys.path.insert(0, project_root + '/lib/%s' % py_path)
 else:
@@ -48,6 +50,7 @@ try:
     # Employ language/regional options    
     # from lib.language import get_strings
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(__file__))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -71,7 +74,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.0.2'
+__version__ = '1.1.0'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -301,10 +304,13 @@ Available make-style functions:
     @click.version_option(version=__version__)
     @click.option('---make', '---m', 'make_mode_engage', is_flag=False,
                   help='Call make-style function',
-                  required=False)    
+                  required=False)
     @click.option('---raw', is_flag=False,
                   help='Specify raw options for underlying subprocess',
                   required=False)
+    @click.option('---bastion-mode',
+                  is_flag=True,
+                  help='Execute commands via a bastion host')
     @click.option('---echo',
                   is_flag=True,
                   help='Don\'t run, simply echo underlying commands')
@@ -317,6 +323,19 @@ Available make-style functions:
         args = ' '.join(args) if args else ''
         # Initialize values for subshell
         prefix = 'echo' if kwargs.get('_echo') else ''
+        # Are we executing commands via bastion host?
+        bastion_settings = {}
+        # Force bastion mode if running from a Windows host
+        bastion_mode_enabled = True if is_windows else kwargs.get('_bastion_mode', False)
+        if bastion_mode_enabled:
+            # Turn bastion Mode off if we specifically don't want it
+            if not os.environ.get('WIN32_NO_BASTION_MODE'):
+                bastion_settings = {
+                'enabled': True,
+                'config_file': 'sftp-config.json',
+                'poll_wait_time': 5,
+                'keep_alive': True
+                }
         # Gather variables from commandline for interpolation
         cli_vars = ''
         # python 2.x
@@ -433,6 +452,7 @@ Available make-style functions:
                 debug=__debug,
                 args=args,
                 raw_args=raw_args,
+                bastion_settings=bastion_settings,
                 kwargs=kwargs
             )
 
