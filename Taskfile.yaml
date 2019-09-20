@@ -15,17 +15,17 @@
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-    optional_parameters:
       aws:
-        -d|--db-hosts: dbhosts_aws ## Specify AWS DBHost
+        -adb|--db-hosts: dbhosts_aws ## Specify AWS DBHost
         -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
       gcp:
-        -d|--db-hosts: dbhosts_gcp ## Specify GCP DBHost
+        -gdb|--db-hosts: dbhosts_gcp ## Specify GCP DBHost
         -g|--some-special-gcp-flag: gcp_flag ## Specify Some Special GCP Option
       pks:
         -d|--db-hosts: dbhosts_pks ## Specify PKS DBHost
         -p|--some-special-pks-flag: pks_flag ## Specify Some Special PKS Option
-      -d|--db-hosts: dbhosts ## Specify DBHost
+    optional_parameters:
+      -d|--db-hosts: dbhosts ## Specify A Generic DBHost
       -w|--web-hosts: webhosts ## Specify WebHost
       -t|--some-parameter: some_value ## Specify some value
       -l|--another-parameter: another_value ## Specify another value

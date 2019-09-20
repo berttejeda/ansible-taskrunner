@@ -97,8 +97,8 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     _param_set = param_set
 
     # Parameter set var (if it has been specified)
-    paramset_var = "parameter_set=%s" % (
-        _param_set if _param_set else 'False')
+    paramset_var = 'parameter_sets="%s"' % (
+        ' '.join(_param_set) if _param_set else 'False')
 
     _tasks_file_normalized_path = os.path.normpath(os.path.expanduser(tasks_file))
 
@@ -129,7 +129,7 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
             oph = match.groups()[1].strip()
             option_help_messages[opt] = oph
     # Instantiate the class for extending click options
-    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set, help_msg_map=option_help_messages)
+    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=_param_set, help_msg_map=option_help_messages)
 
     # Detect command provider
     global provider_cli
@@ -475,10 +475,9 @@ def entrypoint():
                 # Determine paramter set
                 # We only care for a particular pattern of parameters
                 # that precede the 'run' subcommand
-                paramset = [a for a in sys.argv[1:arg_run_index]
-                            if a not in ['run'] and not a.startswith('-')]
+                paramset = [a for a in sys.argv[1:arg_run_index] if a not in ['run'] and not a.startswith('-')]
                 if len(paramset) > 1:
-                    paramset = ''.join(paramset[1])
+                    paramset = paramset[1:]
                 else:
                     paramset = None
                 # Call main function as per parameter set
@@ -491,9 +490,7 @@ def entrypoint():
                 quit(ERR_ARGS_TASKF_OVERRIDE.format(script=script_name))
         else:
             # Determine paramter set
-            paramset = ''.join(
-                [a for a in sys.argv[1:arg_run_index] if a not in [
-                               'run'] and not a.startswith('-')])
+            paramset = [a for a in sys.argv[1:arg_run_index] if a not in ['run'] and not a.startswith('-')]
             if paramset:
                 sys.exit(main(cli_args, param_set=paramset))
             else:
