@@ -1,9 +1,21 @@
+import logging
 import os
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 import sys
 import threading
 import time
+
+# Import third-party and custom modules
+try:
+    from formatting import ansi_colors, Struct
+except ImportError as e:
+    print('Error in %s ' % os.path.basename(__file__))
+    print('Failed to import at least one required module')
+    print('Error was %s' % e)
+    print('Please install/update the required modules:')
+    print('pip install -U -r requirements.txt')
+    sys.exit(1)
 
 # Define how we handle different shell invocations
 shell_invocation_mappings = { 
@@ -12,6 +24,34 @@ shell_invocation_mappings = {
     'ruby': 'ruby < <(echo -e """{src}""")'
 }
 
+# Logging
+logger = logging.getLogger('logger')
+logger.setLevel(logging.INFO)
+
+class Remote_CLIInvocation:
+
+    def __init__(self, settings, client):
+
+        self.settings = settings
+        self.ssh = client
+
+    def call(self, dirname, cmd, stdout_listen=False):
+
+        base_cmd = "cd {} && ".format(dirname.replace('\\', '/'))
+        remote_cmd = base_cmd + cmd
+        if stdout_listen:
+            stdin, stdout, stderr = self.ssh.execute(remote_cmd, stream_stdout=stdout_listen)
+            return [l.strip() for l in stdout]
+        else:
+            stdin, stdout, stderr = self.ssh.execute(remote_cmd)
+            exit_code = stdout.channel.recv_exit_status()
+            stdout = stdout.readlines() or "None"
+            stderr = stderr.readlines() or "None"
+            if exit_code == 0:
+                return [l.strip() for l in stdout]
+            else:
+                logger.error('Remote command failed with error {}: {}'.format(exit_code,stderr))
+                return False
 
 class CLIInvocation:
 

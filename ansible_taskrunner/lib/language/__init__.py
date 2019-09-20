@@ -6,6 +6,7 @@ import sys
 try:
     from superduperconfig import SuperDuperConfig
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(__file__))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
