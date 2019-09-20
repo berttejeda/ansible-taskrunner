@@ -39,6 +39,7 @@ try:
     from formatting import logging_format
     from help import SAMPLE_CONFIG
     from help import SAMPLE_TASKS_MANIFEST
+    from logger import init_logger
     from superduperconfig import SuperDuperConfig
     from click_extras import ExtendedEpilog
     from click_extras import ExtendedHelp
@@ -74,22 +75,14 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
 log_file = None
 
 # Logging
-# Set format
-# Set up a specific logger with our desired output level and stdout formatter
-logger = logging.getLogger('logger')
-logger.setLevel(logging.INFO)
-streamhandler = logging.StreamHandler()
-streamhandler.setFormatter(
-    logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
-)
-logger.addHandler(streamhandler)
+logger = init_logger()
 
 # Load Config(s)
 config_file = 'config.yaml'
