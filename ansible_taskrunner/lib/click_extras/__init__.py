@@ -1,5 +1,6 @@
 # Imports
 import logging
+import re
 import sys
 
 # Setup Logging
@@ -48,6 +49,38 @@ class ExtendedHelp(click.Command):
             for line in self.epilog.split('\n'):
                 formatter.write_text(line)
 
+# Allow for mutually-exlusive click options
+class NotRequiredIf(click.Option):
+    def __init__(self, *args, **kwargs):
+        self.not_required_if = kwargs.pop('not_required_if')
+        assert self.not_required_if, "'not_required_if' parameter required"
+        kwargs['help'] = (kwargs.get('help', '') +
+            ' NOTE: This argument is mutually exclusive with %s' %
+            self.not_required_if
+        ).strip()
+        super(NotRequiredIf, self).__init__(*args, **kwargs)
+
+    def handle_parse_result(self, ctx, opts, args):
+        we_are_present = self.name in opts
+        other_present = self.not_required_if in opts
+
+        if other_present:
+            if we_are_present:
+                if self.name == self.not_required_if:
+                    logger.error("Option order error: `%s`" % self.name)
+                    logger.error("Make sure you call this option BEFORE any mutually-exlusive options referencing it")
+                    logger.error("Check your tasks manifest")
+                    sys.exit(1)
+                else:                    
+                    logger.error(
+                        "Illegal usage: `%s` is mutually exclusive with `%s`" % (
+                            self.name, self.not_required_if))
+                    sys.exit(1)
+            else:
+                self.prompt = None
+
+        return super(NotRequiredIf, self).handle_parse_result(
+            ctx, opts, args)
 
 class ExtendCLI():
     def __init__(self, parameter_set=None, vars_input={}, help_msg_map={}):
@@ -88,6 +121,30 @@ class ExtendCLI():
         nargs_ul_count = 0
         nargs_ul_count_max = 1
         for cli_option, value in parameters.items():
+            opt_option = None
+            opt_option_value = None
+            cli_option_is_me = False
+            if ' or ' in cli_option:
+                cli_option_l = cli_option.split(' or ')
+                cli_option = cli_option_l[0]
+                opt_option = cli_option_l[1]
+                opt_option_value = parameters.get(opt_option, '')
+            #If a given option is mutually exclusive with another, 
+            #then whether or not it is required depends on the
+            #command-line invocation relating 
+            # to its mutually exclusive partners            
+            cli_option_is_me = any(['or %s' % cli_option in o for o,v in parameters.items()])
+            cli_option_me_pattern = re.compile(cli_option)
+            cli_option_is_called = any([cli_option_me_pattern.match(a) for a in sys.argv])
+            cli_option_other = []
+            for o,v in parameters.items():
+                if 'or %s' % cli_option in o:
+                    cli_option_other.append(o.split(' or ')[0])
+            len_cli_option_other = len(cli_option_other)
+            cli_option_other = '|'.join(cli_option_other)
+            cli_option_other_pattern = re.compile(cli_option_other)
+            cli_option_other_matches = [cli_option_other_pattern.match(a) for a in sys.argv if cli_option_other_pattern.match(a)]
+            cli_option_other_is_called = any(cli_option_other_matches) and len(cli_option_other_matches) == len_cli_option_other
             # Check for option with variadic arguments (nargs=*)
             # There can only be one!
             if isinstance(value, list):
@@ -108,9 +165,18 @@ class ExtendCLI():
                 first_option = option_string[0].strip()
                 second_option = option_string[1].strip()
                 numargs = 1 if numargs < 1 else numargs
-                option = click.option(first_option, second_option, 
+                if opt_option:
+                    option = click.option(first_option, second_option, value, 
+                    type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
+                    not_required_if=opt_option_value)
+                else:
+                    if cli_option_is_me and cli_option_other_is_called:
+                        _is_required = False
+                    else:
+                        _is_required = is_required
+                    option = click.option(first_option, second_option, 
                     value, type=str, nargs=numargs, help=option_help, 
-                    required=is_required)
+                    required=_is_required)
             else:
                 if nargs_ul_is_set and \
                 not nargs_ul_count > nargs_ul_count_max:
@@ -119,10 +185,21 @@ class ExtendCLI():
                         nargs=numargs, required=is_required)
                 else:
                     numargs = 1 if numargs < 1 else numargs
-                    option = click.option(
-                        cli_option, value, is_flag=True, 
-                        default=False, help=option_help, 
-                        required=is_required)
+                    if opt_option:
+                        option = click.option(
+                            cli_option, value, cls=NotRequiredIf,
+                            is_flag=True, default=False, 
+                            help=option_help, 
+                            not_required_if=opt_option_value)
+                    else:
+                        if cli_option_is_me and cli_option_other_is_called:
+                            _is_required = False
+                        else:
+                            _is_required = is_required
+                        option = click.option(
+                            cli_option, value, is_flag=True, 
+                            default=False, help=option_help, 
+                            required=_is_required)
             func = option(func)
             nargs_ul_is_set = False
             numargs = 1
@@ -137,22 +214,26 @@ class ExtendCLI():
         if not required_parameters:
             required_parameters = {}
         else:
-            # Filter out any None values
-            for k,v in required_parameters.items():
-                if v is None:
-                    logger.warning("Invalid option key '%s'" % k)
-                    del required_parameters[k]
+            param_list = list(required_parameters.items())
+            # Filter out any None/Null values
+            # Accounting for mutually exclusive options
+            for param in param_list:
+                if param[0] != 'or' and param[1] is None:
+                    logger.warning("Removing invalid option key '%s'" % param[0])
+                    required_parameters.pop(param[0])
         extended_cli_func_required = self.process_options(
             required_parameters, func, is_required=True)
         optional_parameters = self.vars.get('optional_parameters', {})
         if not optional_parameters:
             optional_parameters = {}
         else:
+            param_list = list(optional_parameters.items())
             # Filter out any None values
-            for k,v in optional_parameters.items():
-                if v is None:
-                    logger.warning("Invalid option key '%s'" % k)
-                    del optional_parameters[k]
+            # Accounting for mutually exclusive options
+            for param in param_list:
+                if param[0] != 'or' and param[1] is None:
+                    logger.warning("Removing invalid option key '%s'" % param[0])
+                    optional_parameters.pop(param[0])
         # Filter out any None values
         extended_cli_func = self.process_options(
             optional_parameters, extended_cli_func_required)

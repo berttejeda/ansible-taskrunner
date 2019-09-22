@@ -17,7 +17,7 @@
     required_parameters:
       -a|--auth-token: auth_token ## Specify auth token
       -u|--username or -a|--auth-token: username ## Specify Username
-      -p|--password or -a|--auth-token: password ## Specify Password      
+      -p|--password or -a|--auth-token: password ## Specify Password
       aws:
         -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
         -adb|--aws-db-hosts: dbhosts_aws ## Specify AWS DBHost
