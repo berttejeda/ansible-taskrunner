@@ -2,6 +2,16 @@
 History
 =======
 
+## Release 2019-09-20 v1.1.2
+
+* Added support for mutually-exclusive cli options [0d8819b](https://github.com/berttejeda/ansible-taskrunner/commit/0d8819bbf68317c0098c1dd858f7c7e1ae9cfae4)
+* Added support for multiple parameter sets [f607b0d](https://github.com/berttejeda/ansible-taskrunner/commit/f607b0d70aee9b8b8b335c8859f4596d083f397d)
+
+## Release 2019-09-20 v1.1.1
+
+* Addressed accidental inclusion of unecessary python module warning filters [ff6e898](https://github.com/berttejeda/ansible-taskrunner/commit/ff6e8981c8a79d85bccf076d781349c2374edef3)
+* Refactored logging facility [a6dfba0](https://github.com/berttejeda/ansible-taskrunner/commit/a6dfba04ec8ae7442a1f02dac3e5c2cc1dde3394)
+
 ## Release 2019-09-20 v1.1.0
 
 * Initial commit of bastion-mode codebase [7426a50](https://github.com/berttejeda/ansible-taskrunner/commit/7426a500defa4699d507038400293222f64e03f2)
