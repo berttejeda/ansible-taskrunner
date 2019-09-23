@@ -2,6 +2,15 @@
 History
 =======
 
+## Release 2019-09-23 v1.1.3
+
+* Adjusted bastion mode options [f0e2bce](https://github.com/berttejeda/ansible-taskrunner/commit/f0e2bce3cc6adc103954ed01d12f724c059a0730)
+* Fixed bug in cli re-ordering logic for Python 2.7.x [cb5e000](https://github.com/berttejeda/ansible-taskrunner/commit/cb5e0005a6ed34cae0700a2faad4e41016108422)
+* Added a missing intermediary dictionary object [bd405ce](https://github.com/berttejeda/ansible-taskrunner/commit/bd405ce171c811856bf01416065c635432c78d96)
+* Suppress warnings from paramiko unless debug mode is enabled [b623a8d](https://github.com/berttejeda/ansible-taskrunner/commit/b623a8dca705d71ab956961e6e8eaafb6c2184b6)
+* Addressed bug in re-ordering of vars/cli options ordering for Pyton 2.x [dc82860](https://github.com/berttejeda/ansible-taskrunner/commit/dc828600fc361bd7cc0a6f8356d23957bb5ce9bc)
+* Taskfile accidentally set to bash mode [4244faf](https://github.com/berttejeda/ansible-taskrunner/commit/4244faf6dd65213f6aa3f216621b94fc14fabe2f)
+
 ## Release 2019-09-20 v1.1.2
 
 * Added support for mutually-exclusive cli options [0d8819b](https://github.com/berttejeda/ansible-taskrunner/commit/0d8819bbf68317c0098c1dd858f7c7e1ae9cfae4)
