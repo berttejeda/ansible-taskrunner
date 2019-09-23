@@ -354,6 +354,7 @@ Available make-style functions:
                 parameter_mapping = opt_parameters
             # Next, we create a dictionary that holds cli arguments 
             # in the order they were called, as per the parameter mapping
+            ordered_args = {}
             for k, v in parameter_mapping.items():
                 for a in sys.argv:
                     if re.search(k, a):
