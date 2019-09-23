@@ -347,24 +347,29 @@ Available make-style functions:
             # We're working with the optional 
             # parameter set in either case
             if req_parameters:
-                dict(opt_parameters).update(dict(req_parameters))
-                parameter_mapping = opt_parameters
+                d_req = dict(req_parameters)
+                d_opt = dict(opt_parameters)
+                d_req.update(d_opt)
+                parameter_mapping = d_req
             else:
-                dict(opt_parameters)
-                parameter_mapping = opt_parameters
+                parameter_mapping = dict(opt_parameters)
             # Next, we create a dictionary that holds cli arguments 
             # in the order they were called, as per the parameter mapping
             ordered_args = {}
             for k, v in parameter_mapping.items():
                 for a in sys.argv:
-                    if re.search(k, a):
+                    if re.match(k, a):
                         for o in k.split('|'):
                             if o in sys.argv:
                                 i = sys.argv.index(o)
                                 ordered_args[k] = i
             # Lastly, we convert our kwargs object to
             # an ordered dictionary object as per the above
-            kwargs = OrderedDict([(parameter_mapping[k],kwargs.get(parameter_mapping[k])) for k, v in sorted(ordered_args.items(), key=lambda item: item[1])])
+            ordered_args_tuples = []
+            for k, v in sorted(ordered_args.items(), key=lambda item: item[1]):
+                o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
+                ordered_args_tuples.append(o_tuple)
+            kwargs = OrderedDict(ordered_args_tuples)
         for key, value in kwargs.items():
             if key.startswith('_'):
                 cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
