@@ -14,6 +14,7 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     # Ignore warnings from cryptography module
     warnings.filterwarnings("ignore", category=UserWarning, module='cryptography')
+    warnings.filterwarnings("ignore", category=UserWarning, module='paramiko')
     logger.setLevel(logging.INFO)
 
 # Only if zipapp
