@@ -6,6 +6,31 @@ cli:
 ...
 '''
 
+SAMPLE_SFTP_CONFIG = '''
+{
+    "type": "sftp",
+    "save_before_upload": true,
+    "upload_on_save": true,
+    "sync_down_on_open": false,
+    "sync_skip_deletes": false,
+    "sync_same_age": true,
+    "confirm_downloads": false,
+    "confirm_sync": true,
+    "confirm_overwrite_newer": false,
+    "host": "CHANGEME",
+    "user": "CHANGEME",
+    "ssh_key_file": "CHANGEME",
+    "port": "22",
+    "remote_path": "CHANGEME",
+    "ignore_regexes": [
+        "\\\\.sublime-(project|workspace)", "sftp-config(-alt\\\\d?)?\\\\.json",
+        "sftp-settings\\\\.json", "/venv/", "\\\\.svn/", "\\\\.hg/", "\\\\.git/",
+        "\\\\.bzr", "_darcs", "CVS", "\\\\.DS_Store", "Thumbs\\\\.db", "desktop\\\\.ini"
+    ],
+    "connect_timeout": 30
+}
+'''
+
 SAMPLE_TASKS_MANIFEST = '''
 - hosts: myhosts
   gather_facts: true

@@ -39,6 +39,8 @@ try:
     from formatting import logging_format
     from help import SAMPLE_CONFIG
     from help import SAMPLE_TASKS_MANIFEST
+    if is_windows:
+        from help import SAMPLE_SFTP_CONFIG    
     from logger import init_logger
     from superduperconfig import SuperDuperConfig
     from click_extras import ExtendedEpilog
@@ -86,6 +88,7 @@ logger = init_logger()
 
 # Load Config(s)
 config_file = 'config.yaml'
+sftp_config_file = 'sftp-config.json' 
 superconf = SuperDuperConfig(__program_name__)
 config = superconf.load_config(config_file)
 
@@ -217,6 +220,9 @@ Ansible Taskrunner - ansible-playbook wrapper
             print(SAMPLE_CONFIG)
             logger.info('Displaying sample manifest')
             print(SAMPLE_TASKS_MANIFEST)
+            if is_windows:
+                logger.info('Displaying sample sftp config')
+                print(SAMPLE_SFTP_CONFIG)            
         else:
             if not os.path.exists(config_file):
                 logger.info(
@@ -234,6 +240,14 @@ Ansible Taskrunner - ansible-playbook wrapper
             else:
                 logger.info(
                     'File exists, not writing manifest %s' % tasks_file)
+            if not os.path.exists(sftp_config_file):
+                logger.info(
+                    'Existing manifest not found, writing %s' % sftp_config_file)
+                with open(sftp_config_file, 'w') as f:
+                    f.write(SAMPLE_SFTP_CONFIG)
+            else:
+                logger.info(
+                    'File exists, not writing manifest %s' % sftp_config_file)
 
     # Run command
     # Parse help documentation
