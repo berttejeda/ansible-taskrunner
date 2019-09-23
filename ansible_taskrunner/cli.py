@@ -416,14 +416,24 @@ Available make-style functions:
         list_vars = []
         for var in default_vars:
             if isinstance(default_vars[var], list):
-                list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
-                    k=var, v='\n'.join(default_vars[var])))
+                _var = default_vars[var]
+                try:
+                    list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
+                        k=var, v='\n'.join(_var)))
+                except TypeError as e:
+                    logger.warning("Unsupported variable type, skipped variable '%s'" % var)
+                    logger.debug("Skip Reason %s" % e)
         # String-type variables
         defaults_string_vars = [] 
         for var in default_vars:
             if isinstance(default_vars[var], str):
-                defaults_string_vars.append(
-                    '{k}="""{v}"""'.format(k=var, v=default_vars[var]))
+                try:
+                    _var = default_vars[var]
+                    defaults_string_vars.append(
+                        '{k}="""{v}"""'.format(k=var, v=_var))
+                except TypeError as e:
+                    logger.warning("Unsupported variable type, skipped variable '%s'" % var)
+                    logger.debug("Skip Reason %s" % e)
         # Append the __tasks_file variable to the above list
         defaults_string_vars.append(
             '__tasks_file__=%s' % _tasks_file_normalized_path
