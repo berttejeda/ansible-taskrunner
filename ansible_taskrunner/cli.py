@@ -344,6 +344,7 @@ Available make-style functions:
             opt_parameters['---make|---m'] = 'make_mode_engage'
             opt_parameters['---raw'] = '_raw'
             opt_parameters['---echo'] = '_echo'
+            opt_parameters['---bastion_mode'] = '_bastion_mode'
             # We're working with the optional 
             # parameter set in either case
             if req_parameters:

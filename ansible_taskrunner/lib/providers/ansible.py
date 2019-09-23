@@ -153,7 +153,7 @@ class ProviderCLI:
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
         # Bastion host logic
-        if bastion_settings.get('enabled'):
+        if bastion_settings.get('enabled') and prefix !='echo':
             self.invoke_bastion_mode(bastion_settings)
         else:        
             sub_process = CLIInvocation()
