@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2019-09-23 v1.1.4
+
+* Added error handling for variable interpolation [1cc2803](https://github.com/berttejeda/ansible-taskrunner/commit/1cc2803e22b83341a0d54503a89dfa8c3114c5f6)
+* Added init actions for sftp settings file [8a7dc85](https://github.com/berttejeda/ansible-taskrunner/commit/8a7dc8534d05f99aa4894655fab0841cb826e9d5)
+
 ## Release 2019-09-23 v1.1.3
 
 * Adjusted bastion mode options [f0e2bce](https://github.com/berttejeda/ansible-taskrunner/commit/f0e2bce3cc6adc103954ed01d12f724c059a0730)
