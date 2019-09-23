@@ -336,6 +336,7 @@ Available make-style functions:
         # which they were called
         if sys.version_info[0] < 3:
             # First we build a mapping of cli variables to corresponding yaml variables
+            parameter_mapping = {}
             req_parameters = yaml_vars.get('required_parameters', {}) or {}
             opt_parameters = yaml_vars.get('optional_parameters', {}) or {}
             # We need to 'inject' built-in cli options
@@ -343,13 +344,16 @@ Available make-style functions:
             opt_parameters['---make|---m'] = 'make_mode_engage'
             opt_parameters['---raw'] = '_raw'
             opt_parameters['---echo'] = '_echo'
+            # We're working with the optional 
+            # parameter set in either case
             if req_parameters:
-                parameter_mapping = dict(opt_parameters).update(dict(req_parameters))
+                dict(opt_parameters).update(dict(req_parameters))
+                parameter_mapping = opt_parameters
             else:
-                parameter_mapping = dict(opt_parameters)
+                dict(opt_parameters)
+                parameter_mapping = opt_parameters
             # Next, we create a dictionary that holds cli arguments 
             # in the order they were called, as per the parameter mapping
-            ordered_args = {}
             for k, v in parameter_mapping.items():
                 for a in sys.argv:
                     if re.search(k, a):
