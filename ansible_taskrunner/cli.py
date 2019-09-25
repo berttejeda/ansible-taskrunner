@@ -7,6 +7,7 @@ import logging.handlers
 import os
 import re
 import sys
+from string import Template
 
 # For zip-app
 self_file_name = os.path.basename(__file__)
@@ -93,17 +94,27 @@ superconf = SuperDuperConfig(__program_name__)
 config = superconf.load_config(config_file)
 
 
-def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
+def main(args, tasks_file='Taskfile.yaml', param_set='', path_string='vars'):
     # We'll pass this down to the run invocation
-    global _param_set 
-    global _tasks_file_normalized_path
-    _param_set = param_set
+    global exe_path
+    global cli_args
+    global cli_args_short
+    global parameter_sets
+    global sys_platform
+    global tf_path
+
+    # System Platform
+    sys_platform = sys.platform
+    exe_path = os.path.normpath(__file__)
+    exe_path = re.sub('.__main__.py','', exe_path)
 
     # Parameter set var (if it has been specified)
+    parameter_sets = ' '.join(param_set)
     paramset_var = 'parameter_sets="%s"' % (
-        ' '.join(_param_set) if _param_set else 'False')
-
-    _tasks_file_normalized_path = os.path.normpath(os.path.expanduser(tasks_file))
+        ' '.join(param_set) if param_set else 'False')
+    
+    # Path to specified Taskfile
+    tf_path = os.path.normpath(os.path.expanduser(tasks_file))
 
     # Instantiate YAML Reader Class
     yamlr = YamlReader()
@@ -121,18 +132,26 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
     # Extend CLI Options as per Tasks Manifest
     yaml_vars = yamlr.get(yaml_data, path_string)    
 
+    # cli_args
+    _sys_args = [a for a in sys.argv if a != '--help']
+    cli_args = ' '.join(_sys_args)
+    cli_args_short = ' '.join(_sys_args[1:])
+    
+    # Populate list of available variables for use in internal string Templating
+    available_vars = dict([(v, globals()[v]) for v in globals().keys() if not v.startswith('_')])
+
     # Create a dictionary object holding option help messages
     option_help_messages = {}
-    if os.path.exists(_tasks_file_normalized_path):
+    if os.path.exists(tf_path):
         string_pattern = re.compile('(.*-.*)##(.*)')
-        for line in open(_tasks_file_normalized_path).readlines():
+        for line in open(tf_path).readlines():
           match = string_pattern.match(line)
           if match:
             opt = match.groups()[0].strip().split(':')[0]
             oph = match.groups()[1].strip()
-            option_help_messages[opt] = oph
+            option_help_messages[opt] = Template(oph).safe_substitute(**available_vars)
     # Instantiate the class for extending click options
-    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=_param_set, help_msg_map=option_help_messages)
+    extend_cli = ExtendCLI(vars_input=yaml_vars, parameter_set=param_set, help_msg_map=option_help_messages)
 
     # Detect command provider
     global provider_cli
@@ -157,7 +176,6 @@ def main(args, tasks_file='Taskfile.yaml', param_set=None, path_string='vars'):
         # CLI Provider Plugins
         for provider in plugins.providers:
             provider_cli = provider.ProviderCLI()
-
     # Main CLI interface
     click_help = """\b
 Ansible Taskrunner - ansible-playbook wrapper
@@ -252,6 +270,7 @@ Ansible Taskrunner - ansible-playbook wrapper
     # Run command
     # Parse help documentation
     help_string = yamlr.deep_get(yaml_vars, 'help.message', '')
+    help_string = Template(help_string).safe_substitute(**available_vars)
     epilog_string = yamlr.deep_get(yaml_vars, 'help.epilog', '')
     examples = yamlr.deep_get(yaml_vars, 'help.examples', '')
     examples_string = ''
@@ -293,8 +312,10 @@ Ansible Taskrunner - ansible-playbook wrapper
         for example in examples:
             if isinstance(example, dict):
                 for key, value in example.items():
+                    value = Template(value).safe_substitute(**available_vars)
                     examples_string += '- {k}:\n{v}'.format(k=key, v=value)
             if isinstance(example, str):
+                example = Template(example).safe_substitute(**available_vars)
                 examples_string += '%s\n' % example
     epilog = '''
 {ep}
@@ -305,7 +326,7 @@ Available make-style functions:
     '''.format(ep=epilog_string, 
         ex=examples_string, 
         fh=function_help_string)
-    epilog = epilog
+    epilog = Template(epilog).safe_substitute(**available_vars)
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
@@ -324,6 +345,7 @@ Available make-style functions:
     @extend_cli.options
     @provider_cli.options
     def run(args=None, **kwargs):
+        global param_set
         # Process Raw Args
         raw_args = kwargs['_raw'] if kwargs.get('_raw') else ''
         # Process run args, if any
@@ -436,7 +458,7 @@ Available make-style functions:
                     logger.debug("Skip Reason %s" % e)
         # Append the __tasks_file variable to the above list
         defaults_string_vars.append(
-            '__tasks_file__=%s' % _tasks_file_normalized_path
+            '__tasks_file__=%s' % tf_path
             )
         inventory_variable = 'inventory="""{v}"""'.format(v=yaml_vars['inventory'])
         defaults_string_vars.append(inventory_variable)

@@ -2,6 +2,7 @@
 import logging
 import re
 import sys
+from string import Template
 
 # Setup Logging
 logger = logging.getLogger(__name__)
@@ -88,6 +89,10 @@ class ExtendCLI():
         self.help_msg_map = help_msg_map
         self.parameter_set = parameter_set
         self.logger = logger
+        # Populate list of available variables for use in internal string Templating
+        self.sys_platform = sys.platform
+        self.available_vars = vars(self)
+        self.available_vars = dict([(v, self.available_vars[v]) for v in self.available_vars.keys() if not type(self.available_vars[v]) == dict])
         pass
 
     def process_options(self, parameters, func, is_required=False):
@@ -121,6 +126,8 @@ class ExtendCLI():
         nargs_ul_count = 0
         nargs_ul_count_max = 1
         for cli_option, value in parameters.items():
+            cli_option = Template(cli_option).safe_substitute(**self.available_vars)
+            value = Template(value).safe_substitute(**self.available_vars)
             opt_option = None
             opt_option_value = None
             cli_option_is_me = False
