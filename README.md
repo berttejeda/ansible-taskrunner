@@ -36,6 +36,7 @@
     - [__parameter_sets__](#__parameter_sets__)
   - [Parameter Sets](#parameter-sets)
   - [Mutually Exclusive Options](#mutually-exclusive-options)
+  - [Simple Templating](#simple-templating)
   - [Single-Executable Releases](#single-executable-releases)
 - [License and Credits](#license-and-credits)
 
