@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-09-25 v1.1.5
+
+* Implement simple string templating for cli options and help-related messages [751fa5e](https://github.com/berttejeda/ansible-taskrunner/commit/751fa5e8bc63c7f7bd8fe0ac97dfec13bdf7be94)
+
 ## Release 2019-09-23 v1.1.4
 
 * Added error handling for variable interpolation [1cc2803](https://github.com/berttejeda/ansible-taskrunner/commit/1cc2803e22b83341a0d54503a89dfa8c3114c5f6)
