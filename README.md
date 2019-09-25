@@ -839,6 +839,49 @@ the username and password.
 
 A sample is provided in the [examples](examples) directory.
 
+<a name="simple-templating"></a>
+## Simple Templating
+
+As of version 1.1.5, simple templating is available to the following objects:
+
+- Help messages
+- Examples
+- Options
+- Options values
+
+What this means is that we expose a limited set of internal variables to the above.
+
+As an example:
+
+```
+      examples:
+        - example1: |
+            tasks -f $tf_path --foo foo --bar bar
+        - example2: |
+            tasks -f $tf_path --foo foo --baz baz
+```            
+
+In the above strings, `$tf_path` will expand to the internal variable tf_path,
+which holds the relative path to the current tasks file.
+
+Below is a list of available variables for your convenience:
+
+- cli_args
+- cli_args_short
+- parameter_sets
+- tf_path
+
+```
+Variable        | Description
+-------------   | -------------
+exe_path        | The absolute path to the tasks executable
+cli_args        | The current command-line invocation
+cli_args_short  | The current command-line invocation, minus the executable
+parameter_sets  | The parameter sets you have invoked
+sys_platform    | The OS Platform as detected by Python
+tf_path         | The relative path to the specified Taskfile
+```
+
 [Back To Top](#top)
 <a name="single-executable-releases"></a>
 ## Single-Executable Releases
