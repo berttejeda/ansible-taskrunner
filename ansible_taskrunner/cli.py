@@ -330,7 +330,7 @@ Available make-style functions:
     @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
                  epilog=epilog)
     @click.version_option(version=__version__)
-    @click.option('---make', '---m', 'make_mode_engage', is_flag=False,
+    @click.option('---make', 'make_mode_engage', is_flag=False,
                   help='Call make-style function',
                   required=False)
     @click.option('---raw', is_flag=False,
@@ -377,10 +377,12 @@ Available make-style functions:
             opt_parameters = yaml_vars.get('optional_parameters', {}) or {}
             # We need to 'inject' built-in cli options
             # since we're artificially re-ordering things
-            opt_parameters['---make|---m'] = 'make_mode_engage'
-            opt_parameters['---raw'] = '_raw'
-            opt_parameters['---echo'] = '_echo'
-            opt_parameters['---bastion_mode'] = '_bastion_mode'
+            ctx = click.get_current_context()
+            ctx_help = ctx.get_help()
+            existing_provider_options = re.findall('---.*?[\s]', ctx_help)
+            for opt in existing_provider_options:
+                opt = opt.strip()
+                opt_parameters[opt] = opt.replace('---', '_').replace('-', '_')
             # We're working with the optional 
             # parameter set in either case
             if req_parameters:

@@ -3,6 +3,7 @@ import logging
 import json
 import os
 from os import fdopen, remove
+import re
 import sys
 from tempfile import mkstemp
 
@@ -41,10 +42,10 @@ class ProviderCLI:
     @staticmethod
     def options(func):
         """Add provider-specific click options"""
-        option = click.option('---debug', '---d', type=str, help='Start task run with ansible in debug mode',
+        option = click.option('---debug', type=str, help='Start task run with ansible in debug mode',
                               default=False, required=False)
         func = option(func)
-        option = click.option('---inventory', '---i', is_flag=False, help='Override embedded inventory specification',
+        option = click.option('---inventory', is_flag=False, help='Override embedded inventory specification',
                               required=False)
         func = option(func)
         return func
@@ -168,21 +169,22 @@ class ProviderCLI:
                     "Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
                 sys.exit(1)
             elif inventory_input:
-                ansible_inventory_file_path = inventory_input
-                ansible_inventory_file_path_descriptor = None
+                ans_inv_fp = inventory_input
+                ans_inv_fso_desc = None
+                logger.info("Using specified inventory file %s" % ans_inv_fp)                
             else:
-                ansible_inventory_file_path_descriptor, ansible_inventory_file_path = mkstemp(prefix='ansible-inventory',
-                                                                                              suffix='.tmp.ini')
+                ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini')                 
                 logger.info("No inventory specified")
                 logger.info("Writing a temporary inventory file %s (normally deleted after run)"
-                            % ansible_inventory_file_path)
+                            % ans_inv_fp)
                 inventory_input = embedded_inventory_string
                 embedded_inventory = True
             ansible_extra_options = [
                 '-e {k}="{v}"'.format(k=key, v=value) for key, value in kwargs.items() if value]
             ansible_extra_options.append('-e %s' % paramset_var)
             # Build command string
-            inventory_command = '''
+            if ans_inv_fso_desc:
+                inventory_command = '''
 if [[ ($inventory) && ( '{emb}' == 'True') ]];then
   echo -e """{ins}""" | while read line;do
       eval "echo -e ${{line}}" >> "{inf}"
@@ -191,8 +193,10 @@ fi
                 '''.format(
                     emb=embedded_inventory,
                     ins=inventory_input,
-                    inf=ansible_inventory_file_path,
+                    inf=ans_inv_fp,
                     )
+            else:
+                inventory_command = ''
             pre_commands = '''{anc}
 {clv}
 {dsv}
@@ -211,7 +215,7 @@ fi
     {apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply}
             '''.format(
                 apc=ansible_playbook_command,
-                inf=ansible_inventory_file_path,
+                inf=ans_inv_fp,
                 opt=' '.join(ansible_extra_options),
                 ply=yaml_input_file,
                 arg=args,
@@ -235,10 +239,10 @@ fi
                 logger.debug('Ansible command file can be found here: %s' %
                              ansible_command_file_path)
                 logger.debug('Ansible inventory file can be found here: %s' %
-                             ansible_inventory_file_path)
+                             ans_inv_fp)
                 with fdopen(ansible_command_file_descriptor, "w") as f:
                     f.write(command)
             else:
-                if ansible_inventory_file_path_descriptor:
-                    os.close(ansible_inventory_file_path_descriptor)
-                    remove(ansible_inventory_file_path)
+                if ans_inv_fso_desc:
+                    os.close(ans_inv_fso_desc)
+                    remove(ans_inv_fp)
