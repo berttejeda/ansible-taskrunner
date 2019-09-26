@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-09-25 v1.1.6
+
+* Fixed bug whereby built-in options weren't properly accounted for in the py2 cli reordering logic [be21143](https://github.com/berttejeda/ansible-taskrunner/commit/be21143552bb11c225452e16dd14aa950c5dbeb1)
+
 ## Release 2019-09-25 v1.1.5
 
 * Implement simple string templating for cli options and help-related messages [751fa5e](https://github.com/berttejeda/ansible-taskrunner/commit/751fa5e8bc63c7f7bd8fe0ac97dfec13bdf7be94)
