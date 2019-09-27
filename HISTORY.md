@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2019-09-27 v1.1.7
+
+* Skip mutually exclusive cli options with broken associations [ebe1cb4](https://github.com/berttejeda/ansible-taskrunner/commit/ebe1cb4440c2d7c5915db42ca6a28f677f12733b)
+* Main CLI interface now lends itself to unit/integration tests using click.testing [fbc6cf7](https://github.com/berttejeda/ansible-taskrunner/commit/fbc6cf717b4898d899eb128d9372643c292a7290)
+
 ## Release 2019-09-25 v1.1.6
 
 * Fixed bug whereby built-in options weren't properly accounted for in the py2 cli reordering logic [be21143](https://github.com/berttejeda/ansible-taskrunner/commit/be21143552bb11c225452e16dd14aa950c5dbeb1)
