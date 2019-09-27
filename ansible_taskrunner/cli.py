@@ -79,7 +79,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -107,6 +107,10 @@ invocation = get_invocation(script_name)
 path_string='vars'
 param_set = invocation['param_set']
 tasks_file = invocation['tasks_file']
+
+# Replace the commandline invocation
+if __name__ in ['ansible_taskrunner.cli', '__main__']:
+    sys.argv = invocation['cli']
 
 # System Platform
 sys_platform = sys.platform
@@ -514,5 +518,4 @@ def run(args=None, **kwargs):
         )
 
 if __name__ == '__main__':
-    sys.argv = invocation['cli']
     sys.exit(cli())

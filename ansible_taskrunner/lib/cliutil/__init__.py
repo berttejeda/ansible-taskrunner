@@ -101,4 +101,5 @@ def get_invocation(script_name):
             invocation['cli'] = sys.argv[1:]
             invocation['param_set'] = []
             invocation['tasks_file'] = 'Taskfile.yaml'
+    logger.debug('CLI Invocation - %s' % invocation)
     return invocation
