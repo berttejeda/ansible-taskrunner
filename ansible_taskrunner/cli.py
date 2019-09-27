@@ -103,8 +103,13 @@ global tf_path
 
 # Are we invoking the run subcommand?
 arg_run_index = sys.argv.index('run') if 'run' in sys.argv else None
-# Are we specifing a Taskfile override?
-arg_tf_index = sys.argv.index('-f') if '-f' in sys.argv else None
+# Are we specifing a Taskfile override (option -f)?
+# If so, make sure this special cli option 
+# occurs before the 'run' subcommand
+if '-f' in sys.argv and arg_run_index > sys.argv.index('-f'):
+    arg_tf_index = sys.argv.index('-f')
+else:
+    arg_tf_index = None
 tf_override = sys.argv[arg_tf_index + 1] if arg_tf_index else None
 invocation = {}
 if arg_run_index:
