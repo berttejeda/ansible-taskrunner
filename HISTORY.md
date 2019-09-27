@@ -2,8 +2,13 @@
 History
 =======
 
+## Release 2019-09-27 v1.1.9
+
+* Accounting for pypi package context for cli invocation logic [975d7a7](https://github.com/berttejeda/ansible-taskrunner/commit/975d7a74c27e534eb1994d2fa48af846c9763410)
+
 ## Release 2019-09-27 v1.1.8
 
+* Added additional unit tests for the 'run' subcommand [cbb0607](https://github.com/berttejeda/ansible-taskrunner/commit/cbb06071719681c96fd50cfebc5e0dac781d9792)
 * Moved pre-execution cli invocation logic to separate module [3e5d717](https://github.com/berttejeda/ansible-taskrunner/commit/3e5d717ef92b4d32496a5631f4cc6691cf4ebcf8)
 * Fixed bug in Taskfile override logic [d825325](https://github.com/berttejeda/ansible-taskrunner/commit/d825325a1b69ee76b8d7d501f8448effdee6e9f3)
 
