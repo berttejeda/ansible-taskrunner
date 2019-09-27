@@ -108,6 +108,10 @@ path_string='vars'
 param_set = invocation['param_set']
 tasks_file = invocation['tasks_file']
 
+# Replace the commandline invocation
+if __name__ in ['ansible_taskrunner.cli', '__main__']:
+    sys.argv = invocation['cli']
+
 # System Platform
 sys_platform = sys.platform
 exe_path = os.path.normpath(__file__)
@@ -514,5 +518,4 @@ def run(args=None, **kwargs):
         )
 
 if __name__ == '__main__':
-    sys.argv = invocation['cli']
     sys.exit(cli())
