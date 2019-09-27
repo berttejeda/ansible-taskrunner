@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
-""" Integration and unit tests for ansible taskrunner
+""" Unit tests for ansible taskrunner
 """
 from __future__ import print_function, absolute_import
 import os
@@ -32,11 +32,33 @@ class TestCli(unittest.TestCase):
         pass
 
     def test_run_help(self):
-        """ Test whether script help will return.  Basically check whether there are compile errors
+        """ Test whether script help will successfully execute.  Basically check whether there are compile errors
         :return: exit_code == 0
         """
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '--help']).exit_code, 0)
         pass
+
+    def test_run_foo_echo(self):
+        """ Test whether script 'run' subcommand will successfully echo subcommand.  Basically check whether there are compile errors
+        :return: exit_code == 0
+        """
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---echo']).exit_code, 0)
+        pass
+
+    def test_run_make_hello(self):
+        """ Test whether script 'run' subcommand will successfully execute in make mode.  Basically check whether there are compile errors
+        :return: exit_code == 0
+        """
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---make', 'hello']).exit_code, 0)
+        pass
+
+    def test_run_make_echo(self):
+        """ Test whether script 'run' subcommand will successfully echo subcommand in make mode.  Basically check whether there are compile errors
+        :return: exit_code == 0
+        """
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---make', 'hello','---echo']).exit_code, 0)
+        pass
+
 
 if __name__ == '__main__':
     with warnings.catch_warnings(record=True):
