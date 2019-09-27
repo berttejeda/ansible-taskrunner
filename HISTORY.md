@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-09-27 v1.1.10
+
+* Adjusted max content width for help messages [7052485](https://github.com/berttejeda/ansible-taskrunner/commit/70524851385d959b9509c45ecb94864ac1a480ba)
+
 ## Release 2019-09-27 v1.1.9
 
 * Accounting for pypi package context for cli invocation logic [975d7a7](https://github.com/berttejeda/ansible-taskrunner/commit/975d7a74c27e534eb1994d2fa48af846c9763410)
