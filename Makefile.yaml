@@ -10,6 +10,8 @@
       message: |
         Task Runner for the Task Runner!
       examples:
+        - Build Python Module and Push to PyPi: |-
+            python ansible_taskrunner/cli.py -f Makefile.yaml run ---make pypi -U $username -P $password
     inventory: |
       [local]
       localhost      
@@ -157,6 +159,7 @@
         shell: bash
         hidden: true
         source: |-
+          source activate py3    
           if ! test -d ${__release_dir};then mkdir -p ${__release_dir};fi
           mv -f tasks ${__release_dir}
           if [[ -n $REPLACE_EXE ]];then
@@ -210,7 +213,7 @@
             return 1
           fi
           init_libs
-          __version=$(cat ${workdir}/VERSION)
+          __version=$(grep 'version: ' ${workdir}/setup.cfg | cut -d\  -f2)
           echo "Version is ${__version}"
           __release_dir=../release/${__version}
           lint_result=$(python cli.py --help)

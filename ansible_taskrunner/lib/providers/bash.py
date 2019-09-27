@@ -1,12 +1,16 @@
 # Imports
 import logging
+import os
 import sys
 
 provider_name = 'bash'
 
-# Logging
-logger = logging.getLogger('logger')
-logger.setLevel(logging.INFO)
+# Setup Logging
+logger = logging.getLogger(__name__)
+if '--debug run' in ' '.join(sys.argv):
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 # Import third-party and custom modules
 try:
@@ -14,6 +18,7 @@ try:
     from proc_mgmt import shell_invocation_mappings
     from proc_mgmt import CLIInvocation
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(__file__))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -46,6 +51,7 @@ class ProviderCLI:
                    args=None,
                    prefix='',
                    raw_args='',
+                   bastion_settings={},
                    kwargs={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')

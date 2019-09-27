@@ -4,5 +4,3 @@
 
 __author__ = """Engelbert Tejeda"""
 __email__ = 'berttejeda@gmail.com'
-
-__author__ = 'etejed001c'

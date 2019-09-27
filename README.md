@@ -33,7 +33,10 @@
     - [cli_provider](#cli_provider)
     - [__ansible_extra_options](#__ansible_extra_options)
     - [__tasks_file__](#__tasks_file__)
+    - [__parameter_sets__](#__parameter_sets__)
   - [Parameter Sets](#parameter-sets)
+  - [Mutually Exclusive Options](#mutually-exclusive-options)
+  - [Simple Templating](#simple-templating)
   - [Single-Executable Releases](#single-executable-releases)
 - [License and Credits](#license-and-credits)
 
@@ -313,7 +316,7 @@ Options       | Mapped Variable
 
 More flexibility can be achieved through the use of [parameter sets](#parameter-sets).
 
-See the [appendix](#parameter_set) for more information.
+See the [appendix](#parameter_sets) for more information.
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---cli-options---mapped-variables"></a>
@@ -762,8 +765,17 @@ The **\_\_tasks_file\_\_** variable points to the current Taskfile.
 
 It is available to the underlying subprocess shell.
 
+<a name="__parameter_sets__"></a>
+### __parameter_sets__
+
+As explained [above](#parameter_sets), the **\_\_parameter_sets\_\_** variable tracks whatever parameter sets you've specified during runtime.
+
+The variable will hod the values as a space-delimited string, and is available to the underlying subprocess.
+
+You can use this behavior to detect when a given parameter set has been activated.
+
 [Back To Top](#top)
-<a name="parameter_sets"></a>
+<a name="parameter-sets"></a>
 ## Parameter Sets
 
 What if you wanted to operate under multiple contexts?
@@ -774,16 +786,16 @@ Sure, you could add paramters to your heart's content, but you'll pollute the ou
 
 This is where parameter sets come into play.
 
-The functionality is simple. Precede the `run` subcommand with a single word.
+The functionality is simple. Precede the `run` subcommand with the keys you specify as parameter sets in your task manifest.
 
-This word acts as a _mini_ subcommand, and _unlocks_ the command-line options defined by the corresponding key in the appropriate options section of your manifest.
+These words act as _mini_ subcommands, and _unlock_ the command-line options defined by the corresponding key in the appropriate options section of your manifest.
 
 Here's an example:
 
 ```
     required_parameters:
       aws:
-        -d|--db-hosts: dbhosts_aws ## Specify AWS DBHost
+       -d|--db-hosts: dbhosts_aws ## Specify AWS DBHost
         -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
       gcp:
         -d|--db-hosts: dbhosts_gcp ## Specify GCP DBHost
@@ -792,15 +804,84 @@ Here's an example:
 
 Note the _aws_ and _gcp_ keys.
 
-You'll notice that the output of `--help` will change depending on which parameter set you specify, e.g.
+You'll notice that the output of `--help` will change depending on what parameter sets you specify, e.g.
 
 `tasks aws run --help`
 
 `tasks gcp run --help`
 
-Another thing to note is that the parameter set you specify is tracked during runtime as the variable _parameter_set_
+`tasks aws gcp run --help`
+
+Another thing to note is that the parameter set you specify is tracked during runtime as the variable _parameter_sets_
 
 You can use this behavior to detect when a given parameter set has been activated.
+
+[Back To Top](#top)
+<a name="mutually-exclusive-options"></a>
+## Mutually Exclusive Options
+
+Taken from [Mutually exclusive option groups in python Click - Stack Overflow](https://stackoverflow.com/questions/37310718/mutually-exclusive-option-groups-in-python-click).
+
+Suppose you want a set of options such that:
+- You want to accept one option but only if another, related option has not been specified
+
+You can accomplish this by defining your options with an ' or ' format, as with:
+
+```
+-a|--auth-token: auth_token ## Specify auth token
+-u|--username or -a|--auth-token: username ## Specify Username
+-p|--password or -a|--auth-token: password ## Specify Password
+```
+
+In the above configuration, calling the options for 
+username and password will render the option for auth token _optional_, 
+that is, you don't need to specify the auth token if you've specified 
+the username and password.
+
+A sample is provided in the [examples](examples) directory.
+
+<a name="simple-templating"></a>
+## Simple Templating
+
+As of version 1.1.5, simple templating is available to the following objects:
+
+- Help messages
+- Examples
+- Options
+- Options values
+
+What this means is that we expose a limited set of internal variables to the above.
+
+As an example:
+
+```
+      examples:
+        - example1: |
+            tasks -f $tf_path --foo foo --bar bar
+        - example2: |
+            tasks -f $tf_path --foo foo --baz baz
+```            
+
+In the above strings, `$tf_path` will expand to the internal variable tf_path,
+which holds the relative path to the current tasks file.
+
+Below is a list of available variables for your convenience:
+
+- cli_args
+- cli_args_short
+- parameter_sets
+- tf_path
+
+```
+Variable        | Description
+-------------   | -------------
+exe_path        | The absolute path to the tasks executable
+cli_args        | The current command-line invocation
+cli_args_short  | The current command-line invocation, minus the executable
+parameter_sets  | The parameter sets you have invoked
+sys_platform    | The OS Platform as detected by Python
+tf_path         | The relative path to the specified Taskfile
+```
 
 [Back To Top](#top)
 <a name="single-executable-releases"></a>

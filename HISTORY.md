@@ -2,6 +2,61 @@
 History
 =======
 
+## Release 2019-09-27 v1.1.10
+
+* Adjusted max content width for help messages [7052485](https://github.com/berttejeda/ansible-taskrunner/commit/70524851385d959b9509c45ecb94864ac1a480ba)
+
+## Release 2019-09-27 v1.1.9
+
+* Accounting for pypi package context for cli invocation logic [975d7a7](https://github.com/berttejeda/ansible-taskrunner/commit/975d7a74c27e534eb1994d2fa48af846c9763410)
+
+## Release 2019-09-27 v1.1.8
+
+* Added additional unit tests for the 'run' subcommand [cbb0607](https://github.com/berttejeda/ansible-taskrunner/commit/cbb06071719681c96fd50cfebc5e0dac781d9792)
+* Moved pre-execution cli invocation logic to separate module [3e5d717](https://github.com/berttejeda/ansible-taskrunner/commit/3e5d717ef92b4d32496a5631f4cc6691cf4ebcf8)
+* Fixed bug in Taskfile override logic [d825325](https://github.com/berttejeda/ansible-taskrunner/commit/d825325a1b69ee76b8d7d501f8448effdee6e9f3)
+
+## Release 2019-09-27 v1.1.7
+
+* Skip mutually exclusive cli options with broken associations [ebe1cb4](https://github.com/berttejeda/ansible-taskrunner/commit/ebe1cb4440c2d7c5915db42ca6a28f677f12733b)
+* Main CLI interface now lends itself to unit/integration tests using click.testing [fbc6cf7](https://github.com/berttejeda/ansible-taskrunner/commit/fbc6cf717b4898d899eb128d9372643c292a7290)
+
+## Release 2019-09-25 v1.1.6
+
+* Fixed bug whereby built-in options weren't properly accounted for in the py2 cli reordering logic [be21143](https://github.com/berttejeda/ansible-taskrunner/commit/be21143552bb11c225452e16dd14aa950c5dbeb1)
+
+## Release 2019-09-25 v1.1.5
+
+* Implement simple string templating for cli options and help-related messages [751fa5e](https://github.com/berttejeda/ansible-taskrunner/commit/751fa5e8bc63c7f7bd8fe0ac97dfec13bdf7be94)
+
+## Release 2019-09-23 v1.1.4
+
+* Added error handling for variable interpolation [1cc2803](https://github.com/berttejeda/ansible-taskrunner/commit/1cc2803e22b83341a0d54503a89dfa8c3114c5f6)
+* Added init actions for sftp settings file [8a7dc85](https://github.com/berttejeda/ansible-taskrunner/commit/8a7dc8534d05f99aa4894655fab0841cb826e9d5)
+
+## Release 2019-09-23 v1.1.3
+
+* Adjusted bastion mode options [f0e2bce](https://github.com/berttejeda/ansible-taskrunner/commit/f0e2bce3cc6adc103954ed01d12f724c059a0730)
+* Fixed bug in cli re-ordering logic for Python 2.7.x [cb5e000](https://github.com/berttejeda/ansible-taskrunner/commit/cb5e0005a6ed34cae0700a2faad4e41016108422)
+* Added a missing intermediary dictionary object [bd405ce](https://github.com/berttejeda/ansible-taskrunner/commit/bd405ce171c811856bf01416065c635432c78d96)
+* Suppress warnings from paramiko unless debug mode is enabled [b623a8d](https://github.com/berttejeda/ansible-taskrunner/commit/b623a8dca705d71ab956961e6e8eaafb6c2184b6)
+* Addressed bug in re-ordering of vars/cli options ordering for Pyton 2.x [dc82860](https://github.com/berttejeda/ansible-taskrunner/commit/dc828600fc361bd7cc0a6f8356d23957bb5ce9bc)
+* Taskfile accidentally set to bash mode [4244faf](https://github.com/berttejeda/ansible-taskrunner/commit/4244faf6dd65213f6aa3f216621b94fc14fabe2f)
+
+## Release 2019-09-20 v1.1.2
+
+* Added support for mutually-exclusive cli options [0d8819b](https://github.com/berttejeda/ansible-taskrunner/commit/0d8819bbf68317c0098c1dd858f7c7e1ae9cfae4)
+* Added support for multiple parameter sets [f607b0d](https://github.com/berttejeda/ansible-taskrunner/commit/f607b0d70aee9b8b8b335c8859f4596d083f397d)
+
+## Release 2019-09-20 v1.1.1
+
+* Addressed accidental inclusion of unecessary python module warning filters [ff6e898](https://github.com/berttejeda/ansible-taskrunner/commit/ff6e8981c8a79d85bccf076d781349c2374edef3)
+* Refactored logging facility [a6dfba0](https://github.com/berttejeda/ansible-taskrunner/commit/a6dfba04ec8ae7442a1f02dac3e5c2cc1dde3394)
+
+## Release 2019-09-20 v1.1.0
+
+* Initial commit of bastion-mode codebase [7426a50](https://github.com/berttejeda/ansible-taskrunner/commit/7426a500defa4699d507038400293222f64e03f2)
+
 ## Release 2019-09-15 v1.0.2
 
 * Utilize threading to better handle ctrl-c/breaking out of subprocess calls [c248c99](https://github.com/berttejeda/ansible-taskrunner/commit/c248c99e355e058f9e0d775c4ddd5fe45025a9f7)
