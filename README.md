@@ -38,6 +38,8 @@
   - [Mutually Exclusive Options](#mutually-exclusive-options)
   - [Simple Templating](#simple-templating)
   - [Single-Executable Releases](#single-executable-releases)
+  - [Unit Testing](#unit-testing)
+- [TODO - Add more tests!](#todo---add-more-tests)
 - [License and Credits](#license-and-credits)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -899,6 +901,15 @@ You can also build your own single-executable zipapp, as follows:
   - Build zipapp and push to remote host (via scp): `python ansible_taskrunner/cli.py -f Makefile.yaml run ---make zipapp -bp someserver.somedomain.local:/home/${USER-USERNAME}`
 
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
+
+<a name="unit-testing"></a>
+## Unit Testing
+
+To run all tests, simply call the test script, as with:
+
+`python tests/test_ansible_taskrunner.py`
+
+# TODO - Add more tests!
 
 [Back To Top](#top)
 <a name="license-and-credits"></a>
