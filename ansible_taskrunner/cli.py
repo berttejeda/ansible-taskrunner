@@ -195,7 +195,7 @@ Ansible Taskrunner - ansible-playbook wrapper
     """
 click_help_epilog = ""
 
-@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog)
+@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=120))
 @click.version_option(version=__version__)
 @click.option('--config', '-C', type=str, nargs=1,
               help='Specify a config file (default is config.ini)')
