@@ -136,6 +136,9 @@ class ExtendCLI():
                 cli_option = cli_option_l[0]
                 opt_option = cli_option_l[1]
                 opt_option_value = parameters.get(opt_option, '')
+                if not opt_option_value:
+                    logger.warning('Skipping mutually exclusive option %s due to possible broken association' % opt_option)
+                    continue
             #If a given option is mutually exclusive with another, 
             #then whether or not it is required depends on the
             #command-line invocation relating 
