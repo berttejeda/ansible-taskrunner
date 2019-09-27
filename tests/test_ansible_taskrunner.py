@@ -1,33 +1,43 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""Tests for `ansible_taskrunner` package."""
-
-
+# coding=utf-8
+""" Integration and unit tests for ansible taskrunner
+"""
+from __future__ import print_function, absolute_import
+import os
+import sys
 import unittest
+import warnings
 from click.testing import CliRunner
 
-from ansible_taskrunner import cli
+# Globals
+__author__ = 'etejeda'
 
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root + '/ansible_taskrunner')
 
-class TestAnsible_taskrunner(unittest.TestCase):
-    """Tests for `ansible_taskrunner` package."""
+# Don't create .pyc files for non-modules
+sys.dont_write_bytecode = True
+import cli as cli_interface
+
+class TestCli(unittest.TestCase):
 
     def setUp(self):
-        """Set up test fixtures, if any."""
+        self.cli = CliRunner()
 
-    def tearDown(self):
-        """Tear down test fixtures, if any."""
+    def test_help(self):
+        """ Test whether script help will return.  Basically check whether there are compile errors
+        :return: exit_code == 0
+        """
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['--help']).exit_code, 0)
+        pass
 
-    def test_000_something(self):
-        """Test something."""
+    def test_run_help(self):
+        """ Test whether script help will return.  Basically check whether there are compile errors
+        :return: exit_code == 0
+        """
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '--help']).exit_code, 0)
+        pass
 
-    def test_command_line_interface(self):
-        """Test the CLI."""
-        runner = CliRunner()
-        result = runner.invoke(cli.main)
-        assert result.exit_code == 0
-        assert 'ansible_taskrunner.cli.main' in result.output
-        help_result = runner.invoke(cli.main, ['--help'])
-        assert help_result.exit_code == 0
-        assert '--help  Show this message and exit.' in help_result.output
+if __name__ == '__main__':
+    with warnings.catch_warnings(record=True):
+        unittest.main()
