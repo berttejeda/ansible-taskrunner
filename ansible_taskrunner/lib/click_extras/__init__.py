@@ -215,6 +215,20 @@ class ExtendCLI():
             numargs = 1
         return func
 
+    def bastion_mode(self, func):
+        if sys.platform in ['win32', 'cygwin']:
+            option = click.option('--bastion-host', '-h',
+                         help='Specify host for bastion mode',
+                         required=True)
+            func = option(func)
+            option = click.option('--bastion-user', '-u',
+                         help='Specify username for initializing bastion mode settings file')
+            func = option(func)
+            option = click.option('--bastion-remote-path', '-r',
+                          help='Specify remote workspace for bastion mode')
+            func = option(func)
+        return func
+
     def options(self, func):
         """
         Read dictionary of parameters, append these 
@@ -244,7 +258,6 @@ class ExtendCLI():
                 if param[0] != 'or' and param[1] is None:
                     logger.warning("Removing invalid option key '%s'" % param[0])
                     optional_parameters.pop(param[0])
-        # Filter out any None values
         extended_cli_func = self.process_options(
             optional_parameters, extended_cli_func_required)
         return extended_cli_func
