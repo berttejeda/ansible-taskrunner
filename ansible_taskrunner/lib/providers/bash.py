@@ -39,20 +39,21 @@ class ProviderCLI:
         return func
 
     @staticmethod
-    def invocation(yaml_input_file=None,
-                   string_vars=[],
-                   default_vars={},
-                   paramset_var=None,
+    def invocation(args=None,
+                   bastion_settings={},
                    bash_functions=[],
                    cli_vars='',
-                   yaml_vars={},
-                   list_vars=[],
                    debug=False,
-                   args=None,
+                   default_vars={},
+                   invocation={},
+                   kwargs={},
+                   list_vars=[],
+                   paramset_var=None,
                    prefix='',
                    raw_args='',
-                   bastion_settings={},
-                   kwargs={}):
+                   string_vars=[],
+                   yaml_input_file=None,
+                   yaml_vars={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')
         sub_process = CLIInvocation()

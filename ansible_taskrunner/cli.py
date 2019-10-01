@@ -102,15 +102,16 @@ global parameter_sets
 global sys_platform
 global tf_path
 
-invocation = get_invocation(script_name)
+cli_invocation = get_invocation(script_name)
 
 path_string='vars'
-param_set = invocation['param_set']
-tasks_file = invocation['tasks_file']
+param_set = cli_invocation['param_set']
+tasks_file = cli_invocation.get('tasks_file_override') or cli_invocation['tasks_file']
+tasks_file_override = cli_invocation['tasks_file_override']
 
 # Replace the commandline invocation
 if __name__ in ['ansible_taskrunner.cli', '__main__']:
-    sys.argv = invocation['cli']
+    sys.argv = cli_invocation['cli']
 
 # System Platform
 sys_platform = sys.platform
@@ -418,6 +419,7 @@ def run(args=None, **kwargs):
             o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
             ordered_args_tuples.append(o_tuple)
         kwargs = OrderedDict(ordered_args_tuples)
+    # cli-provided variables
     for key, value in kwargs.items():
         if key.startswith('_'):
             cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
@@ -502,19 +504,20 @@ def run(args=None, **kwargs):
     else:
         # Invoke the cli provider
         provider_cli.invocation(
-            yaml_input_file=yaml_input_file,
-            yaml_vars=yaml_vars,
-            bash_functions=bash_functions,
-            cli_vars=cli_vars,
-            paramset_var=paramset_var,
-            default_vars=default_vars,
-            string_vars=defaults_string_vars,
-            prefix=prefix,
-            debug=__debug,
             args=args,
-            raw_args=raw_args,
+            bash_functions=bash_functions,
             bastion_settings=bastion_settings,
-            kwargs=kwargs
+            cli_vars=cli_vars,
+            debug=__debug,
+            default_vars=default_vars,
+            invocation=cli_invocation,
+            kwargs=kwargs,
+            paramset_var=paramset_var,
+            prefix=prefix,
+            raw_args=raw_args,
+            string_vars=defaults_string_vars,
+            yaml_input_file=yaml_input_file,
+            yaml_vars=yaml_vars
         )
 
 if __name__ == '__main__':
