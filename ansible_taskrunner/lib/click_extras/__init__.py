@@ -218,14 +218,17 @@ class ExtendCLI():
     def bastion_mode(self, func):
         if sys.platform in ['win32', 'cygwin']:
             option = click.option('--bastion-host', '-h',
-                         help='Specify host for bastion mode',
+                         help='Specify host (bastion mode settings file)',
                          required=True)
             func = option(func)
             option = click.option('--bastion-user', '-u',
-                         help='Specify username for initializing bastion mode settings file')
+                         help='Override username (bastion mode settings file)')
             func = option(func)
             option = click.option('--bastion-remote-path', '-r',
-                          help='Specify remote workspace for bastion mode')
+                          help='Specify remote workspace (bastion mode settings file)')
+            func = option(func)
+            option = click.option('--bastion-ssh-key-file', '-s',
+                          help='Override ssh key file (bastion mode settings file)')
             func = option(func)
         return func
 

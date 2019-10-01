@@ -2,6 +2,7 @@
 # Import builtins
 from __future__ import print_function
 from collections import OrderedDict
+import getpass
 import logging
 import logging.handlers
 import os
@@ -93,6 +94,7 @@ config_file = 'config.yaml'
 sftp_config_file = 'sftp-config.json' 
 superconf = SuperDuperConfig(__program_name__)
 config = superconf.load_config(config_file)
+local_username = getpass.getuser()
 
 # We'll pass this down to the run invocation
 global exe_path
@@ -236,8 +238,19 @@ def cli(**kwargs):
     logger.debug('Debug Mode Enabled, keeping any generated temp files')
     return 0
 
+init_epilog = ''
+if is_windows:
+    init_epilog = '''
+Examples:
+- Initialize an empty workspace
+    tasks init
+- Initialize an empty workspace config with username and remote path
+    tasks init -h myhost.example.org -u {0} -r "/home/{0}/git/ansible"
+'''.format(local_username)
+
 # Init command
-@cli.command(help='Initialize local directory with sample files')
+@cli.command(cls=ExtendedHelp, help='Initialize local directory with sample files',
+    epilog=init_epilog, context_settings=dict(max_content_width=180))
 @click.version_option(version=__version__)
 @click.option('--show-samples', '-m', is_flag=True,
               help='Only show a sample task manifest, don\'t write it')
@@ -275,8 +288,7 @@ def init(**kwargs):
             bastion_user = kwargs.get('bastion_user')
             bastion_ssh_key_file = kwargs.get('bastion_ssh_key_file')
             if not bastion_user:
-                import getpass
-                bastion_user = getpass.getuser()
+                bastion_user = local_username
             if not bastion_remote_path:
                 cur_dir = os.path.basename(os.getcwd())
                 bastion_remote_path = '/home/{}/{}'.format(bastion_user, cur_dir)
