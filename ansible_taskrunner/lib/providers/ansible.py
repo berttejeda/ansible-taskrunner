@@ -107,16 +107,21 @@ class ProviderCLI:
             logger.info('OK, remote path exists')
         else:            
             cmd = 'mkdir -p %s' % remote_dir
-            mkdir = remote_sub_process.call('/', cmd)
-            if mkdir:
+            mkdir_result = remote_sub_process.call('/', cmd)
+            if mkdir_result:
                 logger.info("Performing initial sync to %s ..." % remote_dir)
                 sftp_sync.to_remote(local_dir, remote_dir)
-            rem_exists = True                
+                rem_exists = True
+            else:
+                logger.error('Unable to create remote path!')
+                sys.exit(1)                
         logger.info('Checking for locally changed files ...')
         if loc_is_git:
             cmd = 'git diff-index --name-only HEAD -- && git ls-files --others --exclude-standard'
             local_changed = os.popen(cmd).readlines()
         else:
+            # If local path is not a git repo then
+            # we'll only sync files in the current working directory
             local_changed = [f for f in os.listdir('.') if os.path.isfile(f)]
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
@@ -130,9 +135,10 @@ class ProviderCLI:
             else:
                 logger.error('There was a problem checking for remotely changed files')
                 sys.exit(1)
-        elif rem_exists:
+        else:
             to_sync = list(set(local_changed))
-        logger.info("Performing sync to %s ..." % remote_dir)
+        if len(to_sync) > 0:
+            logger.info("Performing sync to %s ..." % remote_dir)
         for path in to_sync:
             dirname = os.path.dirname(path)
             filename = os.path.basename(path).strip()
