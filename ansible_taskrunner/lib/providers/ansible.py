@@ -75,7 +75,7 @@ class ProviderCLI:
                 )
                 sys.exit(1)
         else:
-            logger.error("Could not find %s, please run 'tasks init'" % bastion.config_file)
+            logger.error("Could not find %s, please run 'tasks init --help'" % bastion.config_file)
             sys.exit(1)
         # Import third-party and custom modules
         try:
