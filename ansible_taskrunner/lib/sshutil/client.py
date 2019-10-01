@@ -76,10 +76,14 @@ class SSHUtilClient:
         logger.info("Successfully connected to remote.")
         logger.info("Successfully initialized SSH client.")
     
+    # Define scp-put progress callback that prints the current percentage completed for the file
+    def progress(self, filename, size, sent):
+        sys.stdout.write("%s\'s progress: %.2f%%   \r" % (filename, float(sent)/float(size)*100) )
+    
     def sync(self):
         """pointer to scp module's sync function
         """        
-        scp = SCPClient(self.ssh.get_transport())
+        scp = SCPClient(self.ssh.get_transport(), progress = self.progress)
         sync = SSHSync(scp)
         logger.info("Successfully initialized SCP client.")        
         return sync
