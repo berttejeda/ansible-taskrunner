@@ -241,6 +241,7 @@ def cli(**kwargs):
 @click.version_option(version=__version__)
 @click.option('--show-samples', '-m', is_flag=True,
               help='Only show a sample task manifest, don\'t write it')
+@extend_cli.bastion_mode
 def init(**kwargs):
     logger.info('Initializing ...')
     if kwargs['show_samples']:
@@ -268,14 +269,34 @@ def init(**kwargs):
         else:
             logger.info(
                 'File exists, not writing manifest %s' % tasks_file)
-        if not os.path.exists(sftp_config_file):
-            logger.info(
-                'Existing manifest not found, writing %s' % sftp_config_file)
-            with open(sftp_config_file, 'w') as f:
-                f.write(SAMPLE_SFTP_CONFIG)
-        else:
-            logger.info(
-                'File exists, not writing manifest %s' % sftp_config_file)
+        if is_windows:
+            bastion_remote_path = kwargs.get('bastion_remote_path')
+            bastion_host = kwargs['bastion_host']
+            bastion_user = kwargs.get('bastion_user')
+            bastion_ssh_key_file = kwargs.get('bastion_ssh_key_file')
+            if not bastion_user:
+                import getpass
+                bastion_user = getpass.getuser()
+            if not bastion_remote_path:
+                cur_dir = os.path.basename(os.getcwd())
+                bastion_remote_path = '/home/{}/{}'.format(bastion_user, cur_dir)
+            if not bastion_ssh_key_file:
+                home_dir = os.path.expanduser('~')
+                bastion_ssh_key_file = os.path.join(home_dir, '.ssh', 'id_rsa')
+            settings_vars = {
+                'bastion_remote_path': bastion_remote_path,
+                'bastion_host': bastion_host,
+                'bastion_user': bastion_user,
+                'bastion_ssh_key_file': bastion_ssh_key_file.replace('\\', '\\\\')
+            }
+            if not os.path.exists(sftp_config_file):
+                logger.info(
+                    'Existing sftp config not found, writing %s' % sftp_config_file)
+                with open(sftp_config_file, 'w') as f:
+                    f.write(Template(SAMPLE_SFTP_CONFIG).safe_substitute(**settings_vars))
+            else:
+                logger.info(
+                    'File exists, not writing sftp config %s' % sftp_config_file)
 
 # Run command
 # Parse help documentation
