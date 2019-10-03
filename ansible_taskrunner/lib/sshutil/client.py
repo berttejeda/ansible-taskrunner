@@ -17,17 +17,32 @@ else:
     warnings.filterwarnings("ignore", category=UserWarning, module='paramiko')
     logger.setLevel(logging.INFO)
 
+# Account for script packaged as an exe via cx_freeze
+if getattr(sys, 'frozen', False):
+    self_file_name = os.path.basename(sys.executable)
+    tasks_file_path = os.path.abspath(sys.executable)
+else:
+    # Account for script packaged as zip app
+    self_file_name = os.path.basename(__file__)
+    _tasks_file_path = re.split('.tasks.', os.path.abspath(__file__))[0]
+    tasks_file_path = os.path.join(_tasks_file_path, 'tasks')
+
 # Only if zipapp
 # Extract any dynamic modules/libraries (aka DLLs)
-is_zip = True if zipfile.is_zipfile('tasks') else False
+is_zip = True if zipfile.is_zipfile(tasks_file_path) else False
+# For troubleshooting
+logger.debug('{} is Zip: {}'.format(tasks_file_path, is_zip))
+
 if is_zip:
     pyver = "py%s" % sys.version_info[0]
     dll_cache_path = os.path.expanduser("~/.ansible_taskrunner")
-    dll_sys_path = os.path.join(dll_cache_path, 'lib/%s' % pyver)
-    logger.info('Checking for dll cache path')
-    if not os.path.exists(dll_cache_path):
-        logger.info('Dll cache path not found, extracting libraries to %s ...' % dll_cache_path)
-        f = zipfile.ZipFile('tasks','r')
+    dll_sys_path = os.path.join(dll_cache_path, 'lib', pyver)
+    logger.info('Checking for dll sys path %s' % dll_sys_path)
+    if not os.path.exists(dll_sys_path):
+        if not os.path.exists(dll_cache_path):
+            os.makedirs(dll_cache_path)
+        logger.info('Dll sys path not found, extracting libraries to %s ...' % dll_cache_path)
+        f = zipfile.ZipFile(tasks_file_path,'r')
         dirs = '|'.join(set([re.split('%s.' % pyver,z)[-1].split('/')[0] for z in f.namelist() if re.search("%s/.*pyd$" % pyver, z)]))
         dll_pattern = re.compile(dirs)
         for dll in f.namelist():
@@ -36,17 +51,18 @@ if is_zip:
         logger.info('Done!')
     sys.path.insert(0, dll_sys_path)    
 
+
 # Import third-party and custom modules
 try:
     import paramiko
     from paramiko import SSHClient, ssh_exception            
     from socket import gaierror
-    import sshutil.scp
-    from sshutil.sync import SSHSync
-    from sshutil.scp import SCPClient, SCPException        
-    from formatting import ansi_colors, Struct
+    import lib.sshutil.scp
+    from lib.sshutil.sync import SSHSync
+    from lib.sshutil.scp import SCPClient, SCPException        
+    from lib.formatting import ansi_colors, Struct
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -76,10 +92,14 @@ class SSHUtilClient:
         logger.info("Successfully connected to remote.")
         logger.info("Successfully initialized SSH client.")
     
+    # Define scp-put progress callback that prints the current percentage completed for the file
+    def progress(self, filename, size, sent):
+        sys.stdout.write("%s\'s progress: %.2f%%   \r" % (filename, float(sent)/float(size)*100) )
+    
     def sync(self):
         """pointer to scp module's sync function
         """        
-        scp = SCPClient(self.ssh.get_transport())
+        scp = SCPClient(self.ssh.get_transport(), progress = self.progress)
         sync = SSHSync(scp)
         logger.info("Successfully initialized SCP client.")        
         return sync

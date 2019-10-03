@@ -2,6 +2,7 @@
 # Import builtins
 from __future__ import print_function
 from collections import OrderedDict
+import getpass
 import logging
 import logging.handlers
 import os
@@ -9,53 +10,59 @@ import re
 import sys
 from string import Template
 
-# For zip-app
-self_file_name = os.path.basename(__file__)
-if self_file_name == '__main__.py':
-    script_name = os.path.dirname(__file__)
-else:
-    script_name = self_file_name
-
-# Needed for zip-app
-# Make the zipapp work for python2/python3
-py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
-project_root = os.path.dirname(os.path.abspath(__file__))
+# OS Detection
 is_windows = True if sys.platform in ['win32', 'cygwin'] else False
 is_darwin = True if sys.platform in ['darwin'] else False
-if is_windows:
-    sys.path.insert(0, project_root + '\\lib')
-    sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
-elif is_darwin:
-    sys.path.insert(0, project_root + '/lib')
-    sys.path.insert(0, project_root + '/lib/%s' % py_path)
+
+# Account for script packaged as an exe via cx_freeze
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = script_name = os.path.basename(sys.executable)
+    project_root = os.path.dirname(os.path.abspath(sys.executable))
 else:
-    sys.path.insert(0, project_root + '/lib')
-    sys.path.insert(0, project_root + '/lib/%s' % py_path)
+    # unfrozen
+    self_file_name = os.path.basename(__file__)
+    if self_file_name == '__main__.py':
+        script_name = os.path.dirname(__file__)
+    else:
+        script_name = self_file_name
+    project_root = os.path.dirname(os.path.abspath(__file__))
+
+# Needed for zip-app
+if self_file_name == '__main__.py':
+    # Make the zipapp work for python2/python3
+    py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
+    if is_windows:
+        sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
+    elif is_darwin:
+        sys.path.insert(0, project_root + '/lib/%s' % py_path)
+    else:
+        sys.path.insert(0, project_root + '/lib/%s' % py_path)
 
 # Import third-party and custom modules
 try:
     import click
-    from cliutil import get_invocation
-    from errorhandler import catchException
-    from errorhandler import ERR_ARGS_TASKF_OVERRIDE
-    from formatting import logging_format
-    from help import SAMPLE_CONFIG
-    from help import SAMPLE_TASKS_MANIFEST
+    from lib.cliutil import get_invocation
+    from lib.errorhandler import catchException
+    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from lib.formatting import logging_format
+    from lib.help import SAMPLE_CONFIG
+    from lib.help import SAMPLE_TASKS_MANIFEST
     if is_windows:
-        from help import SAMPLE_SFTP_CONFIG    
-    from logger import init_logger
-    from superduperconfig import SuperDuperConfig
-    from click_extras import ExtendedEpilog
-    from click_extras import ExtendedHelp
-    from click_extras import ExtendCLI
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
-    from yamlr import YamlReader
+        from lib.help import SAMPLE_SFTP_CONFIG    
+    from lib.logger import init_logger
+    from lib.superduperconfig import SuperDuperConfig
+    from lib.click_extras import ExtendedEpilog
+    from lib.click_extras import ExtendedHelp
+    from lib.click_extras import ExtendCLI
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
+    from lib.yamlr import YamlReader
     # TODO
     # Employ language/regional options    
     # from lib.language import get_strings
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -79,7 +86,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.1.10'
+__version__ = '1.1.11'
 __program_name__ = 'tasks'
 __debug = False
 verbose = 0
@@ -93,6 +100,7 @@ config_file = 'config.yaml'
 sftp_config_file = 'sftp-config.json' 
 superconf = SuperDuperConfig(__program_name__)
 config = superconf.load_config(config_file)
+local_username = getpass.getuser()
 
 # We'll pass this down to the run invocation
 global exe_path
@@ -102,19 +110,20 @@ global parameter_sets
 global sys_platform
 global tf_path
 
-invocation = get_invocation(script_name)
+cli_invocation = get_invocation(script_name)
 
 path_string='vars'
-param_set = invocation['param_set']
-tasks_file = invocation['tasks_file']
+param_set = cli_invocation['param_set']
+tasks_file = cli_invocation.get('tasks_file_override') or cli_invocation['tasks_file']
+tasks_file_override = cli_invocation['tasks_file_override']
 
 # Replace the commandline invocation
 if __name__ in ['ansible_taskrunner.cli', '__main__']:
-    sys.argv = invocation['cli']
+    sys.argv = cli_invocation['cli']
 
 # System Platform
 sys_platform = sys.platform
-exe_path = os.path.normpath(__file__)
+exe_path = os.path.normpath(self_file_name)
 exe_path = re.sub('.__main__.py','', exe_path)
 
 # Parameter set var (if it has been specified)
@@ -167,13 +176,13 @@ global provider_cli
 cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
 cli_provider = yaml_vars.get('cli_provider', cli_provider)
 if cli_provider == 'bash':
-    from providers import bash as bash_cli
+    from lib.providers import bash as bash_cli
     provider_cli = bash_cli.ProviderCLI()
 elif cli_provider == 'vagrant':
-    from providers import vagrant as vagrant_cli
+    from lib.providers import vagrant as vagrant_cli
     provider_cli = vagrant_cli.ProviderCLI()
 else:
-    from providers import ansible as ansible_cli
+    from lib.providers import ansible as ansible_cli
     provider_cli = ansible_cli.ProviderCLI()
 # Activate any plugins if found
 if os.path.isdir("plugins/providers"):
@@ -235,11 +244,23 @@ def cli(**kwargs):
     logger.debug('Debug Mode Enabled, keeping any generated temp files')
     return 0
 
+init_epilog = ''
+if is_windows:
+    init_epilog = '''
+Examples:
+- Initialize an empty workspace
+    tasks init
+- Initialize an empty workspace config with username and remote path
+    tasks init -h myhost.example.org -u {0} -r "/home/{0}/git/ansible"
+'''.format(local_username)
+
 # Init command
-@cli.command(help='Initialize local directory with sample files')
+@cli.command(cls=ExtendedHelp, help='Initialize local directory with sample files',
+    epilog=init_epilog, context_settings=dict(max_content_width=180))
 @click.version_option(version=__version__)
 @click.option('--show-samples', '-m', is_flag=True,
               help='Only show a sample task manifest, don\'t write it')
+@extend_cli.bastion_mode
 def init(**kwargs):
     logger.info('Initializing ...')
     if kwargs['show_samples']:
@@ -267,14 +288,33 @@ def init(**kwargs):
         else:
             logger.info(
                 'File exists, not writing manifest %s' % tasks_file)
-        if not os.path.exists(sftp_config_file):
-            logger.info(
-                'Existing manifest not found, writing %s' % sftp_config_file)
-            with open(sftp_config_file, 'w') as f:
-                f.write(SAMPLE_SFTP_CONFIG)
-        else:
-            logger.info(
-                'File exists, not writing manifest %s' % sftp_config_file)
+        if is_windows:
+            bastion_remote_path = kwargs.get('bastion_remote_path')
+            bastion_host = kwargs['bastion_host']
+            bastion_user = kwargs.get('bastion_user')
+            bastion_ssh_key_file = kwargs.get('bastion_ssh_key_file')
+            if not bastion_user:
+                bastion_user = local_username
+            if not bastion_remote_path:
+                cur_dir = os.path.basename(os.getcwd())
+                bastion_remote_path = '/home/{}/{}'.format(bastion_user, cur_dir)
+            if not bastion_ssh_key_file:
+                home_dir = os.path.expanduser('~')
+                bastion_ssh_key_file = os.path.join(home_dir, '.ssh', 'id_rsa')
+            settings_vars = {
+                'bastion_remote_path': bastion_remote_path,
+                'bastion_host': bastion_host,
+                'bastion_user': bastion_user,
+                'bastion_ssh_key_file': bastion_ssh_key_file.replace('\\', '\\\\')
+            }
+            if not os.path.exists(sftp_config_file):
+                logger.info(
+                    'Existing sftp config not found, writing %s' % sftp_config_file)
+                with open(sftp_config_file, 'w') as f:
+                    f.write(Template(SAMPLE_SFTP_CONFIG).safe_substitute(**settings_vars))
+            else:
+                logger.info(
+                    'File exists, not writing sftp config %s' % sftp_config_file)
 
 # Run command
 # Parse help documentation
@@ -418,6 +458,7 @@ def run(args=None, **kwargs):
             o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
             ordered_args_tuples.append(o_tuple)
         kwargs = OrderedDict(ordered_args_tuples)
+    # cli-provided variables
     for key, value in kwargs.items():
         if key.startswith('_'):
             cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
@@ -502,19 +543,20 @@ def run(args=None, **kwargs):
     else:
         # Invoke the cli provider
         provider_cli.invocation(
-            yaml_input_file=yaml_input_file,
-            yaml_vars=yaml_vars,
-            bash_functions=bash_functions,
-            cli_vars=cli_vars,
-            paramset_var=paramset_var,
-            default_vars=default_vars,
-            string_vars=defaults_string_vars,
-            prefix=prefix,
-            debug=__debug,
             args=args,
-            raw_args=raw_args,
+            bash_functions=bash_functions,
             bastion_settings=bastion_settings,
-            kwargs=kwargs
+            cli_vars=cli_vars,
+            debug=__debug,
+            default_vars=default_vars,
+            invocation=cli_invocation,
+            kwargs=kwargs,
+            paramset_var=paramset_var,
+            prefix=prefix,
+            raw_args=raw_args,
+            string_vars=defaults_string_vars,
+            yaml_input_file=yaml_input_file,
+            yaml_vars=yaml_vars
         )
 
 if __name__ == '__main__':

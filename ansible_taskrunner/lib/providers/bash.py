@@ -12,13 +12,19 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     logger.setLevel(logging.INFO)
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__) 
+
 # Import third-party and custom modules
 try:
     import click
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -39,20 +45,21 @@ class ProviderCLI:
         return func
 
     @staticmethod
-    def invocation(yaml_input_file=None,
-                   string_vars=[],
-                   default_vars={},
-                   paramset_var=None,
+    def invocation(args=None,
+                   bastion_settings={},
                    bash_functions=[],
                    cli_vars='',
-                   yaml_vars={},
-                   list_vars=[],
                    debug=False,
-                   args=None,
+                   default_vars={},
+                   invocation={},
+                   kwargs={},
+                   list_vars=[],
+                   paramset_var=None,
                    prefix='',
                    raw_args='',
-                   bastion_settings={},
-                   kwargs={}):
+                   string_vars=[],
+                   yaml_input_file=None,
+                   yaml_vars={}):
         """Invoke commands according to provider"""
         logger.info('Bash Command Provider')
         sub_process = CLIInvocation()

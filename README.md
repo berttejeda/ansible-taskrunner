@@ -28,6 +28,7 @@
 - [Installation](#installation)
   - [More Examples](#more-examples)
 - [Appendix](#appendix)
+  - [Bastion Mode](#bastion-mode)
   - [Special Variables](#special-variables)
     - [ansible_playbook_command](#ansible_playbook_command)
     - [cli_provider](#cli_provider)
@@ -57,6 +58,8 @@ The inspiration for the tool comes from the gnu make command, which operates in 
 
 - A Makefile defines available build steps
 - The make command consumes the Makefile at runtime and exposes these steps as command-line options
+
+If you are running this tool from Windows, please read the section on [Bastion Mode](#bastion_mode)
 
 # TL;DR
 
@@ -668,7 +671,7 @@ Quick usage examples:
 <a name="installation"></a>
 # Installation
 
-Ansible-tasksrunner consists of the `tasks` binary (for now), and it can be installed in a few ways:
+Ansible-taskrunner consists of the `tasks` binary (for now), and it can be installed in a few ways:
 
 1. pip install ansible-taskrunner
 2. pip install git+https://github.com/berttejeda/ansible-taskrunner.git
@@ -681,6 +684,26 @@ Review the [examples](examples) directory for more hands-on usage samples.
 
 <a name="appendix"></a>
 # Appendix
+
+<a name="bastion_mode"></a>
+## Bastion Mode
+
+If you're launching the `tasks` command from a Windows host, this tool will automatically execute in _Bastion Mode_
+
+Under Bastion Mode, the `tasks` command will:
+- Execute the `ansible-playbook` subprocess via a _bastion host_, i.e. a remote machine that has `ansible` installed
+- This is done via ssh using the [paramiko](http://www.paramiko.org/) module
+
+As you would expect, running in Bastion Mode requires a configuration file containing the ssh connection settings.
+
+To initialize this configuration file, you can simply run `tasks init`.
+
+For full usage options, enter in `tasks init --help`.
+
+Once you've initialized the configuration file, you should see *sftp-config.json* in your workspace.
+
+This configuration file is fashioned after the [sftp](https://packagecontrol.io/packages/SFTP) plugin for [Sublime Text](https://www.sublimetext.com/)
+and is thus compatible.
 
 <a name="special-variables"></a>
 ## Special Variables

@@ -14,8 +14,8 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -42,20 +42,21 @@ class ProviderCLI:
         return func
 
     @staticmethod
-    def invocation(yaml_input_file=None,
-                   string_vars=[],
-                   default_vars={},
-                   paramset_var=None,
+    def invocation(args=None,
+                   bastion_settings={},
                    bash_functions=[],
                    cli_vars='',
-                   yaml_vars={},
-                   list_vars=[],
                    debug=False,
-                   args=None,
+                   default_vars={},
+                   invocation={},
+                   kwargs={},
+                   list_vars=[],
+                   paramset_var=None,
                    prefix='',
                    raw_args='',
-                   bastion_settings={},
-                   kwargs={}):
+                   string_vars=[],
+                   yaml_input_file=None,
+                   yaml_vars={}):
         """Invoke commands according to provider"""
         logger.info('Vagrant Command Provider')
         sub_process = CLIInvocation()

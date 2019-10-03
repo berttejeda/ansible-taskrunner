@@ -2,12 +2,18 @@ import logging
 import os
 import sys
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)
+        
 # Import third-party and custom modules
 try:
-    from errorhandler import catchException
-    from errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from lib.errorhandler import catchException
+    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -39,7 +45,12 @@ def get_invocation(script_name):
     else:
         arg_tf_index = None
     tf_override = sys.argv[arg_tf_index + 1] if arg_tf_index else None
-    invocation = {}
+    # Initialize our command-line invocation
+    invocation = {
+        'param_set': [],
+        'tasks_file': 'Taskfile.yaml',
+        'tasks_file_override': None
+    }
     if arg_run_index:
         # Determine the actual run arguments
         run_args = sys.argv[arg_run_index:]
@@ -65,11 +76,10 @@ def get_invocation(script_name):
                 if paramset:
                     invocation['cli'] = cli_args
                     invocation['param_set'] = paramset
-                    invocation['tasks_file'] = tf_override
+                    invocation['tasks_file_override'] = tf_override
                 else:
                     invocation['cli'] = cli_args
-                    invocation['param_set'] = []
-                    invocation['tasks_file'] = tf_override             
+                    invocation['tasks_file_override'] = tf_override
             else:
                 quit(ERR_ARGS_TASKF_OVERRIDE.format(script=script_name))
         else:
@@ -78,11 +88,8 @@ def get_invocation(script_name):
             if paramset:
                 invocation['cli'] = cli_args
                 invocation['param_set'] = paramset
-                invocation['tasks_file'] = 'Taskfile.yaml'  
             else:
                 invocation['cli'] = cli_args
-                invocation['param_set'] = []
-                invocation['tasks_file'] = 'Taskfile.yaml'            
     else:
         if tf_override:
             demark = sys.argv.index(tf_override)
@@ -93,13 +100,10 @@ def get_invocation(script_name):
             if any([ext in tf_override for ext in ["yaml", "yml"]]):
                 # Call main function as per parameter set
                 invocation['cli'] = cli_args
-                invocation['param_set'] = []
-                invocation['tasks_file'] = tf_override            
+                invocation['tasks_file_override'] = tf_override
             else:
                 quit(ERR_ARGS_TASKF_OVERRIDE.format(script=script_name))
         else:
-            invocation['cli'] = sys.argv[1:]
-            invocation['param_set'] = []
-            invocation['tasks_file'] = 'Taskfile.yaml'
+            invocation['cli'] = sys.argv
     logger.debug('CLI Invocation - %s' % invocation)
     return invocation

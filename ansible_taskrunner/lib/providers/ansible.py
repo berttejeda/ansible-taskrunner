@@ -16,13 +16,20 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     logger.setLevel(logging.INFO)
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)    
+
 # Import third-party and custom modules
 try:
     import click
-    from formatting import ansi_colors, Struct
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
+    from lib.formatting import ansi_colors, Struct
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -50,7 +57,7 @@ class ProviderCLI:
         func = option(func)
         return func
     
-    def invoke_bastion_mode(self, bastion_settings):
+    def invoke_bastion_mode(self, bastion_settings, invocation):
         """Execute the underlying subprocess via a bastion host"""
         logger.info('Engage Bastion Mode')
         bastion = Struct(**bastion_settings)
@@ -58,7 +65,16 @@ class ProviderCLI:
         if os.path.exists(bastion.config_file):
             logger.info('Reading %s' % bastion.config_file)
             try:
-                settings = Struct(**json.loads(open(bastion.config_file).read()))
+                # Read the Sublime Text 3-compatible sftp config file
+                file_contents = open(bastion.config_file).readlines()
+                # Ignore comments
+                file_contents_no_comments = [l.strip() for l in file_contents if not l.strip().startswith('/') and l.strip()]
+                # Account for last line possibly ending in ','
+                penultimate_line = file_contents_no_comments[-2]
+                if penultimate_line.endswith(','):
+                    file_contents_no_comments = [penultimate_line.strip(',') if l==penultimate_line else l for l in file_contents_no_comments]
+                file_contents_no_comments = '\n'.join(file_contents_no_comments)
+                settings = Struct(**json.loads(file_contents_no_comments))
             except Exception as e:
                 logger.error('I trouble reading {c}, error was "{err}"'.format(
                     c=bastion.config_file,
@@ -66,53 +82,59 @@ class ProviderCLI:
                 )
                 sys.exit(1)
         else:
-            logger.error('Could not find %s, seek --help' % bastion.config_file)
+            logger.error("Could not find %s, please run 'tasks init --help'" % bastion.config_file)
             sys.exit(1)
         # Import third-party and custom modules
         try:
-            from proc_mgmt import Remote_CLIInvocation
-            from sshutil.client import SSHUtilClient
+            from lib.proc_mgmt import Remote_CLIInvocation
+            from lib.sshutil.client import SSHUtilClient
         except ImportError as e:
+            print('Error in %s ' % os.path.basename(self_file_name))
             print('Failed to import at least one required module')
             print('Error was %s' % e)
             print('Please install/update the required modules:')
             print('pip install -U -r requirements.txt')
-            sys.exit(1)                
+            sys.exit(1)            
         ssh_client = SSHUtilClient(settings)
         sftp_sync = ssh_client.sync()
         remote_sub_process = Remote_CLIInvocation(settings, ssh_client)
         local_dir = os.getcwd().replace('\\', '/')
         local_dir_name = os.path.basename(os.getcwd().replace('\\', '/'))
-        remote_dir = '{}'.format(settings.remote_path)
-        remote_git_dir = '{}/{}'.format(remote_dir, local_dir_name)
-        logger.info('Checking remote path %s' % remote_git_dir)
-        cmd = 'echo $(test -d {0} && echo 1 || echo 0),$(cd {0} 2>/dev/null && git status 1> /dev/null 2> /dev/null && echo 1 || echo 0)'.format(remote_git_dir)
-        rmc = remote_sub_process.call(remote_dir, cmd)
+        remote_dir = settings.remote_path
+        logger.info('Checking remote path %s' % remote_dir)
+        cmd = 'echo $(test -d {0} && echo 1 || echo 0),$(cd {0} 2>/dev/null && git status 1> /dev/null 2> /dev/null && echo 1 || echo 0)'.format(remote_dir)
+        # Check whether the remote path exists and is a git repo
+        rmc = remote_sub_process.call(remote_dir, cmd) or ['0']
         rms = sum([int(n) for n in ''.join(rmc).split(',')])
         rem_exists = True if rms > 0 else False
-        loc_is_it = True if os.path.exists('.git') else False
+        loc_is_git = True if os.path.exists('.git') else False
         rem_is_git = True if rms == 2 else False
         if rem_is_git:
             logger.info('OK, remote path exists and is a git repo')
         elif rem_exists:
             logger.info('OK, remote path exists')
         else:            
-            cmd = 'mkdir -p %s' % remote_git_dir
-            mkdir = remote_sub_process.call('/', cmd)
-            if mkdir:
-                logger.info("Performing initial sync to %s ..." % remote_git_dir)
-                sftp_sync.to_remote(local_dir, remote_git_dir)
-            rem_exists = True                
+            cmd = 'mkdir -p %s' % remote_dir
+            mkdir_result = remote_sub_process.call('/', cmd)
+            if mkdir_result:
+                logger.info("Performing initial sync to %s ..." % remote_dir)
+                sftp_sync.to_remote(local_dir, remote_dir)
+                rem_exists = True
+            else:
+                logger.error('Unable to create remote path!')
+                sys.exit(1)                
         logger.info('Checking for locally changed files ...')
-        if loc_is_it:
+        if loc_is_git:
             cmd = 'git diff-index --name-only HEAD -- && git ls-files --others --exclude-standard'
             local_changed = os.popen(cmd).readlines()
         else:
+            # If local path is not a git repo then
+            # we'll only sync files in the current working directory
             local_changed = [f for f in os.listdir('.') if os.path.isfile(f)]
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
         if rem_is_git:
-            remote_changed = remote_sub_process.call(remote_git_dir, cmd)
+            remote_changed = remote_sub_process.call(remote_dir, cmd)
             if remote_changed:
                 if no_clobber:
                     to_sync = list(set(local_changed) - set(remote_changed))
@@ -121,41 +143,49 @@ class ProviderCLI:
             else:
                 logger.error('There was a problem checking for remotely changed files')
                 sys.exit(1)
-        elif rem_exists:
+        else:
             to_sync = list(set(local_changed))
-        logger.info("Performing sync to %s ..." % remote_git_dir)
+        if len(to_sync) > 0:
+            logger.info("Performing sync to %s ..." % remote_dir)
         for path in to_sync:
             dirname = os.path.dirname(path)
-            filename = os.path.basename(path)
+            filename = os.path.basename(path).strip()
             _file_path = os.path.join(dirname, filename)
-            file_path = os.path.normpath(_file_path).replace('\\','/')
-            _remote_path = os.path.join(remote_git_dir, file_path)
+            file_path = _file_path.replace('\\','/')
+            _remote_path = os.path.join(remote_dir, file_path)
             remote_path = os.path.normpath(_remote_path).replace('\\','/')
             logger.debug('Syncing {} to remote {}'.format(file_path, remote_path))
             sftp_sync.to_remote(file_path, remote_path)
-        remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'])
-        remote_sub_process.call(remote_git_dir, remote_command, stdout_listen=True)
+        remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
+        tasks_file_override = invocation.get('tasks_file_override')
+        if tasks_file_override:
+            remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
+        else:
+            remote_command = 'tasks {}'.format(remote_command)
+        remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
         return        
 
-    def invocation(self, yaml_input_file=None,
-                   string_vars=[],
-                   default_vars={},
-                   paramset_var=None,
+    def invocation(self,
+                   args=None,
+                   bastion_settings={},
                    bash_functions=[],
                    cli_vars='',
-                   yaml_vars={},
-                   list_vars=[],
                    debug=False,
-                   args=None,
+                   default_vars={},
+                   invocation={},
+                   kwargs={},
+                   list_vars=[],
+                   paramset_var=None,
                    prefix='',
                    raw_args='',
-                   bastion_settings={},
-                   kwargs={}):
+                   string_vars=[],
+                   yaml_input_file=None,
+                   yaml_vars={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
         # Bastion host logic
         if bastion_settings.get('enabled') and prefix !='echo':
-            self.invoke_bastion_mode(bastion_settings)
+            self.invoke_bastion_mode(bastion_settings, invocation)
         else:        
             sub_process = CLIInvocation()
             ansible_playbook_command = default_vars.get(
