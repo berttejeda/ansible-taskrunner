@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.0
+
+* Renamed library path and refactored imports [afebb06](https://github.com/berttejeda/ansible-taskrunner/commit/afebb06433254acc9e6004978615eebd92c7c18d)
+
 ## Release 2019-10-03 v1.1.11
 
 * We can now package the script as a Windows MSI via cx_freeze [18397c1](https://github.com/berttejeda/ansible-taskrunner/commit/18397c1e202b5a4884d047bbe2c37b2b2b253675)
