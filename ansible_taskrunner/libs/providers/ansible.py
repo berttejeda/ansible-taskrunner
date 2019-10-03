@@ -25,9 +25,9 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from lib.formatting import ansi_colors, Struct
-    from lib.proc_mgmt import shell_invocation_mappings
-    from lib.proc_mgmt import CLIInvocation
+    from libs.formatting import ansi_colors, Struct
+    from libs.proc_mgmt import shell_invocation_mappings
+    from libs.proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
@@ -86,8 +86,8 @@ class ProviderCLI:
             sys.exit(1)
         # Import third-party and custom modules
         try:
-            from lib.proc_mgmt import Remote_CLIInvocation
-            from lib.sshutil.client import SSHUtilClient
+            from libs.proc_mgmt import Remote_CLIInvocation
+            from libs.sshutil.client import SSHUtilClient
         except ImportError as e:
             print('Error in %s ' % os.path.basename(self_file_name))
             print('Failed to import at least one required module')

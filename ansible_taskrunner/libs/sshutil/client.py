@@ -58,9 +58,9 @@ try:
     from paramiko import SSHClient, ssh_exception            
     from socket import gaierror
     import lib.sshutil.scp
-    from lib.sshutil.sync import SSHSync
-    from lib.sshutil.scp import SCPClient, SCPException        
-    from lib.formatting import ansi_colors, Struct
+    from libs.sshutil.sync import SSHSync
+    from libs.sshutil.scp import SCPClient, SCPException        
+    from libs.formatting import ansi_colors, Struct
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
