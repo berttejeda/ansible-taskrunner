@@ -29,7 +29,7 @@ else:
     project_root = os.path.dirname(os.path.abspath(__file__))
 
 # Needed for zip-app
-if self_file_name == '__main__.py'
+if self_file_name == '__main__.py':
     # Make the zipapp work for python2/python3
     py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
     if is_windows:
