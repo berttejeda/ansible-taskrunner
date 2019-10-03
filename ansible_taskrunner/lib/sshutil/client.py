@@ -17,17 +17,32 @@ else:
     warnings.filterwarnings("ignore", category=UserWarning, module='paramiko')
     logger.setLevel(logging.INFO)
 
+# Account for script packaged as an exe via cx_freeze
+if getattr(sys, 'frozen', False):
+    self_file_name = os.path.basename(sys.executable)
+    tasks_file_path = os.path.abspath(sys.executable)
+else:
+    # Account for script packaged as zip app
+    self_file_name = os.path.basename(__file__)
+    _tasks_file_path = re.split('.tasks.', os.path.abspath(__file__))[0]
+    tasks_file_path = os.path.join(_tasks_file_path, 'tasks')
+
 # Only if zipapp
 # Extract any dynamic modules/libraries (aka DLLs)
-is_zip = True if zipfile.is_zipfile('tasks') else False
+is_zip = True if zipfile.is_zipfile(tasks_file_path) else False
+# For troubleshooting
+logger.debug('{} is Zip: {}'.format(tasks_file_path, is_zip))
+
 if is_zip:
     pyver = "py%s" % sys.version_info[0]
     dll_cache_path = os.path.expanduser("~/.ansible_taskrunner")
-    dll_sys_path = os.path.join(dll_cache_path, 'lib/%s' % pyver)
-    logger.info('Checking for dll cache path')
-    if not os.path.exists(dll_cache_path):
-        logger.info('Dll cache path not found, extracting libraries to %s ...' % dll_cache_path)
-        f = zipfile.ZipFile('tasks','r')
+    dll_sys_path = os.path.join(dll_cache_path, 'lib', pyver)
+    logger.info('Checking for dll sys path %s' % dll_sys_path)
+    if not os.path.exists(dll_sys_path):
+        if not os.path.exists(dll_cache_path):
+            os.makedirs(dll_cache_path)
+        logger.info('Dll sys path not found, extracting libraries to %s ...' % dll_cache_path)
+        f = zipfile.ZipFile(tasks_file_path,'r')
         dirs = '|'.join(set([re.split('%s.' % pyver,z)[-1].split('/')[0] for z in f.namelist() if re.search("%s/.*pyd$" % pyver, z)]))
         dll_pattern = re.compile(dirs)
         for dll in f.namelist():
@@ -36,11 +51,6 @@ if is_zip:
         logger.info('Done!')
     sys.path.insert(0, dll_sys_path)    
 
-if getattr(sys, 'frozen', False):
-    # frozen
-    self_file_name = os.path.basename(sys.executable)
-else:
-    self_file_name = os.path.basename(__file__)
 
 # Import third-party and custom modules
 try:

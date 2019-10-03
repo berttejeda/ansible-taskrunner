@@ -14,7 +14,7 @@ from string import Template
 is_windows = True if sys.platform in ['win32', 'cygwin'] else False
 is_darwin = True if sys.platform in ['darwin'] else False
 
-# cx_freeze (exe)
+# Account for script packaged as an exe via cx_freeze
 if getattr(sys, 'frozen', False):
     # frozen
     self_file_name = script_name = os.path.basename(sys.executable)
