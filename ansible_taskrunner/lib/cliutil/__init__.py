@@ -2,12 +2,18 @@ import logging
 import os
 import sys
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)
+        
 # Import third-party and custom modules
 try:
-    from errorhandler import catchException
-    from errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from lib.errorhandler import catchException
+    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')

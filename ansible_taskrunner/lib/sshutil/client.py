@@ -36,17 +36,23 @@ if is_zip:
         logger.info('Done!')
     sys.path.insert(0, dll_sys_path)    
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)
+
 # Import third-party and custom modules
 try:
     import paramiko
     from paramiko import SSHClient, ssh_exception            
     from socket import gaierror
-    import sshutil.scp
-    from sshutil.sync import SSHSync
-    from sshutil.scp import SCPClient, SCPException        
-    from formatting import ansi_colors, Struct
+    import lib.sshutil.scp
+    from lib.sshutil.sync import SSHSync
+    from lib.sshutil.scp import SCPClient, SCPException        
+    from lib.formatting import ansi_colors, Struct
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
