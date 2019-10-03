@@ -14,8 +14,8 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from lib.proc_mgmt import shell_invocation_mappings
-    from lib.proc_mgmt import CLIInvocation
+    from libs.proc_mgmt import shell_invocation_mappings
+    from libs.proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
