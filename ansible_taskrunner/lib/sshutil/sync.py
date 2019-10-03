@@ -9,12 +9,18 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     logger.setLevel(logging.INFO)
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)
+
 # Import third-party and custom modules
 try:
     import paramiko
     from paramiko import SSHClient, ssh_exception
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')

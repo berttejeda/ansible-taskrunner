@@ -16,13 +16,20 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     logger.setLevel(logging.INFO)
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)    
+
 # Import third-party and custom modules
 try:
     import click
-    from formatting import ansi_colors, Struct
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
+    from lib.formatting import ansi_colors, Struct
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -79,14 +86,15 @@ class ProviderCLI:
             sys.exit(1)
         # Import third-party and custom modules
         try:
-            from proc_mgmt import Remote_CLIInvocation
-            from sshutil.client import SSHUtilClient
+            from lib.proc_mgmt import Remote_CLIInvocation
+            from lib.sshutil.client import SSHUtilClient
         except ImportError as e:
+            print('Error in %s ' % os.path.basename(self_file_name))
             print('Failed to import at least one required module')
             print('Error was %s' % e)
             print('Please install/update the required modules:')
             print('pip install -U -r requirements.txt')
-            sys.exit(1)                
+            sys.exit(1)            
         ssh_client = SSHUtilClient(settings)
         sftp_sync = ssh_client.sync()
         remote_sub_process = Remote_CLIInvocation(settings, ssh_client)

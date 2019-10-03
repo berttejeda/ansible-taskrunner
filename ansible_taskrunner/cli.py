@@ -10,53 +10,59 @@ import re
 import sys
 from string import Template
 
-# For zip-app
-self_file_name = os.path.basename(__file__)
-if self_file_name == '__main__.py':
-    script_name = os.path.dirname(__file__)
-else:
-    script_name = self_file_name
-
-# Needed for zip-app
-# Make the zipapp work for python2/python3
-py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
-project_root = os.path.dirname(os.path.abspath(__file__))
+# OS Detection
 is_windows = True if sys.platform in ['win32', 'cygwin'] else False
 is_darwin = True if sys.platform in ['darwin'] else False
-if is_windows:
-    sys.path.insert(0, project_root + '\\lib')
-    sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
-elif is_darwin:
-    sys.path.insert(0, project_root + '/lib')
-    sys.path.insert(0, project_root + '/lib/%s' % py_path)
+
+# cx_freeze (exe)
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = script_name = os.path.basename(sys.executable)
+    project_root = os.path.dirname(os.path.abspath(sys.executable))
 else:
-    sys.path.insert(0, project_root + '/lib')
-    sys.path.insert(0, project_root + '/lib/%s' % py_path)
+    # unfrozen
+    self_file_name = os.path.basename(__file__)
+    if self_file_name == '__main__.py':
+        script_name = os.path.dirname(__file__)
+    else:
+        script_name = self_file_name
+    project_root = os.path.dirname(os.path.abspath(__file__))
+
+# Needed for zip-app
+if self_file_name == '__main__.py'
+    # Make the zipapp work for python2/python3
+    py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
+    if is_windows:
+        sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
+    elif is_darwin:
+        sys.path.insert(0, project_root + '/lib/%s' % py_path)
+    else:
+        sys.path.insert(0, project_root + '/lib/%s' % py_path)
 
 # Import third-party and custom modules
 try:
     import click
-    from cliutil import get_invocation
-    from errorhandler import catchException
-    from errorhandler import ERR_ARGS_TASKF_OVERRIDE
-    from formatting import logging_format
-    from help import SAMPLE_CONFIG
-    from help import SAMPLE_TASKS_MANIFEST
+    from lib.cliutil import get_invocation
+    from lib.errorhandler import catchException
+    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from lib.formatting import logging_format
+    from lib.help import SAMPLE_CONFIG
+    from lib.help import SAMPLE_TASKS_MANIFEST
     if is_windows:
-        from help import SAMPLE_SFTP_CONFIG    
-    from logger import init_logger
-    from superduperconfig import SuperDuperConfig
-    from click_extras import ExtendedEpilog
-    from click_extras import ExtendedHelp
-    from click_extras import ExtendCLI
-    from proc_mgmt import shell_invocation_mappings
-    from proc_mgmt import CLIInvocation
-    from yamlr import YamlReader
+        from lib.help import SAMPLE_SFTP_CONFIG    
+    from lib.logger import init_logger
+    from lib.superduperconfig import SuperDuperConfig
+    from lib.click_extras import ExtendedEpilog
+    from lib.click_extras import ExtendedHelp
+    from lib.click_extras import ExtendCLI
+    from lib.proc_mgmt import shell_invocation_mappings
+    from lib.proc_mgmt import CLIInvocation
+    from lib.yamlr import YamlReader
     # TODO
     # Employ language/regional options    
     # from lib.language import get_strings
 except ImportError as e:
-    print('Error in %s ' % os.path.basename(__file__))
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
     print('Please install/update the required modules:')
@@ -117,7 +123,7 @@ if __name__ in ['ansible_taskrunner.cli', '__main__']:
 
 # System Platform
 sys_platform = sys.platform
-exe_path = os.path.normpath(__file__)
+exe_path = os.path.normpath(self_file_name)
 exe_path = re.sub('.__main__.py','', exe_path)
 
 # Parameter set var (if it has been specified)
@@ -170,13 +176,13 @@ global provider_cli
 cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
 cli_provider = yaml_vars.get('cli_provider', cli_provider)
 if cli_provider == 'bash':
-    from providers import bash as bash_cli
+    from lib.providers import bash as bash_cli
     provider_cli = bash_cli.ProviderCLI()
 elif cli_provider == 'vagrant':
-    from providers import vagrant as vagrant_cli
+    from lib.providers import vagrant as vagrant_cli
     provider_cli = vagrant_cli.ProviderCLI()
 else:
-    from providers import ansible as ansible_cli
+    from lib.providers import ansible as ansible_cli
     provider_cli = ansible_cli.ProviderCLI()
 # Activate any plugins if found
 if os.path.isdir("plugins/providers"):
