@@ -26,7 +26,7 @@ buildOptions = dict(
 
 setup(
     name="ansible-taskrunner",
-    version = "1.1.10",
+    version = "1.1.11",
     author="Engelbert Tejeda",
     description="ansible-playbook wrapper with YAML-abstracted python click cli options",
     license="MIT License",

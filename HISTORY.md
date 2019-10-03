@@ -2,6 +2,19 @@
 History
 =======
 
+## Release 2019-10-03 v1.1.11
+
+* We can now package the script as a Windows MSI via cx_freeze [18397c1](https://github.com/berttejeda/ansible-taskrunner/commit/18397c1e202b5a4884d047bbe2c37b2b2b253675)
+* Fixed syntax error [4b43f44](https://github.com/berttejeda/ansible-taskrunner/commit/4b43f445722fd9da51b716a3f01cb8232479d69f)
+* No more tampering [with] sys.path (unless zipapp) [07fb148](https://github.com/berttejeda/ansible-taskrunner/commit/07fb14810b3cdae18c8554b50504709a5d0a3fbf)
+* Added Bastion Mode instructions [72f2a13](https://github.com/berttejeda/ansible-taskrunner/commit/72f2a13bdba1fd89e1cd7166fbbf5bddaea9fa10)
+* Added cli option for overriding ssh key file [86a0d45](https://github.com/berttejeda/ansible-taskrunner/commit/86a0d4559e796ef82fa5f384741931771dd96c4f)
+* Adjusted bastion mode sync logic to quit if we fail to create remote dir [0084ce5](https://github.com/berttejeda/ansible-taskrunner/commit/0084ce53086ad0b6c502bbb48914982d893b8913)
+* Added bastion-mode config initialization logic to the init subcommand [39b332e](https://github.com/berttejeda/ansible-taskrunner/commit/39b332e013918c9474a8dc9d75dca61ee33e4464)
+* Fixed inconsistencies in bastion mode remote command strings [8ddef53](https://github.com/berttejeda/ansible-taskrunner/commit/8ddef5356b245aa19c5bb8dd45fb27c4c36d780b)
+* Fixed bug whereby script was being stripped from determinant of commandline invocation [2f445bf](https://github.com/berttejeda/ansible-taskrunner/commit/2f445bf9bfc5aa1d09b420fe35373dafd1a76b39)
+* Added section on unit tests [7b3fa34](https://github.com/berttejeda/ansible-taskrunner/commit/7b3fa34dc3895fe569c2670895b313d685dcf5ee)
+
 ## Release 2019-09-27 v1.1.10
 
 * Adjusted max content width for help messages [7052485](https://github.com/berttejeda/ansible-taskrunner/commit/70524851385d959b9509c45ecb94864ac1a480ba)
