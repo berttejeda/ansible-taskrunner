@@ -5,6 +5,7 @@ import os
 from os import fdopen, remove
 import re
 import sys
+import time
 from tempfile import mkstemp
 
 provider_name = 'ansible'
@@ -25,9 +26,9 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from lib.formatting import ansi_colors, Struct
-    from lib.proc_mgmt import shell_invocation_mappings
-    from lib.proc_mgmt import CLIInvocation
+    from libs.formatting import ansi_colors, Struct
+    from libs.proc_mgmt import shell_invocation_mappings
+    from libs.proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
@@ -86,8 +87,8 @@ class ProviderCLI:
             sys.exit(1)
         # Import third-party and custom modules
         try:
-            from lib.proc_mgmt import Remote_CLIInvocation
-            from lib.sshutil.client import SSHUtilClient
+            from libs.proc_mgmt import Remote_CLIInvocation
+            from libs.sshutil.client import SSHUtilClient
         except ImportError as e:
             print('Error in %s ' % os.path.basename(self_file_name))
             print('Failed to import at least one required module')
@@ -118,7 +119,7 @@ class ProviderCLI:
             mkdir_result = remote_sub_process.call('/', cmd)
             if mkdir_result:
                 logger.info("Performing initial sync to %s ..." % remote_dir)
-                sftp_sync.to_remote(local_dir, remote_dir)
+                sftp_sync.to_remote('.', remote_dir)
                 rem_exists = True
             else:
                 logger.error('Unable to create remote path!')
@@ -130,7 +131,10 @@ class ProviderCLI:
         else:
             # If local path is not a git repo then
             # we'll only sync files in the current working directory
-            local_changed = [f for f in os.listdir('.') if os.path.isfile(f)]
+            # that have changed within the last 5 minutes
+            _dir = os.getcwd()
+            exclusions = ['sftp-config.json']
+            local_changed = list(fle for rt, _, f in os.walk(_dir) for fle in f if time.time() - os.stat(os.path.join(rt, fle)).st_mtime < 300 and f not in exclusions)
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
         if rem_is_git:

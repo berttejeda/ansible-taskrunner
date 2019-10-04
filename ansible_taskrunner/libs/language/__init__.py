@@ -10,7 +10,7 @@ else:
     
 # Import third-party and custom modules
 try:
-    from lib.superduperconfig import SuperDuperConfig
+    from libs.superduperconfig import SuperDuperConfig
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')

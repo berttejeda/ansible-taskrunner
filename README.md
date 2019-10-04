@@ -677,6 +677,10 @@ Ansible-taskrunner consists of the `tasks` binary (for now), and it can be insta
 2. pip install git+https://github.com/berttejeda/ansible-taskrunner.git
 3. Obtaining a [release](#single-executable-releases)
 
+Note: You'll need to pre-install a python distribution for the Windows MSI release.
+Not yet sure if I am doing something wrong or if that's by design.
+I lean towards the former :|
+
 <a name="more-examples"></a>
 ## More Examples
 

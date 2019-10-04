@@ -28,39 +28,33 @@ else:
         script_name = self_file_name
     project_root = os.path.dirname(os.path.abspath(__file__))
 
-# Needed for zip-app
-if self_file_name == '__main__.py':
-    # Make the zipapp work for python2/python3
-    py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
-    if is_windows:
-        sys.path.insert(0, project_root + '\\lib\\%s' % py_path)
-    elif is_darwin:
-        sys.path.insert(0, project_root + '/lib/%s' % py_path)
-    else:
-        sys.path.insert(0, project_root + '/lib/%s' % py_path)
+# Make the zipapp work for python2/python3
+py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
+# Modify our sys path to include the script's location
+sys.path.insert(0, project_root)
 
 # Import third-party and custom modules
 try:
     import click
-    from lib.cliutil import get_invocation
-    from lib.errorhandler import catchException
-    from lib.errorhandler import ERR_ARGS_TASKF_OVERRIDE
-    from lib.formatting import logging_format
-    from lib.help import SAMPLE_CONFIG
-    from lib.help import SAMPLE_TASKS_MANIFEST
+    from libs.cliutil import get_invocation
+    from libs.errorhandler import catchException
+    from libs.errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from libs.formatting import logging_format
+    from libs.help import SAMPLE_CONFIG
+    from libs.help import SAMPLE_TASKS_MANIFEST
     if is_windows:
-        from lib.help import SAMPLE_SFTP_CONFIG    
-    from lib.logger import init_logger
-    from lib.superduperconfig import SuperDuperConfig
-    from lib.click_extras import ExtendedEpilog
-    from lib.click_extras import ExtendedHelp
-    from lib.click_extras import ExtendCLI
-    from lib.proc_mgmt import shell_invocation_mappings
-    from lib.proc_mgmt import CLIInvocation
-    from lib.yamlr import YamlReader
+        from libs.help import SAMPLE_SFTP_CONFIG    
+    from libs.logger import init_logger
+    from libs.superduperconfig import SuperDuperConfig
+    from libs.click_extras import ExtendedEpilog
+    from libs.click_extras import ExtendedHelp
+    from libs.click_extras import ExtendCLI
+    from libs.proc_mgmt import shell_invocation_mappings
+    from libs.proc_mgmt import CLIInvocation
+    from libs.yamlr import YamlReader
     # TODO
     # Employ language/regional options    
-    # from lib.language import get_strings
+    # from libs.language import get_strings
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
@@ -86,33 +80,24 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.1.11'
+__version__ = '1.2.5'
 __program_name__ = 'tasks'
-__debug = False
-verbose = 0
-log_file = None
 
 # Logging
 logger = init_logger()
-
-# Load Config(s)
-config_file = 'config.yaml'
-sftp_config_file = 'sftp-config.json' 
-superconf = SuperDuperConfig(__program_name__)
-config = superconf.load_config(config_file)
-local_username = getpass.getuser()
 
 # We'll pass this down to the run invocation
 global exe_path
 global cli_args
 global cli_args_short
+global local_username
 global parameter_sets
 global sys_platform
 global tf_path
 
 cli_invocation = get_invocation(script_name)
+local_username = getpass.getuser()
 
-path_string='vars'
 param_set = cli_invocation['param_set']
 tasks_file = cli_invocation.get('tasks_file_override') or cli_invocation['tasks_file']
 tasks_file_override = cli_invocation['tasks_file_override']
@@ -127,9 +112,9 @@ exe_path = os.path.normpath(self_file_name)
 exe_path = re.sub('.__main__.py','', exe_path)
 
 # Parameter set var (if it has been specified)
-parameter_sets = ' '.join(param_set)
 paramset_var = 'parameter_sets="%s"' % (
-    ' '.join(param_set) if param_set else 'False')
+    ','.join(param_set) if param_set else 'False')
+parameter_sets = paramset_var
 
 # Path to specified Taskfile
 tf_path = os.path.normpath(os.path.expanduser(tasks_file))
@@ -140,6 +125,22 @@ yamlr = YamlReader()
 sub_process = CLIInvocation()
 # Load Tasks Manifest
 yaml_input_file = tasks_file
+
+# Initialize Config Module
+superconf = SuperDuperConfig(__program_name__)
+
+# Configuration Files
+config_file = 'config.yaml'
+sftp_config_file = 'sftp-config.json' 
+config = superconf.load_config(config_file)
+help_max_content_width = yamlr.deep_get(config, 'help.max_content_width', 200)
+logging_maxBytes = yamlr.deep_get(config, 'logging.maxBytes', 10000000)
+logging_backupCount = yamlr.deep_get(config, 'logging.backupCount', 5)
+__debug = yamlr.deep_get(config, 'logging.debug', False)
+verbose = yamlr.deep_get(config, 'logging.verbose', 0)
+log_file = yamlr.deep_get(config, 'logging.log_file', None)
+path_string = yamlr.deep_get(config, 'taskfile.path_string', 'vars')
+
 if os.path.exists(yaml_input_file):
     yaml_data = superconf.load_config(yaml_input_file, data_key=0)
 else:
@@ -176,13 +177,13 @@ global provider_cli
 cli_provider = yamlr.deep_get(config, 'cli.providers.default', {})
 cli_provider = yaml_vars.get('cli_provider', cli_provider)
 if cli_provider == 'bash':
-    from lib.providers import bash as bash_cli
+    from libs.providers import bash as bash_cli
     provider_cli = bash_cli.ProviderCLI()
 elif cli_provider == 'vagrant':
-    from lib.providers import vagrant as vagrant_cli
+    from libs.providers import vagrant as vagrant_cli
     provider_cli = vagrant_cli.ProviderCLI()
 else:
-    from lib.providers import ansible as ansible_cli
+    from libs.providers import ansible as ansible_cli
     provider_cli = ansible_cli.ProviderCLI()
 # Activate any plugins if found
 if os.path.isdir("plugins/providers"):
@@ -204,7 +205,7 @@ Ansible Taskrunner - ansible-playbook wrapper
     """
 click_help_epilog = ""
 
-@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=120))
+@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=help_max_content_width))
 @click.version_option(version=__version__)
 @click.option('--config', '-C', type=str, nargs=1,
               help='Specify a config file (default is config.ini)')
@@ -234,15 +235,15 @@ def cli(**kwargs):
         loglevel = logging.INFO  # 20
     logger.setLevel(loglevel)
     # Add the log  file handler to the logger, if applicable
-    logfilename = kwargs.get('log')
+    logfilename = kwargs.get('log') or log_file
     if logfilename:
         filehandler = logging.handlers.RotatingFileHandler(
-            logfilename, maxBytes=10000000, backupCount=5)
+            logfilename, maxBytes=logging_maxBytes, backupCount=logging_backupCount)
         formatter = logging.Formatter(logging_format)
         filehandler.setFormatter(formatter)
         logger.addHandler(filehandler)
     logger.debug('Debug Mode Enabled, keeping any generated temp files')
-    return 0
+    return
 
 init_epilog = ''
 if is_windows:
@@ -369,12 +370,15 @@ if isinstance(examples, list):
 epilog = '''
 {ep}
 Examples:
+
 {ex}
+
 Available make-style functions:
+
 {fh}
     '''.format(ep=epilog_string, 
-        ex=examples_string, 
-        fh=function_help_string)
+        ex=examples_string or 'None', 
+        fh=function_help_string or 'None')
 epilog = Template(epilog).safe_substitute(**available_vars)
 @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
              epilog=epilog)

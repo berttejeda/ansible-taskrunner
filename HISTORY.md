@@ -2,6 +2,34 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.5
+
+* Fixed bug whereby modification time was being ignored (bastion mode) [6af8611](https://github.com/berttejeda/ansible-taskrunner/commit/6af86116f73922a982fdc578cca5e50c1c097f77)
+
+## Release 2019-10-03 v1.2.4
+
+* Fixed bug in sync logic whereby sync action was causing local dir to be nested in remote [6fe86b9](https://github.com/berttejeda/ansible-taskrunner/commit/6fe86b988b7f34eac091296aa528b4d34e11336f)
+* Refactored sftp sync logic for non-git local dirs (bastion mode) [6bc786e](https://github.com/berttejeda/ansible-taskrunner/commit/6bc786e50734a7f6bbbca5eb8931974be752b833)
+
+## Release 2019-10-03 v1.2.3
+
+* Fixed minor bug in import path for sshutil library [278f0d5](https://github.com/berttejeda/ansible-taskrunner/commit/278f0d5dd8c17e2ae56bb25a2635855197058e84)
+
+## Release 2019-10-03 v1.2.2
+
+* Addressed bug whereby if no config is found, certain globals don't get initialized [fa1f7f1](https://github.com/berttejeda/ansible-taskrunner/commit/fa1f7f1993737a47265bbcb3d38ceb04e6491d7f)
+
+## Release 2019-10-03 v1.2.1
+
+* Removed bogus print statement leftover from recent troubleshooting [88be8a9](https://github.com/berttejeda/ansible-taskrunner/commit/88be8a9350ad33504d8ee74e8f403982c0400921)
+* Moved some hard-coded values to the app config [e853ce0](https://github.com/berttejeda/ansible-taskrunner/commit/e853ce07ff1e1887e64a8fff2d29a03e4cb6ef37)
+* Refactored misc vars [2c7c6eb](https://github.com/berttejeda/ansible-taskrunner/commit/2c7c6eb4ffc41fdf1e751eb7f4d02b3c46beed9e)
+* Added colorized output for help examples [645621c](https://github.com/berttejeda/ansible-taskrunner/commit/645621cbb4f5338e03e81302231bf540213a9d4c)
+
+## Release 2019-10-03 v1.2.0
+
+* Renamed library path and refactored imports [afebb06](https://github.com/berttejeda/ansible-taskrunner/commit/afebb06433254acc9e6004978615eebd92c7c18d)
+
 ## Release 2019-10-03 v1.1.11
 
 * We can now package the script as a Windows MSI via cx_freeze [18397c1](https://github.com/berttejeda/ansible-taskrunner/commit/18397c1e202b5a4884d047bbe2c37b2b2b253675)
