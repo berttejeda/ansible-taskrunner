@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.5
+
+* Fixed bug whereby modification time was being ignored (bastion mode) [6af8611](https://github.com/berttejeda/ansible-taskrunner/commit/6af86116f73922a982fdc578cca5e50c1c097f77)
+
 ## Release 2019-10-03 v1.2.4
 
 * Fixed bug in sync logic whereby sync action was causing local dir to be nested in remote [6fe86b9](https://github.com/berttejeda/ansible-taskrunner/commit/6fe86b988b7f34eac091296aa528b4d34e11336f)
