@@ -57,7 +57,7 @@ try:
     import paramiko
     from paramiko import SSHClient, ssh_exception            
     from socket import gaierror
-    import lib.sshutil.scp
+    import libs.sshutil.scp
     from libs.sshutil.sync import SSHSync
     from libs.sshutil.scp import SCPClient, SCPException        
     from libs.formatting import ansi_colors, Struct
