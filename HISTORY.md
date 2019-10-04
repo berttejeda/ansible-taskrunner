@@ -2,6 +2,13 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.1
+
+* Removed bogus print statement leftover from recent troubleshooting [88be8a9](https://github.com/berttejeda/ansible-taskrunner/commit/88be8a9350ad33504d8ee74e8f403982c0400921)
+* Moved some hard-coded values to the app config [e853ce0](https://github.com/berttejeda/ansible-taskrunner/commit/e853ce07ff1e1887e64a8fff2d29a03e4cb6ef37)
+* Refactored misc vars [2c7c6eb](https://github.com/berttejeda/ansible-taskrunner/commit/2c7c6eb4ffc41fdf1e751eb7f4d02b3c46beed9e)
+* Added colorized output for help examples [645621c](https://github.com/berttejeda/ansible-taskrunner/commit/645621cbb4f5338e03e81302231bf540213a9d4c)
+
 ## Release 2019-10-03 v1.2.0
 
 * Renamed library path and refactored imports [afebb06](https://github.com/berttejeda/ansible-taskrunner/commit/afebb06433254acc9e6004978615eebd92c7c18d)
