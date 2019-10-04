@@ -133,9 +133,8 @@ class ProviderCLI:
             # we'll only sync files in the current working directory
             # that have changed within the last 5 minutes
             _dir = os.getcwd()
-            local_changed = (fle for rt, _, f in os.walk(_dir) for fle in f if time.time() - os.stat(os.path.join(rt, fle)).st_mtime < 300)
             exclusions = ['sftp-config.json']
-            local_changed = [f for f in os.listdir('.') if os.path.isfile(f) and f not in exclusions]
+            local_changed = list(fle for rt, _, f in os.walk(_dir) for fle in f if time.time() - os.stat(os.path.join(rt, fle)).st_mtime < 300 and f not in exclusions)
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
         if rem_is_git:
