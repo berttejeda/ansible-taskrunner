@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.3
+
+* Fixed minor bug in import path for sshutil library [278f0d5](https://github.com/berttejeda/ansible-taskrunner/commit/278f0d5dd8c17e2ae56bb25a2635855197058e84)
+
 ## Release 2019-10-03 v1.2.2
 
 * Addressed bug whereby if no config is found, certain globals don't get initialized [fa1f7f1](https://github.com/berttejeda/ansible-taskrunner/commit/fa1f7f1993737a47265bbcb3d38ceb04e6491d7f)
