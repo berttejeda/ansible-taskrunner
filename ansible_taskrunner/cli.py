@@ -133,14 +133,13 @@ superconf = SuperDuperConfig(__program_name__)
 config_file = 'config.yaml'
 sftp_config_file = 'sftp-config.json' 
 config = superconf.load_config(config_file)
-if config:
-    help_max_content_width = yamlr.deep_get(config, 'help.max_content_width', 200)
-    logging_maxBytes = yamlr.deep_get(config, 'logging.maxBytes', 10000000)
-    logging_backupCount = yamlr.deep_get(config, 'logging.backupCount', 5)
-    __debug = yamlr.deep_get(config, 'logging.debug', False)
-    verbose = yamlr.deep_get(config, 'logging.verbose', 0)
-    log_file = yamlr.deep_get(config, 'logging.log_file', None)
-    path_string = yamlr.deep_get(config, 'taskfile.path_string', 'vars')
+help_max_content_width = yamlr.deep_get(config, 'help.max_content_width', 200)
+logging_maxBytes = yamlr.deep_get(config, 'logging.maxBytes', 10000000)
+logging_backupCount = yamlr.deep_get(config, 'logging.backupCount', 5)
+__debug = yamlr.deep_get(config, 'logging.debug', False)
+verbose = yamlr.deep_get(config, 'logging.verbose', 0)
+log_file = yamlr.deep_get(config, 'logging.log_file', None)
+path_string = yamlr.deep_get(config, 'taskfile.path_string', 'vars')
 
 if os.path.exists(yaml_input_file):
     yaml_data = superconf.load_config(yaml_input_file, data_key=0)
