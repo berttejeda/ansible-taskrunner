@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.4
+
+* Fixed bug in sync logic whereby sync action was causing local dir to be nested in remote [6fe86b9](https://github.com/berttejeda/ansible-taskrunner/commit/6fe86b988b7f34eac091296aa528b4d34e11336f)
+* Refactored sftp sync logic for non-git local dirs (bastion mode) [6bc786e](https://github.com/berttejeda/ansible-taskrunner/commit/6bc786e50734a7f6bbbca5eb8931974be752b833)
+
 ## Release 2019-10-03 v1.2.3
 
 * Fixed minor bug in import path for sshutil library [278f0d5](https://github.com/berttejeda/ansible-taskrunner/commit/278f0d5dd8c17e2ae56bb25a2635855197058e84)
