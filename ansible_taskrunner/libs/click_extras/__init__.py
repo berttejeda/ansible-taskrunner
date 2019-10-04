@@ -14,6 +14,7 @@ else:
 # Import third-party and custom modules
 try:
     import click
+    import crayons
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -31,6 +32,19 @@ class ExtendedEpilog(click.Group):
 
 
 class ExtendedHelp(click.Command):
+
+    def colorize(self, formatter, color, string):
+        if color == 'green':
+            formatter.write_text('%s' % crayons.green(string))
+        elif color == 'magenta':
+            formatter.write_text('%s' % crayons.magenta(string))
+        elif color == 'red':
+            formatter.write_text('%s' % crayons.red(string))
+        elif color == 'yellow':
+            formatter.write_text('%s' % crayons.yellow(string))
+        else:
+            formatter.write_text(string)
+
     def format_help(self, ctx, formatter):
         """Format click help to honor newline characters"""
         if self.help:
@@ -47,8 +61,15 @@ class ExtendedHelp(click.Command):
                 formatter.write_dl(opts)
         if self.epilog:
             formatter.write_paragraph()
+            print(self.epilog.split('\n'))
             for line in self.epilog.split('\n'):
-                formatter.write_text(line)
+                if line:
+                    if line.startswith('-'):
+                        self.colorize(formatter, 'magenta', line)
+                    else:
+                        self.colorize(formatter, 'yellow', line)
+                else:
+                    formatter.write_text(line)
 
 # Allow for mutually-exlusive click options
 class NotRequiredIf(click.Option):
