@@ -61,7 +61,6 @@ class ExtendedHelp(click.Command):
                 formatter.write_dl(opts)
         if self.epilog:
             formatter.write_paragraph()
-            print(self.epilog.split('\n'))
             for line in self.epilog.split('\n'):
                 if line:
                     if line.startswith('-'):
