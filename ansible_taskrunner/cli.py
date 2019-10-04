@@ -94,17 +94,18 @@ config_file = 'config.yaml'
 sftp_config_file = 'sftp-config.json' 
 superconf = SuperDuperConfig(__program_name__)
 config = superconf.load_config(config_file)
-local_username = getpass.getuser()
 
 # We'll pass this down to the run invocation
 global exe_path
 global cli_args
 global cli_args_short
+global local_username
 global parameter_sets
 global sys_platform
 global tf_path
 
 cli_invocation = get_invocation(script_name)
+local_username = getpass.getuser()
 
 path_string='vars'
 param_set = cli_invocation['param_set']
@@ -121,9 +122,9 @@ exe_path = os.path.normpath(self_file_name)
 exe_path = re.sub('.__main__.py','', exe_path)
 
 # Parameter set var (if it has been specified)
-parameter_sets = ' '.join(param_set)
 paramset_var = 'parameter_sets="%s"' % (
-    ' '.join(param_set) if param_set else 'False')
+    ','.join(param_set) if param_set else 'False')
+parameter_sets = paramset_var
 
 # Path to specified Taskfile
 tf_path = os.path.normpath(os.path.expanduser(tasks_file))
@@ -363,12 +364,15 @@ if isinstance(examples, list):
 epilog = '''
 {ep}
 Examples:
+
 {ex}
+
 Available make-style functions:
+
 {fh}
     '''.format(ep=epilog_string, 
-        ex=examples_string, 
-        fh=function_help_string)
+        ex=examples_string or 'None', 
+        fh=function_help_string or 'None')
 epilog = Template(epilog).safe_substitute(**available_vars)
 @cli.command(cls=ExtendedHelp, help="{h}".format(h=help_string),
              epilog=epilog)
