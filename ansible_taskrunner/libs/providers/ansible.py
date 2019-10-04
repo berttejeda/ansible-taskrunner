@@ -5,6 +5,7 @@ import os
 from os import fdopen, remove
 import re
 import sys
+import time
 from tempfile import mkstemp
 
 provider_name = 'ansible'
@@ -118,7 +119,7 @@ class ProviderCLI:
             mkdir_result = remote_sub_process.call('/', cmd)
             if mkdir_result:
                 logger.info("Performing initial sync to %s ..." % remote_dir)
-                sftp_sync.to_remote(local_dir, remote_dir)
+                sftp_sync.to_remote('.', remote_dir)
                 rem_exists = True
             else:
                 logger.error('Unable to create remote path!')
@@ -130,7 +131,11 @@ class ProviderCLI:
         else:
             # If local path is not a git repo then
             # we'll only sync files in the current working directory
-            local_changed = [f for f in os.listdir('.') if os.path.isfile(f)]
+            # that have changed within the last 5 minutes
+            _dir = os.getcwd()
+            local_changed = (fle for rt, _, f in os.walk(_dir) for fle in f if time.time() - os.stat(os.path.join(rt, fle)).st_mtime < 300)
+            exclusions = ['sftp-config.json']
+            local_changed = [f for f in os.listdir('.') if os.path.isfile(f) and f not in exclusions]
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
         if rem_is_git:
