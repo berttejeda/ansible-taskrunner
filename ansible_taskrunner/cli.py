@@ -82,18 +82,9 @@ Ansible Taskrunner - ansible-playbook wrapper
 __author__ = 'etejeda'
 __version__ = '1.2.0'
 __program_name__ = 'tasks'
-__debug = False
-verbose = 0
-log_file = None
 
 # Logging
 logger = init_logger()
-
-# Load Config(s)
-config_file = 'config.yaml'
-sftp_config_file = 'sftp-config.json' 
-superconf = SuperDuperConfig(__program_name__)
-config = superconf.load_config(config_file)
 
 # We'll pass this down to the run invocation
 global exe_path
@@ -107,7 +98,6 @@ global tf_path
 cli_invocation = get_invocation(script_name)
 local_username = getpass.getuser()
 
-path_string='vars'
 param_set = cli_invocation['param_set']
 tasks_file = cli_invocation.get('tasks_file_override') or cli_invocation['tasks_file']
 tasks_file_override = cli_invocation['tasks_file_override']
@@ -135,6 +125,23 @@ yamlr = YamlReader()
 sub_process = CLIInvocation()
 # Load Tasks Manifest
 yaml_input_file = tasks_file
+
+# Initialize Config Module
+superconf = SuperDuperConfig(__program_name__)
+
+# Configuration Files
+config_file = 'config.yaml'
+sftp_config_file = 'sftp-config.json' 
+config = superconf.load_config(config_file)
+if config:
+    help_max_content_width = yamlr.deep_get(config, 'help.max_content_width', 200)
+    logging_maxBytes = yamlr.deep_get(config, 'logging.maxBytes', 10000000)
+    logging_backupCount = yamlr.deep_get(config, 'logging.backupCount', 5)
+    __debug = yamlr.deep_get(config, 'logging.debug', False)
+    verbose = yamlr.deep_get(config, 'logging.verbose', 0)
+    log_file = yamlr.deep_get(config, 'logging.log_file', None)
+    path_string = yamlr.deep_get(config, 'taskfile.path_string', 'vars')
+
 if os.path.exists(yaml_input_file):
     yaml_data = superconf.load_config(yaml_input_file, data_key=0)
 else:
@@ -199,7 +206,7 @@ Ansible Taskrunner - ansible-playbook wrapper
     """
 click_help_epilog = ""
 
-@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=120))
+@click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=help_max_content_width))
 @click.version_option(version=__version__)
 @click.option('--config', '-C', type=str, nargs=1,
               help='Specify a config file (default is config.ini)')
@@ -229,15 +236,15 @@ def cli(**kwargs):
         loglevel = logging.INFO  # 20
     logger.setLevel(loglevel)
     # Add the log  file handler to the logger, if applicable
-    logfilename = kwargs.get('log')
+    logfilename = kwargs.get('log') or log_file
     if logfilename:
         filehandler = logging.handlers.RotatingFileHandler(
-            logfilename, maxBytes=10000000, backupCount=5)
+            logfilename, maxBytes=logging_maxBytes, backupCount=logging_backupCount)
         formatter = logging.Formatter(logging_format)
         filehandler.setFormatter(formatter)
         logger.addHandler(filehandler)
     logger.debug('Debug Mode Enabled, keeping any generated temp files')
-    return 0
+    return
 
 init_epilog = ''
 if is_windows:

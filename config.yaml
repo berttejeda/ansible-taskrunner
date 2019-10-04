@@ -1,0 +1,11 @@
+cli:
+  providers:
+    default: ansible
+help:
+  max_content_width: 200
+logging:
+  maxBytes: 10000000
+  backupCount: 5
+  debug: False
+  verbose: 0
+  log_file:
