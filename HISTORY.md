@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.2
+
+* Addressed bug whereby if no config is found, certain globals don't get initialized [fa1f7f1](https://github.com/berttejeda/ansible-taskrunner/commit/fa1f7f1993737a47265bbcb3d38ceb04e6491d7f)
+
 ## Release 2019-10-03 v1.2.1
 
 * Removed bogus print statement leftover from recent troubleshooting [88be8a9](https://github.com/berttejeda/ansible-taskrunner/commit/88be8a9350ad33504d8ee74e8f403982c0400921)
