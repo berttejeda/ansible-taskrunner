@@ -5,6 +5,7 @@ import os
 from os import fdopen, remove
 import re
 import sys
+import time
 from tempfile import mkstemp
 
 provider_name = 'ansible'
@@ -130,6 +131,9 @@ class ProviderCLI:
         else:
             # If local path is not a git repo then
             # we'll only sync files in the current working directory
+            # that have changed within the last 5 minutes
+            _dir = os.getcwd()
+            local_changed = (fle for rt, _, f in os.walk(_dir) for fle in f if time.time() - os.stat(os.path.join(rt, fle)).st_mtime < 300)
             local_changed = [f for f in os.listdir('.') if os.path.isfile(f)]
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
