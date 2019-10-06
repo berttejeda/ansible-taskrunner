@@ -410,14 +410,14 @@ def run(args=None, **kwargs):
     # Force bastion mode if running from a Windows host
     bastion_mode_enabled = True if is_windows else kwargs.get('_bastion_mode', False)
     if bastion_mode_enabled:
-        # Turn bastion Mode off if we specifically don't want it
-        if not os.environ.get('WIN32_NO_BASTION_MODE'):
-            bastion_settings = {
-            'enabled': True,
-            'config_file': 'sftp-config.json',
-            'poll_wait_time': 5,
-            'keep_alive': True
-            }
+        bastion_settings = {
+        # Turn bastion Mode off if we explicitly don't want it
+        'config_file': yamlr.deep_get(config, 'bastion_mode.config_file', 'sftp-config.json'),
+        'enabled': yamlr.deep_get(config, 'bastion_mode.enabled', True),
+        'keep_alive': yamlr.deep_get(config, 'bastion_mode.keep_alive', True),
+        'poll_wait_time': yamlr.deep_get(config, 'bastion_mode.poll_wait_time', 5),
+        'sftp_sync': yamlr.deep_get(config, 'bastion_mode.sync', True)
+        }
     # Gather variables from commandline for interpolation
     cli_vars = ''
     # python 2.x
@@ -431,6 +431,7 @@ def run(args=None, **kwargs):
         # We need to 'inject' built-in cli options
         # since we're artificially re-ordering things
         ctx = click.get_current_context()
+        # Parse the help message to extract cli options
         ctx_help = ctx.get_help()
         existing_provider_options = re.findall('---.*?[\s]', ctx_help)
         for opt in existing_provider_options:
