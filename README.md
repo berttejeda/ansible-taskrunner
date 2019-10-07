@@ -46,6 +46,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <a name="top"></a>
 <a name="overview"></a>
+
 # Overview
 
 This is a task runner that serves as a higher-level automation layer to ansible
@@ -76,9 +77,11 @@ translates to:<br />
 3. Read on if you want to dig deeper into the tool
 
 <a name="use-case-and-example"></a>
+
 # Use case and example
 
 <a name="given"></a>
+
 ## Given
 
 1. An enterprise-grade application named contoso-app
@@ -91,11 +94,13 @@ translates to:<br />
 3. Ansible is the primary means of invoking business and operational processes across the numerous environment(s)
 
 <a name="task"></a>
+
 ## Task
 
 You must ensure all teams adopt a standardized approach to running ansible workloads
 
 <a name="investigation"></a>
+
 ## Investigation
 
 Upon investigating the current approach, you observe the following: 
@@ -112,6 +117,7 @@ Upon investigating the current approach, you observe the following:
   - Providing a command-line interface
 
 <a name="assessment"></a>
+
 ## Assessment
 
 Advantages to the above approach:
@@ -126,6 +132,7 @@ Disadvantages:
   - Duplicate efforts across codebase
 
 <a name="proposed-solution"></a>
+
 ## Proposed Solution
 
 Employ a pre-execution script that operates above the `ansible-playbook` command:
@@ -144,6 +151,7 @@ Disadvantages:
 
 [Back To Top](#top)
 <a name="technical-details"></a>
+
 # Technical Details
 
 As stated in the [overview](#overview), this tool functions much like the *make* command in that it accepts an input file that essentially extends its cli options.
@@ -160,6 +168,7 @@ In the following sections, we'll be building a sample manifest/playbook named *T
 
 [Back To Top](#top)
 <a name="add-hosts-designation"></a>
+
 ## Add hosts designation
 
 <details>
@@ -177,6 +186,7 @@ In the following sections, we'll be building a sample manifest/playbook named *T
 
 [Back To Top](#top)
 <a name="add-vars-key"></a>
+
 ## Add vars key
 
 Remember, the task runner will ultimately be calling the `ansible-playbook` command against this very same file, so it must be conformant.
@@ -197,6 +207,7 @@ Remember, the task runner will ultimately be calling the `ansible-playbook` comm
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---defaults"></a>
+
 ## Populate the vars block - defaults
 
 <details>
@@ -248,6 +259,7 @@ shell_var: $(grep somestring /some/file.txt) | Depends on output       | String
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---cli-options"></a>
+
 ## Populate the vars block - cli options
 
 <details>
@@ -325,6 +337,7 @@ See the [appendix](#parameter_sets) for more information.
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---cli-options---mapped-variables"></a>
+
 ### Populate the vars block - cli options - mapped variables
 
 It's important to note that the above mapped variables can be used during runtime, i.e. referenced in any defined functions, embedded inventory logic, etc.
@@ -336,6 +349,7 @@ Whatever argument you pass to this option becomes the value for the mapped varia
 Again, this variable is made available to the underlying subprocess call, and within the ansible playbook itself.
 
 <a name="populate-the-vars-block---helpmessage"></a>
+
 ## Populate the vars block - help/message
 
 <details>
@@ -385,6 +399,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 [Back To Top](#top)
 <a name="populate-the-vars-block---inventory"></a>
+
 ## Populate the vars block - inventory
 
 <details>
@@ -442,6 +457,7 @@ Again, this variable is made available to the underlying subprocess call, and wi
 </details>
 
 <a name="populate-the-vars-block---embedded-make-style-functions"></a>
+
 ## Populate the vars block - embedded make-style functions
 
 <details>
@@ -521,6 +537,7 @@ will short-circuit normal operation and execute the corresponding functions in t
 For usage examples, see the [appendix](#usage-examples).
 
 <a name="about-make-style-functions"></a>
+
 ### About make-style functions
 
 Let's briefly side-step into make-style functions 
@@ -538,6 +555,7 @@ The syntax for nesting these under the _functions_ key is as follows:
 
 [Back To Top](#top)
 <a name="bash-example"></a>
+
 #### Bash example:
 
 ```
@@ -550,6 +568,7 @@ The syntax for nesting these under the _functions_ key is as follows:
 ```
 
 <a name="python-example"></a>
+
 #### Python example:
 
 ```
@@ -562,6 +581,7 @@ The syntax for nesting these under the _functions_ key is as follows:
 ```
 
 <a name="ruby-example"></a>
+
 #### Ruby example:
 
 ```
@@ -575,6 +595,7 @@ The syntax for nesting these under the _functions_ key is as follows:
 
 [Back To Top](#top)
 <a name="add-tasks"></a>
+
 ## Add tasks
 
 <details>
@@ -644,6 +665,7 @@ The syntax for nesting these under the _functions_ key is as follows:
 </details>
 
 <a name="usage-examples"></a>
+
 # Usage Examples
 
 Quick usage examples:
@@ -669,6 +691,7 @@ Quick usage examples:
 
 [Back To Top](#top)
 <a name="installation"></a>
+
 # Installation
 
 Ansible-taskrunner consists of the `tasks` binary (for now), and it can be installed in a few ways:
@@ -682,14 +705,17 @@ Not yet sure if I am doing something wrong or if that's by design.
 I lean towards the former :|
 
 <a name="more-examples"></a>
+
 ## More Examples
 
 Review the [examples](examples) directory for more hands-on usage samples.
 
 <a name="appendix"></a>
+
 # Appendix
 
 <a name="bastion_mode"></a>
+
 ## Bastion Mode
 
 If you're launching the `tasks` command from a Windows host, this tool will automatically execute in _Bastion Mode_
@@ -710,9 +736,11 @@ This configuration file is fashioned after the [sftp](https://packagecontrol.io/
 and is thus compatible.
 
 <a name="special-variables"></a>
+
 ## Special Variables
 
 <a name="ansible_playbook_command"></a>
+
 ### ansible_playbook_command
 
 If you define the playbook variable *ansible_playbook_command*, this will override the underlying ansible-playbook command invocation.
@@ -756,6 +784,7 @@ fi
 
 [Back To Top](#top)
 <a name="cli_provider"></a>
+
 ### cli_provider
 
 You can override the underlying command-line provider in two ways:
@@ -783,11 +812,13 @@ There are three cli-providers built in to the tasks command:
 - vagrant
 
 <a name="__ansible_extra_options"></a>
+
 ### __ansible_extra_options
 
 Apart from utilizing the `---raw` flag, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **__ansible_extra_options** Environmental variable.
 
 <a name="__tasks_file__"></a>
+
 ### __tasks_file__
 
 The **\_\_tasks_file\_\_** variable points to the current Taskfile.
@@ -795,6 +826,7 @@ The **\_\_tasks_file\_\_** variable points to the current Taskfile.
 It is available to the underlying subprocess shell.
 
 <a name="__parameter_sets__"></a>
+
 ### __parameter_sets__
 
 As explained [above](#parameter_sets), the **\_\_parameter_sets\_\_** variable tracks whatever parameter sets you've specified during runtime.
@@ -805,6 +837,7 @@ You can use this behavior to detect when a given parameter set has been activate
 
 [Back To Top](#top)
 <a name="parameter-sets"></a>
+
 ## Parameter Sets
 
 What if you wanted to operate under multiple contexts?
@@ -847,6 +880,7 @@ You can use this behavior to detect when a given parameter set has been activate
 
 [Back To Top](#top)
 <a name="mutually-exclusive-options"></a>
+
 ## Mutually Exclusive Options
 
 Taken from [Mutually exclusive option groups in python Click - Stack Overflow](https://stackoverflow.com/questions/37310718/mutually-exclusive-option-groups-in-python-click).
@@ -870,6 +904,7 @@ the username and password.
 A sample is provided in the [examples](examples) directory.
 
 <a name="simple-templating"></a>
+
 ## Simple Templating
 
 As of version 1.1.5, simple templating is available to the following objects:
@@ -914,6 +949,7 @@ tf_path         | The relative path to the specified Taskfile
 
 [Back To Top](#top)
 <a name="single-executable-releases"></a>
+
 ## Single-Executable Releases
 
 This script also ships as a zipapp executable (similar to a windows .exe).
@@ -930,6 +966,7 @@ You can also build your own single-executable zipapp, as follows:
 Read More on zipapps: [zipapp — Manage executable Python zip archives — Python 3.7.4rc2 documentation](https://docs.python.org/3/library/zipapp.html)
 
 <a name="unit-testing"></a>
+
 ## Unit Testing
 
 To run all tests, simply call the test script, as with:
@@ -940,6 +977,7 @@ To run all tests, simply call the test script, as with:
 
 [Back To Top](#top)
 <a name="license-and-credits"></a>
+
 # License and Credits
 
 This project adopts the the MIT distribution License.
