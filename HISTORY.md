@@ -2,6 +2,12 @@
 History
 =======
 
+## Release 2019-10-03 v1.2.6
+
+* Added support files for msi release [d719aa8](https://github.com/berttejeda/ansible-taskrunner/commit/d719aa8853bfa977a8e528295348628e452ba9c5)
+* Allow bastion_mode settings to be overriden by config file [7496274](https://github.com/berttejeda/ansible-taskrunner/commit/749627495279f3697555bc1b661ac30f22b4e10a)
+* Initial commit of cx_freeze setup logic [2f0af83](https://github.com/berttejeda/ansible-taskrunner/commit/2f0af83b5cbab0341676b52f90b22c611a94c57c)
+
 ## Release 2019-10-03 v1.2.5
 
 * Fixed bug whereby modification time was being ignored (bastion mode) [6af8611](https://github.com/berttejeda/ansible-taskrunner/commit/6af86116f73922a982fdc578cca5e50c1c097f77)
