@@ -18,8 +18,12 @@ import sys
 # os.environ['TCL_LIBRARY'] = r'C:\\somepath\\lib\\tcl8.6'
 # os.environ['TK_LIBRARY'] = r'C:\\somepath\\lib\\tk8.6'
 
+# Include support files
 include_files = [
-'files/tasks-console.bat'
+'build/README.html',
+'files/tasks-console.bat',
+'files/cfg',
+'files/macros'
 ]
 
 buildOptions = dict(
