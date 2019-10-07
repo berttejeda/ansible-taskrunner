@@ -11,6 +11,11 @@ logging:
   debug: False
   verbose: 0
   log_file:
+bastion_mode:
+  config_file: sftp-config.json
+  keep_alive: True
+  poll_wait_time: 5
+  sftp_sync: True  
 ...
 '''
 

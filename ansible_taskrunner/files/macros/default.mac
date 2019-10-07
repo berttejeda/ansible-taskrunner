@@ -1,0 +1,32 @@
+..    = cd ..\$*
+...   = cd ..\..\$*
+....  = cd ..\..\..\$*
+..... = cd ..\..\..\..\$*
+alias   = $*
+cat     = type $*
+cc=echo^|set /p=$*^|clip
+cd~=cd /d "%USERPROFILE%"
+clear   = cls
+cp      = copy $*
+cpr     = xcopy $*
+dir.copy=robocopy "$1" "$2" /S /E /XJ /COPY:DATSOU /R:1 /W:30 /tee /log:"%USERPROFILE%\robocopy.%time:~0,2%%time:~3,2%%time:~9,2%.log"
+dir.delete=echo 'Recursively Deleting $* ... $T rmdir /s /q $* $T echo Finished deleting $*
+dir.delete.here=echo "Recursively Deleting directories in current folder ..." $T for /f "tokens=*" %d in ('dir /b') do rmdir /s /q "%d
+grep    = find $*
+halt=shutdown -s -f -t $*
+history = /history
+kill    = taskkill /PID $*
+pkill   = taskkill /f /im $*
+ls      = dir $*
+man     = help $*
+mv      = move $*
+o      = start $*
+oo     = start .
+ps      = tasklist $*
+pwd     = cd
+qq=exit
+rm      = del $*
+rmr     = echo 'Recursively Deleting $* ... $T rmdir /s /q $* $T echo Finished deleting $*
+start-tutorial = (explorer C:\PROGRA~2\ANSIBL~1\README.html && tasks --help)
+sudo    = runas /user:administrator $*
+yum="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -sta -ExecutionPolicy Unrestricted -File "%~dp0scripts\$1.ps1" -package $2

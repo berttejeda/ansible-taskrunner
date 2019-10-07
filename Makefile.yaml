@@ -6,6 +6,7 @@
     lib_dir: ${app_dir}/${lib_dir_name}
     cli_provider: bash
     plugins_dir: ${app_dir}/plugins
+    pandoc_template_dir: ${HOME}/.pandoc/templates
     workdir: ${PWD}
     help:
       message: |
@@ -199,6 +200,23 @@
           environment=$1
           ver=${2-2.7}
           conda create --name ${environment} python=$ver
+      msi:
+        shell: bash
+        help: Build msi
+        source: |-
+          set -o errexit
+          echo Checking for pandoc ...
+          if ! check_exe pandoc https://pandoc.org/installing.html;then 
+            return 1
+          fi
+          if ! test -d ${pandoc_template_dir};then
+            mkdir -p ${pandoc_template_dir}
+            git clone https://github.com/ryangrose/easy-pandoc-templates ${pandoc_template_dir}
+          fi
+          mkdir ${app_dir}/dist
+          pandoc README.md -f markdown -o ansible_taskrunner/build/README.html --template=${pandoc_template_dir}/html/clean_menu.html  --toc
+          cd ${app_dir}
+          python setup.cx_freeze.py bdist_msi
       zipapp:
         shell: bash
         help: Build self-contained zip-app
