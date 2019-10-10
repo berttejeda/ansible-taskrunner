@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import sys
 
 # Setup Logging
@@ -29,14 +30,29 @@ except ImportError as e:
 
 class SSHSync:
 
-    def __init__(self, scp_obj):
+    def __init__(self, scp_obj, sftp_obj):
         self.scp = scp_obj
+        self.sftp_obj = sftp_obj
         pass
+
+    def create_parent_dirs(self, remote_path):
+        remote_path = pathlib.Path(remote_path)
+        parent_list = list(remote_path.parents)
+        # reverse the parent directories so it would create the ancestor frist
+        parent_list.reverse()
+        for parent in parent_list:
+            directory = parent.as_posix()  # covert to posix path
+            try:
+                self.sftp_obj.stat(directory)  # test if remote_dir exists
+            except IOError:
+                self.sftp_obj.mkdir(directory)
+                self.sftp_obj.stat(directory)
 
     def to_remote(self, local_path, remote_path):
         logger.debug("Lcl Sync Target {}".format(local_path))
         logger.debug("Rmt Sync Target {}".format(remote_path))
         if os.path.exists(local_path):
+            self.create_parent_dirs(remote_path)
             self.scp.put(local_path, remote_path=remote_path, preserve_times=True, recursive=True)
             logger.debug("Successfully copied to remote.")
         else:

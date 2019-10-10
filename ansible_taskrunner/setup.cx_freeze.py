@@ -21,6 +21,7 @@ import sys
 # Include support files
 include_files = [
 'build/README.html',
+'files/start-tutorial.bat',
 'files/tasks-console.bat',
 'files/cfg',
 'files/macros'
