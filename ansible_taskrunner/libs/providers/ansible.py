@@ -215,6 +215,10 @@ class ProviderCLI:
                 embedded_inventory = True
             ansible_extra_options = [
                 '-e {k}="{v}"'.format(k=key, v=value) for key, value in kwargs.items() if value]
+            # Append our default values to the set of ansible extra options
+            ansible_extra_options = ansible_extra_options + [
+                '-e {k}="{v}"'.format(k=key, v=value) for key, value in default_vars.items() if value]
+            # Append the parameter sets var to the set of ansible extra options
             ansible_extra_options.append('-e %s' % paramset_var)
             # Build command string
             if ans_inv_fso_desc:
