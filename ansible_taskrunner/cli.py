@@ -28,10 +28,11 @@ else:
         script_name = self_file_name
     project_root = os.path.dirname(os.path.abspath(__file__))
 
-# Make the zipapp work for python2/python3
-py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
 # Modify our sys path to include the script's location
 sys.path.insert(0, project_root)
+# Make the zipapp work for python2/python3
+py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
+sys.path.insert(0, os.path.join(project_root, 'libs', py_path))
 
 # Import third-party and custom modules
 try:
