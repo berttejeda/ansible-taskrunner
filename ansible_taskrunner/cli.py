@@ -75,7 +75,9 @@ _cma = """
 _doc = """
 Ansible Taskrunner - ansible-playbook wrapper
 - YAML-abstracted python click cli options
-- Utilizes a specially-formatted ansible-playbook
+- Utilizes a specially-formatted ansible-playbook (Taskfile.yaml)
+  to extend the ansible playbook command via
+  the python click module
 """
 
 # Private variables
@@ -199,7 +201,7 @@ if os.path.isdir("plugins/providers"):
 click_help = """\b
 Ansible Taskrunner - ansible-playbook wrapper
 - YAML-abstracted python click cli options
-- Utilizes a specially-formatted ansible-playbook
+- Utilizes a specially-formatted ansible-playbook (Taskfile.yaml)
   to extend the ansible playbook command via
   the python click module
     """
@@ -319,7 +321,7 @@ def init(**kwargs):
 
 # Run command
 # Parse help documentation
-help_string = yamlr.deep_get(yaml_vars, 'help.message', '')
+help_string = yamlr.deep_get(yaml_vars, 'help.message', 'Run the specified Taskfile')
 help_string = Template(help_string).safe_substitute(**available_vars)
 epilog_string = yamlr.deep_get(yaml_vars, 'help.epilog', '')
 examples = yamlr.deep_get(yaml_vars, 'help.examples', '')
@@ -517,7 +519,7 @@ def run(args=None, **kwargs):
     defaults_string_vars.append(
         '__tasks_file__=%s' % tf_path
         )
-    inventory_variable = 'inventory="""{v}"""'.format(v=yaml_vars['inventory'])
+    inventory_variable = 'inventory="""{v}"""'.format(v=yamlr.deep_get(yaml_vars, 'inventory', ''))
     defaults_string_vars.append(inventory_variable)
     # Short-circuit the task runner
     # if we're calling functions from the commandline
