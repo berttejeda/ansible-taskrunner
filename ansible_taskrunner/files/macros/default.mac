@@ -27,6 +27,5 @@ pwd     = cd
 qq=exit
 rm      = del $*
 rmr     = echo 'Recursively Deleting $* ... $T rmdir /s /q $* $T echo Finished deleting $*
-start-tutorial = (explorer C:\PROGRA~2\ANSIBL~1\README.html && tasks --help)
 sudo    = runas /user:administrator $*
 yum="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -sta -ExecutionPolicy Unrestricted -File "%~dp0scripts\$1.ps1" -package $2
