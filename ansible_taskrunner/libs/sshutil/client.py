@@ -55,7 +55,7 @@ if is_zip:
 # Import third-party and custom modules
 try:
     import paramiko
-    from paramiko import SSHClient, ssh_exception            
+    from paramiko import SSHClient, SFTPClient, ssh_exception            
     from socket import gaierror
     import libs.sshutil.scp
     from libs.sshutil.sync import SSHSync
@@ -100,7 +100,8 @@ class SSHUtilClient:
         """pointer to scp module's sync function
         """        
         scp = SCPClient(self.ssh.get_transport(), progress = self.progress)
-        sync = SSHSync(scp)
+        sftp = self.ssh.open_sftp()
+        sync = SSHSync(scp, sftp)
         logger.info("Successfully initialized SCP client.")        
         return sync
 
