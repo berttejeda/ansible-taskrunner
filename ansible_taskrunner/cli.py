@@ -82,7 +82,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.2.6'
+__version__ = '1.2.7'
 __program_name__ = 'tasks'
 
 # Logging

@@ -2,6 +2,14 @@
 History
 =======
 
+## Release 2019-10-10 v1.2.7
+
+* Fixed crash bug triggered by missing inventory key [c7cb0d2](https://github.com/berttejeda/ansible-taskrunner/commit/c7cb0d23b1a8a9344362edae333e8d14fe942aae)
+* SFTP Sync now creates intermediate directories [320d93b](https://github.com/berttejeda/ansible-taskrunner/commit/320d93b032c45cc67b782c414a64e0ff9cf7b71f)
+* Changed README.html template [e91dc3c](https://github.com/berttejeda/ansible-taskrunner/commit/e91dc3c514f698bbdc302cf8ee063ddafc737022)
+* Added tutorial and adjusted environment [b484fc7](https://github.com/berttejeda/ansible-taskrunner/commit/b484fc72962af3ef24388ab1d3557e7876963f42)
+* Minor fix in msi-builder function for Makefile.yaml [5c800fa](https://github.com/berttejeda/ansible-taskrunner/commit/5c800fa7d0b80ddd2c005e2441e1bed00666e880)
+
 ## Release 2019-10-03 v1.2.6
 
 * Added support files for msi release [d719aa8](https://github.com/berttejeda/ansible-taskrunner/commit/d719aa8853bfa977a8e528295348628e452ba9c5)
