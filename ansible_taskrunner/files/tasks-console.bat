@@ -1,5 +1,5 @@
 @echo off
-mode con: cols=100 lines=25
+mode con: cols=180 lines=40
 setlocal EnableDelayedExpansion
 (set \n=^
 %=Do not remove this line=%
@@ -62,12 +62,12 @@ goto:eof
 :WINDOWS_7
 echo.
 echo Windows 7 Detected
-call :stat-app git "https://git-scm.com/download/win"
+call :stat-app git "https://git-scm.com/download/win ('Checkout as-is/Unix-style line endings')"
 echo.
 goto:eof
 
 :stat-app
 echo.
-dir "%~1" 2> nul 1> nul || echo Error: %~1 not found!\n!1. Install via %~2 %~3
+where "%~1" 2> nul 1> nul || echo Error: %~1 not found!\n!1. Install via %~2
 echo.
 goto:eof
