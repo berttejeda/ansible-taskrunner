@@ -91,7 +91,6 @@ SAMPLE_TASKS_MANIFEST = '''
       [db-hosts]
       $(echo ${dbhosts} | tr ',' '\\n')
       [myhosts:children]
-      deployment-hosts
       web-hosts
       db-hosts
     functions:
