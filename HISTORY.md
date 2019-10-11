@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-11 v1.2.10
+
+* Fixed invalid inventory in sample Taskfile.yaml [798b0b7](https://github.com/berttejeda/ansible-taskrunner/commit/798b0b789af627ca5f233e0111b37666b2c1e959)
+
 ## Release 2019-10-11 v1.2.9
 
 * Incorrect credentials variables for pypi make-mode function [86d8323](https://github.com/berttejeda/ansible-taskrunner/commit/86d8323e40a8eed54984cdedc959289c6cf3e554)
