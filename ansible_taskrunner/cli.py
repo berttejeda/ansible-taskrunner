@@ -357,7 +357,7 @@ if yaml_vars_functions:
             bash_functions.append(
                 'function {fn}(){{\n{fs}\n}}'.format(
                     fn=f, fs=function_source)
-            )            
+            )
 for f in internal_functions:
     if yamlr.deep_get(internal_functions, '%s.hidden' % f, {}) or \
     not yamlr.deep_get(internal_functions, '%s.help' % f, {}):
@@ -464,11 +464,14 @@ def run(args=None, **kwargs):
                             ordered_args[k] = i
         # Lastly, we convert our kwargs object to
         # an ordered dictionary object as per the above
+        # making sure we include any existing kwargs items
         ordered_args_tuples = []
         for k, v in sorted(ordered_args.items(), key=lambda item: item[1]):
             o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
+            kwargs.pop(parameter_mapping[k], None)
             ordered_args_tuples.append(o_tuple)
-        kwargs = OrderedDict(ordered_args_tuples)
+        new_kwargs = ordered_args_tuples + [(k,v) for k,v in kwargs.items()]
+        kwargs = OrderedDict(new_kwargs)
     # cli-provided variables
     for key, value in kwargs.items():
         if key.startswith('_'):

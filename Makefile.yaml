@@ -4,6 +4,7 @@
     app_dir: ansible_taskrunner
     lib_dir_name: libs
     lib_dir: ${app_dir}/${lib_dir_name}
+    zip_release_dir: build/zip-release
     cli_provider: bash
     plugins_dir: ${app_dir}/plugins
     pandoc_template_dir: ${HOME}/.pandoc/templates
@@ -57,9 +58,10 @@
         shell: bash
         help: Remove build artifacts
         source: |-
-          rm -fr build/
-          rm -fr dist/
-          rm -fr .eggs/
+          rm -rf build/
+          rm -rf dist/
+          rm -rf .eggs/
+          rm -rf ${app_dir}/{build,dist,.eggs}
           find . -name '*.egg-info' -exec rm -fr {} +
           find . -name '*.egg' -exec rm -f {} +
       browser:
@@ -234,7 +236,7 @@
           init_libs
           __version=$(grep 'version: ' ${workdir}/setup.cfg | cut -d\  -f2)
           echo "Version is ${__version}"
-          __release_dir=../release/${__version}
+          __release_dir=${zip_release_dir}/${__version}
           lint_result=$(python cli.py --help)
           echo "Initial lint OK, proceeding with build"
           make_zip
