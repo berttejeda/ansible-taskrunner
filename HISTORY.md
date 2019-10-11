@@ -2,6 +2,13 @@
 History
 =======
 
+## Release 2019-10-11 v1.2.8
+
+* Fixed minor syntax error in Taskfile init sample [bc8748f](https://github.com/berttejeda/ansible-taskrunner/commit/bc8748fcafaa015f0904e0b0c6334fa03efba672)
+* Allow override of ssh/sftp port for init subcommand [578ac2a](https://github.com/berttejeda/ansible-taskrunner/commit/578ac2aa22236150bbd9eae90a58e6e53bc7865b)
+* Default vars should be included in ansible extra options [312f8ef](https://github.com/berttejeda/ansible-taskrunner/commit/312f8ef2ed495a50e709b9b1f4ba4f40e2d919b1)
+* Syspath was not being set properly for zipapp [9ee7df7](https://github.com/berttejeda/ansible-taskrunner/commit/9ee7df78738469dc65b91b7b14969c3c4800cefc)
+
 ## Release 2019-10-10 v1.2.7
 
 * Fixed crash bug triggered by missing inventory key [c7cb0d2](https://github.com/berttejeda/ansible-taskrunner/commit/c7cb0d23b1a8a9344362edae333e8d14fe942aae)

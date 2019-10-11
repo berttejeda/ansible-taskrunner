@@ -33,7 +33,7 @@ SAMPLE_SFTP_CONFIG = '''
     "host": "$bastion_host",
     "user": "$bastion_user",
     "ssh_key_file": "$bastion_ssh_key_file",
-    "port": "22",
+    "port": "$bastion_host_port",
     "remote_path": "$bastion_remote_path",
     "ignore_regexes": [
         "\\\\.sublime-(project|workspace)", "sftp-config(-alt\\\\d?)?\\\\.json",
@@ -109,5 +109,5 @@ SAMPLE_TASKS_MANIFEST = '''
         msg: |
           Hello from Ansible!
           You specified: {{ some_value }}
-          You specified: {{ another_value }}
+          You specified: {{ another_value | default('None') }}
 '''

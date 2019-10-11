@@ -8,8 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-ansible_taskrunner/lib/py2
-ansible_taskrunner/lib/py3
 env/
 build/
 develop-eggs/
@@ -25,7 +23,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+## ZipApp Releases
 release
+ansible_taskrunner/windows/libs
+ansible_taskrunner/libs/py2
+ansible_taskrunner/libs/py3
+ansible_taskrunner/tasks
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
