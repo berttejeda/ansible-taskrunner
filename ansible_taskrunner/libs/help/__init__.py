@@ -109,5 +109,5 @@ SAMPLE_TASKS_MANIFEST = '''
         msg: |
           Hello from Ansible!
           You specified: {{ some_value }}
-          You specified: {{ another_value }}
+          You specified: {{ another_value | default('None') }}
 '''
