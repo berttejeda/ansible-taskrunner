@@ -241,13 +241,16 @@ class ExtendCLI():
                          help='Specify host (bastion mode settings file)',
                          required=True)
             func = option(func)
+            option = click.option('--bastion-host-port', '-p',
+                         help='Specify host port (bastion mode settings file)')
+            func = option(func)            
             option = click.option('--bastion-user', '-u',
                          help='Override username (bastion mode settings file)')
             func = option(func)
             option = click.option('--bastion-remote-path', '-r',
                           help='Specify remote workspace (bastion mode settings file)')
             func = option(func)
-            option = click.option('--bastion-ssh-key-file', '-s',
+            option = click.option('--bastion-ssh-key-file', '-k',
                           help='Override ssh key file (bastion mode settings file)')
             func = option(func)
         return func

@@ -295,19 +295,22 @@ def init(**kwargs):
         if is_windows:
             bastion_remote_path = kwargs.get('bastion_remote_path')
             bastion_host = kwargs['bastion_host']
-            bastion_user = kwargs.get('bastion_user')
+            bastion_host_port = kwargs.get('bastion_host_port') or '22'
+            bastion_user = kwargs.get('bastion_user') or local_username
             bastion_ssh_key_file = kwargs.get('bastion_ssh_key_file')
-            if not bastion_user:
-                bastion_user = local_username
             if not bastion_remote_path:
                 cur_dir = os.path.basename(os.getcwd())
-                bastion_remote_path = '/home/{}/{}'.format(bastion_user, cur_dir)
+                bastion_remote_path = '/home/{}/ansible-taskrunner/{}'.format(bastion_user, cur_dir)
             if not bastion_ssh_key_file:
                 home_dir = os.path.expanduser('~')
                 bastion_ssh_key_file = os.path.join(home_dir, '.ssh', 'id_rsa')
+            if not os.path.exists(bastion_ssh_key_file):
+                logger.error("SSH key '%s' not found, specify/generate a new/different key" % bastion_ssh_key_file)
+                sys.exit(1)
             settings_vars = {
                 'bastion_remote_path': bastion_remote_path,
                 'bastion_host': bastion_host,
+                'bastion_host_port': bastion_host_port,
                 'bastion_user': bastion_user,
                 'bastion_ssh_key_file': bastion_ssh_key_file.replace('\\', '\\\\')
             }

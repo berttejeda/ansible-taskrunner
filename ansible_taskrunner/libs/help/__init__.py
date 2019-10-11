@@ -33,7 +33,7 @@ SAMPLE_SFTP_CONFIG = '''
     "host": "$bastion_host",
     "user": "$bastion_user",
     "ssh_key_file": "$bastion_ssh_key_file",
-    "port": "22",
+    "port": "$bastion_host_port",
     "remote_path": "$bastion_remote_path",
     "ignore_regexes": [
         "\\\\.sublime-(project|workspace)", "sftp-config(-alt\\\\d?)?\\\\.json",
