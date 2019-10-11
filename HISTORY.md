@@ -2,6 +2,12 @@
 History
 =======
 
+## Release 2019-10-11 v1.2.9
+
+* Incorrect credentials variables for pypi make-mode function [86d8323](https://github.com/berttejeda/ansible-taskrunner/commit/86d8323e40a8eed54984cdedc959289c6cf3e554)
+* Fixed bug whereby kwargs was being rebuilt incorrectly [7c511ff](https://github.com/berttejeda/ansible-taskrunner/commit/7c511ffa3630342554cab06bf16fbe220eedf8bf)
+* Added variable for zip-app release dir [8e0d73e](https://github.com/berttejeda/ansible-taskrunner/commit/8e0d73e9cf45aaf216055302ce31951a594328b3)
+
 ## Release 2019-10-11 v1.2.8
 
 * Fixed minor syntax error in Taskfile init sample [bc8748f](https://github.com/berttejeda/ansible-taskrunner/commit/bc8748fcafaa015f0904e0b0c6334fa03efba672)

@@ -117,7 +117,7 @@
               if [[ -n $pypi_repourl ]];then                
                 twine upload --repository-url ${pypi_repourl} dist/* -u ${username} -p ${password}
               else
-                twine upload dist/* -u ${username} -p ${password}
+                twine upload dist/* -u ${pypi_username} -p ${pypi_password}
               fi
             else
               echo You must provide a username and password when attempting to push your package to pypi.org
