@@ -69,6 +69,12 @@ except ImportError as e:
     print('pip install -U -r requirements.txt')
     sys.exit(1)
 
+# Make paramiko less verbose
+# Only show us warnings if we're not debugging
+if '--debug run' not in ' '.join(sys.argv):
+    paramiko_logger = logging.getLogger('paramiko')
+    paramiko_logger.setLevel(30)
+
 class SSHUtilClient:
 
     def __init__(self, settings):
