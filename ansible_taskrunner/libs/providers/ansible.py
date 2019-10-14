@@ -166,8 +166,12 @@ class ProviderCLI:
             remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
         else:
             remote_command = 'tasks {}'.format(remote_command)
-        remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
-        return        
+        remote_command_result = remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
+        if remote_command_result.returncode > 0:
+            logger.error('Remote command failed with: %s' % ' '.join(remote_command_result.stderr))
+            sys.exit(1)
+        else:
+            return remote_command_result
 
     def invocation(self,
                    args=None,
