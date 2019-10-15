@@ -2,9 +2,32 @@ import logging
 import os
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
+import re
 import sys
 import threading
 import time
+
+# Account for script packaged as an exe via cx_freeze
+if getattr(sys, 'frozen', False):
+    self_file_name = os.path.basename(sys.executable)
+    tasks_file_path = os.path.abspath(sys.executable)
+else:
+    # Account for script packaged as zip app
+    self_file_name = os.path.basename(__file__)
+    _tasks_file_path = re.split('.tasks.', os.path.abspath(__file__))[0]
+    tasks_file_path = os.path.join(_tasks_file_path, 'tasks')
+
+
+# Import third-party and custom modules
+try:
+    from libs.formatting import Struct
+except ImportError as e:
+    print('Error in %s ' % os.path.basename(self_file_name))
+    print('Failed to import at least one required module')
+    print('Error was %s' % e)
+    print('Please install/update the required modules:')
+    print('pip install -U -r requirements.txt')
+    sys.exit(1)
 
 # Define how we handle different shell invocations
 shell_invocation_mappings = { 
@@ -33,7 +56,13 @@ class Remote_CLIInvocation:
         remote_cmd = base_cmd + cmd
         if stdout_listen:
             stdin, stdout, stderr = self.ssh.execute(remote_cmd, stream_stdout=stdout_listen)
-            return [l.strip() for l in stdout]
+            exit_code = stdout.channel.recv_exit_status()
+            cli_result = {
+            'stdout' : [l.strip() for l in stdout],
+            'stderr' : [l.strip() for l in stderr],
+            'returncode': exit_code
+            }
+            return Struct(**cli_result)
         else:
             stdin, stdout, stderr = self.ssh.execute(remote_cmd)
             exit_code = stdout.channel.recv_exit_status()

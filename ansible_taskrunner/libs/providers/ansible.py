@@ -61,6 +61,7 @@ class ProviderCLI:
     def invoke_bastion_mode(self, bastion_settings, invocation):
         """Execute the underlying subprocess via a bastion host"""
         logger.info('Engage Bastion Mode')
+        paramset = invocation.get('param_set')
         bastion = Struct(**bastion_settings)
         logger.info('Checking for SFTP config file %s' % bastion.config_file)
         if os.path.exists(bastion.config_file):
@@ -160,14 +161,23 @@ class ProviderCLI:
             remote_path = os.path.normpath(_remote_path).replace('\\','/')
             logger.debug('Syncing {} to remote {}'.format(file_path, remote_path))
             sftp_sync.to_remote(file_path, remote_path)
+        # Derive remote command 
+        # (accounting for parameter sets)
+        if paramset:
+            for p in enumerate(paramset):
+                sys.argv.insert(p[0] + 1, p[1])
         remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
         tasks_file_override = invocation.get('tasks_file_override')
         if tasks_file_override:
             remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
         else:
             remote_command = 'tasks {}'.format(remote_command)
-        remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
-        return        
+        remote_command_result = remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
+        if remote_command_result.returncode > 0:
+            logger.error('Remote command failed with: %s' % ' '.join(remote_command_result.stderr))
+            sys.exit(1)
+        else:
+            return remote_command_result
 
     def invocation(self,
                    args=None,
