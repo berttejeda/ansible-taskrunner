@@ -2,6 +2,13 @@
 History
 =======
 
+## Release 2019-10-15 v1.2.11
+
+* Simplified options for main cli function [4abb784](https://github.com/berttejeda/ansible-taskrunner/commit/4abb7844b6c35379b1201e2ac4a6dcfee2d84615)
+* Account for paramsets when deriving remote command [ac896c1](https://github.com/berttejeda/ansible-taskrunner/commit/ac896c19bcb4e74cbd89906e1c63cd680d39529b)
+* Honors stderr/returncode for ansible cli provider [5601c61](https://github.com/berttejeda/ansible-taskrunner/commit/5601c618523085cf8b04d4a1a566c9ab1e325672)
+* Reduce logging verbosity for paramiko client [126aad9](https://github.com/berttejeda/ansible-taskrunner/commit/126aad9aad8b30c77cbf6e73a9a2ce3ae039a266)
+
 ## Release 2019-10-11 v1.2.10
 
 * Fixed invalid inventory in sample Taskfile.yaml [798b0b7](https://github.com/berttejeda/ansible-taskrunner/commit/798b0b789af627ca5f233e0111b37666b2c1e959)
