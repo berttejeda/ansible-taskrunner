@@ -210,13 +210,12 @@ click_help_epilog = ""
 
 @click.group(cls=ExtendedEpilog, help=click_help, epilog=click_help_epilog, context_settings=dict(max_content_width=help_max_content_width))
 @click.version_option(version=__version__)
-@click.option('--config', '-C', type=str, nargs=1,
+@click.option('--config', type=str, nargs=1,
               help='Specify a config file (default is config.ini)')
-@click.option('--debug', '-d', is_flag=True, help='Enable debug output')
-@click.option('--verbose', '-v', count=True,
+@click.option('--debug', is_flag=True, help='Enable debug output')
+@click.option('--verbose', count=True,
               help='Increase verbosity of output')
-@click.option('--log', '-l', type=str,
-              help='Specify (an) optional log file(s)')
+@click.option('--log', is_flag=True, help='Enable output logging')
 def cli(**kwargs):
     global config, config_file, __debug, verbose, loglevel, logger
     # Are we specifying an alternate config file?
@@ -238,10 +237,11 @@ def cli(**kwargs):
         loglevel = logging.INFO  # 20
     logger.setLevel(loglevel)
     # Add the log  file handler to the logger, if applicable
-    logfilename = kwargs.get('log') or log_file
-    if logfilename:
+    if kwargs.get('log') and not log_file:
+        logger.warning('Logging enabled, but no log_file specified in %s' % config_file)
+    if kwargs.get('log') and log_file:
         filehandler = logging.handlers.RotatingFileHandler(
-            logfilename, maxBytes=logging_maxBytes, backupCount=logging_backupCount)
+            log_file, maxBytes=logging_maxBytes, backupCount=logging_backupCount)
         formatter = logging.Formatter(logging_format)
         filehandler.setFormatter(formatter)
         logger.addHandler(filehandler)
