@@ -4,6 +4,7 @@ import json
 import os
 from os import fdopen, remove
 import re
+import uuid
 import sys
 import time
 from tempfile import mkstemp
@@ -58,7 +59,7 @@ class ProviderCLI:
         func = option(func)
         return func
     
-    def invoke_bastion_mode(self, bastion_settings, invocation):
+    def invoke_bastion_mode(self, bastion_settings, invocation, remote_command):
         """Execute the underlying subprocess via a bastion host"""
         logger.info('Engage Bastion Mode')
         paramset = invocation.get('param_set')
@@ -166,12 +167,12 @@ class ProviderCLI:
         if paramset:
             for p in enumerate(paramset):
                 sys.argv.insert(p[0] + 1, p[1])
-        remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
-        tasks_file_override = invocation.get('tasks_file_override')
-        if tasks_file_override:
-            remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
-        else:
-            remote_command = 'tasks {}'.format(remote_command)
+        # remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
+        # tasks_file_override = invocation.get('tasks_file_override')
+        # if tasks_file_override:
+        #     remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
+        # else:
+        #     remote_command = 'tasks {}'.format(remote_command)
         remote_command_result = remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
         if remote_command_result.returncode > 0:
             logger.error('Remote command failed with: %s' % ' '.join(remote_command_result.stderr))
@@ -197,55 +198,62 @@ class ProviderCLI:
                    yaml_vars={}):
         """Invoke commands according to provider"""
         logger.info('Ansible Command Provider')
-        # Bastion host logic
-        if bastion_settings.get('enabled') and prefix !='echo':
-            self.invoke_bastion_mode(bastion_settings, invocation)
-        else:        
-            sub_process = CLIInvocation()
-            ansible_playbook_command = default_vars.get(
-                'ansible_playbook_command', 'ansible-playbook')
-            # Embedded inventory logic
-            embedded_inventory = False
-            inventory_input = kwargs.get('_inventory')
-            embedded_inventory_string = yaml_vars.get('inventory')
-            if not inventory_input and not embedded_inventory_string:
-                logger.error(
-                    "Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
-                sys.exit(1)
-            elif inventory_input:
-                ans_inv_fp = inventory_input
+        ansible_playbook_command = default_vars.get(
+            'ansible_playbook_command', 'ansible-playbook')
+        # Embedded inventory logic
+        embedded_inventory = False
+        trap = ''
+        inventory_input = kwargs.get('_inventory')
+        embedded_inventory_string = yaml_vars.get('inventory')
+        if not inventory_input and not embedded_inventory_string:
+            logger.error(
+                "Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
+            sys.exit(1)
+        elif inventory_input:
+            ans_inv_fp = inventory_input
+            ans_inv_fso_desc = None
+            logger.info("Using specified inventory file %s" % ans_inv_fp)
+            if bastion_settings.get('enabled'):
+                if not debug:
+                    trap = 'trap "rm -f %s" EXIT' % ans_inv_fp            
+        else:
+            if bastion_settings.get('enabled'):
+                ans_inv_fp = '/tmp/ansible.inventory.%s.tmp.ini' % str(uuid.uuid4())
                 ans_inv_fso_desc = None
-                logger.info("Using specified inventory file %s" % ans_inv_fp)                
+                if not debug:
+                    trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
             else:
                 ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini')                 
                 logger.info("No inventory specified")
-                logger.info("Writing a temporary inventory file %s (normally deleted after run)"
-                            % ans_inv_fp)
-                inventory_input = embedded_inventory_string
-                embedded_inventory = True
-            ansible_extra_options = [
-                '-e {k}="{v}"'.format(k=key, v=value) for key, value in kwargs.items() if value]
-            # Append our default values to the set of ansible extra options
-            ansible_extra_options = ansible_extra_options + [
-                '-e {k}="{v}"'.format(k=key, v=value) for key, value in default_vars.items() if value]
-            # Append the parameter sets var to the set of ansible extra options
-            ansible_extra_options.append('-e %s' % paramset_var)
-            # Build command string
-            if ans_inv_fso_desc:
-                inventory_command = '''
+                logger.info("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
+            inventory_input = embedded_inventory_string
+            embedded_inventory = True
+        ansible_extra_options = [
+            '-e {k}="{v}"'.format(k=key, v=value) for key, value in kwargs.items() if value]
+        # Append our default values to the set of ansible extra options
+        ansible_extra_options = ansible_extra_options + [
+            '-e {k}="{v}"'.format(k=key, v=value) for key, value in default_vars.items() if value]
+        # Append the parameter sets var to the set of ansible extra options
+        ansible_extra_options.append('-e %s' % paramset_var)
+        # Build command string
+        if ans_inv_fso_desc or bastion_settings.get('enabled'):
+            inventory_command = '''
+{tr}
+
 if [[ ($inventory) && ( '{emb}' == 'True') ]];then
   echo -e """{ins}""" | while read line;do
       eval "echo -e ${{line}}" >> "{inf}"
   done
 fi
-                '''.format(
-                    emb=embedded_inventory,
-                    ins=inventory_input,
-                    inf=ans_inv_fp,
-                    )
-            else:
-                inventory_command = ''
-            pre_commands = '''{anc}
+'''.format(
+        tr=trap,
+        emb=embedded_inventory,
+        ins=inventory_input,
+        inf=ans_inv_fp,
+        )
+        else:
+            inventory_command = ''
+        pre_commands = '''{anc}
 {clv}
 {dsv}
 {dlv}
@@ -259,9 +267,9 @@ fi
                 inc=inventory_command,
                 deb=debug
             )
-            ansible_command = '''
+        ansible_command = '''
     {apc} ${{__ansible_extra_options}} -i {inf} {opt} {arg} {raw} {ply}
-            '''.format(
+'''.format(
                 apc=ansible_playbook_command,
                 inf=ans_inv_fp,
                 opt=' '.join(ansible_extra_options),
@@ -269,28 +277,33 @@ fi
                 arg=args,
                 raw=raw_args
             )
-            command = pre_commands + ansible_command
-            # Command invocation
-            if prefix == 'echo':
-                if debug:
-                    print(pre_commands)
-                    print(ansible_command)
-                else:
-                    print(inventory_command)
-                    print(ansible_command)
-            else:
-                sub_process.call(command, debug_enabled=debug)
-            # Debugging
+        command = pre_commands + ansible_command
+        # Command invocation
+        # Bastion host logic
+        if prefix == 'echo':
             if debug:
-                ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
-                                                                                     suffix='.tmp.sh')
-                logger.debug('Ansible command file can be found here: %s' %
-                             ansible_command_file_path)
-                logger.debug('Ansible inventory file can be found here: %s' %
-                             ans_inv_fp)
-                with fdopen(ansible_command_file_descriptor, "w") as f:
-                    f.write(command)
+                print(pre_commands)
+                print(ansible_command)
             else:
-                if ans_inv_fso_desc:
-                    os.close(ans_inv_fso_desc)
-                    remove(ans_inv_fp)
+                print(inventory_command)
+                print(ansible_command)
+        else:
+            if bastion_settings.get('enabled'):
+                self.invoke_bastion_mode(bastion_settings, invocation, command)
+            else:
+                sub_process = CLIInvocation()
+                sub_process.call(command, debug_enabled=debug)
+        # Debugging
+        if debug:
+            ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
+                                                                                 suffix='.tmp.sh')
+            logger.debug('Ansible command file can be found here: %s' %
+                         ansible_command_file_path)
+            logger.debug('Ansible inventory file can be found here: %s' %
+                         ans_inv_fp)
+            with fdopen(ansible_command_file_descriptor, "w") as f:
+                f.write(command)
+        else:
+            if ans_inv_fso_desc:
+                os.close(ans_inv_fso_desc)
+                remove(ans_inv_fp)
