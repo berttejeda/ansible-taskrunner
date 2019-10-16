@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-10-15 v1.3.0
+
+* Bastion mode no longer depends on remote tasks command [e421130](https://github.com/berttejeda/ansible-taskrunner/commit/e4211305e931373327d3ccbc54367c90c60eefd9)
+
 ## Release 2019-10-15 v1.2.11
 
 * Simplified options for main cli function [4abb784](https://github.com/berttejeda/ansible-taskrunner/commit/4abb7844b6c35379b1201e2ac4a6dcfee2d84615)
