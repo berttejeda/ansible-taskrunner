@@ -8,7 +8,6 @@ set ScriptPath=%~dp0
 set ScriptFilePath=%~fn0
 :: Doskey Alias Declarations
 doskey /macrofile="%~dp0macros/default.mac"
-doskey /macrofile="%~dp0macros/admin.mac"
 :: Announce relevant messages
 :: Read config
 call :read-cfg "%~dp0cfg\default.ini"

@@ -216,7 +216,8 @@
             git clone https://github.com/ryangrose/easy-pandoc-templates ${pandoc_template_dir}
           fi
           if ! test -d ${app_dir}/dist;then mkdir ${app_dir}/dist;fi
-          pandoc README.md -f markdown -o ansible_taskrunner/build/README.html --template=${pandoc_template_dir}/html/easy_template.html  --toc
+          if ! test -d ${app_dir}/build;then mkdir ${app_dir}/build;fi
+          pandoc README.md -f markdown -o ansible_taskrunner/build/README.html --template=${pandoc_template_dir}/html/easy_template.html --toc
           cd ${app_dir}
           python setup.cx_freeze.py bdist_msi
       zipapp:

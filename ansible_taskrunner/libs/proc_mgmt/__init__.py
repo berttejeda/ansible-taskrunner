@@ -52,7 +52,10 @@ class Remote_CLIInvocation:
 
     def call(self, dirname, cmd, stdout_listen=False):
 
-        base_cmd = "cd {} && ".format(dirname.replace('\\', '/'))
+        base_cmd = """
+cd {};
+
+""".format(dirname.replace('\\', '/'))
         remote_cmd = base_cmd + cmd
         if stdout_listen:
             stdin, stdout, stderr = self.ssh.execute(remote_cmd, stream_stdout=stdout_listen)
