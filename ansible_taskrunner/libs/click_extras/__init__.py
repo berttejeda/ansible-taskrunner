@@ -148,6 +148,7 @@ class ExtendCLI():
         prompt_if_missing = False
         secure_input = False
         option_type = None
+        value_from_env = None
         for cli_option, value in parameters.items():            
             cli_option = Template(cli_option).safe_substitute(**self.available_vars)
             if isinstance(value, list):
@@ -209,25 +210,27 @@ class ExtendCLI():
                 first_option = option_strings[0].strip()
                 second_option = option_strings[1].strip()
                 if len(option_strings) > 2:
-                    third_option = option_strings[2].strip()
-                    if third_option == 'prompt':
+                    option_tags = [o.strip() for o in option_strings[2:]]
+                    if 'prompt' in option_tags:
                         prompt_if_missing = True
                         secure_input = False
-                    elif third_option == 'sprompt':
+                    if 'sprompt' in option_tags:
                         prompt_if_missing = True
                         secure_input = True
+                    if 'env' in option_tags:
+                        value_from_env = value
                 numargs = 1 if numargs < 1 else numargs
                 if opt_option:
                     if option_type == 'choice':
                         option = click.option(first_option, second_option, 
                         type=click.Choice(value), help=option_help, cls=NotRequiredIf,
                         prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                        envvar=value)
+                        envvar=value_from_env)
                     else:
                         option = click.option(first_option, second_option, value, 
                         type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
                         prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                        envvar=value)
+                        envvar=value_from_env)
                 else:
                     if cli_option_is_me and cli_option_other_is_called:
                         _is_required = False
@@ -237,28 +240,27 @@ class ExtendCLI():
                         option = click.option(first_option, second_option, 
                         type=click.Choice(value), help=option_help, 
                         prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                        envvar=value)
+                        envvar=value_from_env)
                     else:
                         option = click.option(first_option, second_option, 
                         value, type=str, nargs=numargs, help=option_help, 
                         prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                        envvar=value)
+                        envvar=value_from_env)
             else:
                 if nargs_ul_is_set and \
                 not nargs_ul_count > nargs_ul_count_max:
                     option = click.argument(
                         cli_option, value, help=option_help, 
                         nargs=numargs, prompt=prompt_if_missing, hide_input=secure_input, required=is_required,
-                        envvar=value)
+                        envvar=value_from_env)
                 else:
                     numargs = 1 if numargs < 1 else numargs
                     if opt_option:
                         option = click.option(
                             cli_option, value, cls=NotRequiredIf,
                             is_flag=True, default=False, 
-                            help=option_help, 
-                            prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                            envvar=value)
+                            help=option_help, not_required_if=opt_option_value,
+                            envvar=value_from_env)
                     else:
                         if cli_option_is_me and cli_option_other_is_called:
                             _is_required = False
@@ -267,8 +269,7 @@ class ExtendCLI():
                         option = click.option(
                             cli_option, value, is_flag=True, 
                             default=False, help=option_help, 
-                            prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                            envvar=value)
+                            required=_is_required, envvar=value_from_env)
             try:
                 func = option(func)
             except Exception as e:
@@ -276,6 +277,8 @@ class ExtendCLI():
                 continue
             option_type = None
             prompt_if_missing = False
+            secure_input = False
+            value_from_env = None
             nargs_ul_is_set = False
             numargs = 1
         return func
