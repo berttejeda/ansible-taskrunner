@@ -147,9 +147,16 @@ class ExtendCLI():
         nargs_ul_count_max = 1
         prompt_if_missing = False
         secure_input = False
-        for cli_option, value in parameters.items():
+        option_type = None
+        for cli_option, value in parameters.items():            
             cli_option = Template(cli_option).safe_substitute(**self.available_vars)
-            value = Template(value).safe_substitute(**self.available_vars)
+            if isinstance(value, list):
+                value = [Template(v).safe_substitute(**self.available_vars) if isinstance(v, str) else v for v in value if isinstance(v, (str, int))]
+            elif isinstance(value, str):
+                value = Template(value).safe_substitute(**self.available_vars)
+            else:
+                logger.error('Skipping unsupported value type %s' % s)
+                continue
             opt_option = None
             opt_option_value = None
             cli_option_is_me = False
@@ -179,15 +186,20 @@ class ExtendCLI():
             cli_option_other_is_called = any(cli_option_other_matches) and len(cli_option_other_matches) == len_cli_option_other
             # Check for option with variadic arguments (nargs=*)
             # There can only be one!
-            if isinstance(value, list):
+            # Also, make sure we're not treating click.Choice types
+            if isinstance(value, list) and '|choice' not in cli_option:
                 if len(value) == 1:
                     nargs_ul_is_set = True
                     nargs_ul_count += 1
                     value = str(value[0])
                     numargs = -1
                 elif len(value) > 1:
-                    numargs = value[1]
+                    if isinstance(value[1], int):
+                        numargs = value[1] # e.g. [myvalue,2] would mean the option for myvalue requires 2 args
                     value = str(value[0])
+            # Account for click.Choice types
+            elif isinstance(value, list):
+                option_type = 'choice'
             if self.help_msg_map.get(cli_option):
                 option_help = self.help_msg_map[cli_option]
             else:
@@ -206,19 +218,31 @@ class ExtendCLI():
                         secure_input = True
                 numargs = 1 if numargs < 1 else numargs
                 if opt_option:
-                    option = click.option(first_option, second_option, value, 
-                    type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
-                    prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                    envvar=value)
+                    if option_type == 'choice':
+                        option = click.option(first_option, second_option, 
+                        type=click.Choice(value), help=option_help, cls=NotRequiredIf,
+                        prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
+                        envvar=value)
+                    else:
+                        option = click.option(first_option, second_option, value, 
+                        type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
+                        prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
+                        envvar=value)
                 else:
                     if cli_option_is_me and cli_option_other_is_called:
                         _is_required = False
                     else:
                         _is_required = is_required
-                    option = click.option(first_option, second_option, 
-                    value, type=str, nargs=numargs, help=option_help, 
-                    prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                    envvar=value)
+                    if option_type == 'choice':
+                        option = click.option(first_option, second_option, 
+                        type=click.Choice(value), help=option_help, 
+                        prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
+                        envvar=value)
+                    else:
+                        option = click.option(first_option, second_option, 
+                        value, type=str, nargs=numargs, help=option_help, 
+                        prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
+                        envvar=value)
             else:
                 if nargs_ul_is_set and \
                 not nargs_ul_count > nargs_ul_count_max:
@@ -245,7 +269,13 @@ class ExtendCLI():
                             default=False, help=option_help, 
                             prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
                             envvar=value)
-            func = option(func)
+            try:
+                func = option(func)
+            except Exception as e:
+                logger.error('I had a problem parsing your parameters, error was %s' % e)
+                continue
+            option_type = None
+            prompt_if_missing = False
             nargs_ul_is_set = False
             numargs = 1
         return func
