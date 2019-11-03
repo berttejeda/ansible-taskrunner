@@ -27,6 +27,10 @@
         -d|--pks-db-hosts: dbhosts_pks ## Specify PKS DBHost
         -p|--some-special-pks-flag: pks_flag ## Specify Some Special PKS Option
     optional_parameters:
+      -s|--selection|choice: ## Specify a selection
+        - choice1
+        - choice2
+        - choice3
       -d|--db-hosts: dbhosts ## Specify a generic DBHost
       -w|--web-hosts: webhosts ## Specify a WebHost
       -t|--some-parameter: some_value ## Specify some value
