@@ -903,6 +903,51 @@ the username and password.
 
 A sample is provided in the [examples](examples) directory.
 
+<a name="prompt-options"></a>
+## Prompt Options
+
+Taken from [Mutually exclusive option groups in python Click - Stack Overflow](https://stackoverflow.com/questions/37310718/mutually-exclusive-option-groups-in-python-click).
+
+Suppose you want a set of options such that:
+- You want to accept one option but only if another, related option has not been specified
+
+You can accomplish this by defining your options with an ' or ' format, as with:
+
+```
+-a|--auth-token: auth_token ## Specify auth token
+-u|--username or -a|--auth-token: username ## Specify Username
+-p|--password or -a|--auth-token: password ## Specify Password
+```
+
+In the above configuration, calling the options for 
+username and password will render the option for auth token _optional_, 
+that is, you don't need to specify the auth token if you've specified 
+the username and password.
+
+A sample is provided in the [examples](examples) directory.
+
+<a name="choice-options"></a>
+## Choice Options
+
+Taken from [Options — Click Documentation (7.x)](https://click.palletsprojects.com/en/7.x/options/#choice-options)
+
+Suppose you want a set of options such that:
+- The value you provide for such an option must come from a list of pre-defined values.
+
+You can accomplish this by defining your options with a 'choice' option designation, as with:
+
+```
+-s|--selection|choice: selection ## Specify a selection
+  - choice1
+  - choice2
+  - choice3
+```
+
+In the above configuration, providing a value for _selection_
+will limit you to the values defined in the option list.
+
+A sample is provided in the [examples](examples) directory.
+
 <a name="simple-templating"></a>
 
 ## Simple Templating

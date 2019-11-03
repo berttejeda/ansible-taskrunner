@@ -2,6 +2,7 @@
   gather_facts: true
   become: true
   vars:
+    cli_provider: bash
     myvar1: myvalue1
     myvar2: myvalue2
     myvar3: myvalue3
@@ -14,9 +15,10 @@
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -f|--foo: foo ## Specify foo
-      -b|--bar or -f|--foo: bar ## Specify bar
-      -z|--baz or -f|--foo: baz ## Specify baz      
+      -s|--selection|choice: selection ## Specify a selection
+        - choice1
+        - choice2
+        - choice3 
       aws:
         -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
         -adb|--aws-db-hosts: dbhosts_aws ## Specify AWS DBHost

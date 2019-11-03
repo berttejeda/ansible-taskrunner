@@ -2,6 +2,7 @@
   gather_facts: true
   become: true
   vars:
+    cli_provider: bash
     myvar1: myvalue1
     myvar2: myvalue2
     myvar3: myvalue3
@@ -14,9 +15,6 @@
       - mylistvalue3
       - mylistvalue4
     required_parameters:
-      -f|--foo: foo ## Specify foo
-      -b|--bar or -f|--foo: bar ## Specify bar
-      -z|--baz or -f|--foo: baz ## Specify baz      
       aws:
         -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
         -adb|--aws-db-hosts: dbhosts_aws ## Specify AWS DBHost
@@ -27,6 +25,8 @@
         -d|--pks-db-hosts: dbhosts_pks ## Specify PKS DBHost
         -p|--some-special-pks-flag: pks_flag ## Specify Some Special PKS Option
     optional_parameters:
+      -u|--username|prompt: username ## Specify password
+      -p|--password|sprompt: password ## Specify password
       -d|--db-hosts: dbhosts ## Specify a generic DBHost
       -w|--web-hosts: webhosts ## Specify a WebHost
       -t|--some-parameter: some_value ## Specify some value
