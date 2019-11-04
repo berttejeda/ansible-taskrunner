@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-11-04 v1.3.5
+
+* Catch potential crash due to unexpected parameter mapping (python 2.x) [3f37e3e](https://github.com/berttejeda/ansible-taskrunner/commit/3f37e3e6c3bfa6cafc66fa5db5514f81e91879a2)
+
 ## Release 2019-11-04 v1.3.4
 
 * Import missing logging module [56b3ca4](https://github.com/berttejeda/ansible-taskrunner/commit/56b3ca4292a189d169937efc5d8c3a7dbcfb0563)
