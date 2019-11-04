@@ -445,8 +445,12 @@ def run(args=None, **kwargs):
         # making sure we include any existing kwargs items
         ordered_args_tuples = []
         for k, v in sorted(ordered_args.items(), key=lambda item: item[1]):
-            o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
-            kwargs.pop(parameter_mapping[k], None)
+            if isinstance(parameter_mapping[k], str):
+                o_tuple = (parameter_mapping[k], kwargs.get(parameter_mapping[k]))
+                kwargs.pop(parameter_mapping[k], None)
+            else:
+                logger.error('Unexpected parameter mapping "%s", check your cli invocation' % k)
+                sys.exit(1)
             ordered_args_tuples.append(o_tuple)
         new_kwargs = ordered_args_tuples + [(k,v) for k,v in kwargs.items()]
         kwargs = OrderedDict(new_kwargs)
