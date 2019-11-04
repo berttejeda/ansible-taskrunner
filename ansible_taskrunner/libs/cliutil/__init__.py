@@ -96,7 +96,7 @@ def get_invocation(script_name):
             run_args = sys.argv[demark + 1:]
             run_flgs = [a for a in sys.argv[:demark] if a.startswith(
                 '-') and a != sys.argv[arg_tf_index]]
-            cli_args = run_flgs + run_args
+            cli_args = [sys.argv[0]] + run_flgs + run_args
             if any([ext in tf_override for ext in ["yaml", "yml"]]):
                 # Call main function as per parameter set
                 invocation['cli'] = cli_args
