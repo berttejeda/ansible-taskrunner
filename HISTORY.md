@@ -2,6 +2,16 @@
 History
 =======
 
+## Release 2019-11-03 v1.3.2
+
+* Values from env should only be enabled by option tag [a792c52](https://github.com/berttejeda/ansible-taskrunner/commit/a792c5200da38ec59106f84a031e8298e7a6fb0b)
+
+## Release 2019-11-03 v1.3.1
+
+* Add support for choice options [5778948](https://github.com/berttejeda/ansible-taskrunner/commit/577894802bb3ce29cdd2bb298939eeeae6323371)
+* Support for option values from environment variables [34f8c7b](https://github.com/berttejeda/ansible-taskrunner/commit/34f8c7b499c987c35ae2c1ad9ca5c9c20ab8c893)
+* Added functionality for defining secure/insecure prompt options [1f43b63](https://github.com/berttejeda/ansible-taskrunner/commit/1f43b63f4fc3e5c93011ad93af374d3da46850d1)
+
 ## Release 2019-10-15 v1.3.0
 
 * Bastion mode no longer depends on remote tasks command [e421130](https://github.com/berttejeda/ansible-taskrunner/commit/e4211305e931373327d3ccbc54367c90c60eefd9)

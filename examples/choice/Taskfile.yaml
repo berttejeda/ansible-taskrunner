@@ -1,0 +1,75 @@
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  vars:
+    cli_provider: bash
+    myvar1: myvalue1
+    myvar2: myvalue2
+    myvar3: myvalue3
+    myvar4: |
+      This is a multiline value
+      of type string
+    myvar5:
+      - mylistvalue1
+      - mylistvalue2
+      - mylistvalue3
+      - mylistvalue4
+    required_parameters:
+      -s|--selection|choice: selection ## Specify a selection
+        - choice1
+        - choice2
+        - choice3 
+      aws:
+        -a|--some-special-aws-flag: aws_flag ## Specify Some Special AWS Option
+        -adb|--aws-db-hosts: dbhosts_aws ## Specify AWS DBHost
+      gcp:
+        -gdb|--gcp-db-hosts: dbhosts_gcp ## Specify GCP DBHost
+        -g|--some-special-gcp-flag: gcp_flag ## Specify Some Special GCP Option
+      pks:
+        -d|--pks-db-hosts: dbhosts_pks ## Specify PKS DBHost
+        -p|--some-special-pks-flag: pks_flag ## Specify Some Special PKS Option
+    optional_parameters:
+      -d|--db-hosts: dbhosts ## Specify a generic DBHost
+      -w|--web-hosts: webhosts ## Specify a WebHost
+      -t|--some-parameter: some_value ## Specify some value
+      -l|--another-parameter: another_value ## Specify another value
+      -A: hello ## Invoke the 'hello' make-style function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      --debug-mode: debug_mode ## Enable debug mode
+    help:
+      message: |
+        Do something against db and web hosts
+      epilog: |
+        This line will be displayed at the end of the help text readme
+      examples:
+        - example1: |
+            Usage example 1
+        - example2: |
+            Usage example 2
+    inventory: |
+      [web-hosts]
+      $(echo ${webhosts} | tr ',' '\\n')
+      [db-hosts]
+      $(echo ${dbhosts} | tr ',' '\\n')
+      [myhosts:children]
+      deployment-hosts
+      web-hosts
+      db-hosts
+    functions:
+      hello:
+        shell: bash
+        help: Say hello
+        source: |-
+          echo hello
+      preflight_and_run:
+        shell: bash
+        help: Invoke preflight tasks and run playbook
+        source: |-
+          echo 'Running Preflight Tasks!'
+          tasks run -d dbhost1 -w webhost1 -t value1               
+  tasks:
+    - debug: 
+        msg: |
+          Hello from Ansible!
+          You specified: {{ some_value }}
+...

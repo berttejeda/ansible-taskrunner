@@ -83,7 +83,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.3.0'
+__version__ = '1.3.2'
 __program_name__ = 'tasks'
 
 # Logging
@@ -473,6 +473,8 @@ def run(args=None, **kwargs):
         new_kwargs = ordered_args_tuples + [(k,v) for k,v in kwargs.items()]
         kwargs = OrderedDict(new_kwargs)
     # cli-provided variables
+    # List-type variables
+    list_vars = []    
     for key, value in kwargs.items():
         if key.startswith('_'):
             cli_vars += '{k}="{v}"\n'.format(k=key, v=value)
@@ -500,8 +502,6 @@ def run(args=None, **kwargs):
         default_vars = OrderedDict(vars_list)
     else:
         default_vars = dict(vars_list)
-    # List-type variables
-    list_vars = []
     for var in default_vars:
         if isinstance(default_vars[var], list):
             _var = default_vars[var]

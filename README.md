@@ -37,6 +37,10 @@
     - [__parameter_sets__](#__parameter_sets__)
   - [Parameter Sets](#parameter-sets)
   - [Mutually Exclusive Options](#mutually-exclusive-options)
+  - [Option Tags](#option-tags)
+    - [Prompt option tag](#prompt-option-tag)
+    - [Choice option tag](#choice-option-tag)
+    - [Combining option tags](#combining-option-tags)
   - [Simple Templating](#simple-templating)
   - [Single-Executable Releases](#single-executable-releases)
   - [Unit Testing](#unit-testing)
@@ -702,7 +706,7 @@ Ansible-taskrunner consists of the `tasks` binary (for now), and it can be insta
 
 Note: You'll need to pre-install a python distribution for the Windows MSI release.
 Not yet sure if I am doing something wrong or if that's by design.
-I lean towards the former :|
+I lean toward the former :|
 
 <a name="more-examples"></a>
 
@@ -902,6 +906,91 @@ that is, you don't need to specify the auth token if you've specified
 the username and password.
 
 A sample is provided in the [examples](examples) directory.
+
+<a name="option-tags"></a>
+## Option Tags
+
+Option tags provide an elegant mechanism for further 
+customizing the behavior of your command-line options.
+
+The logic treats anything after the first two pipe ('|') characters as option tags.
+
+So far, four option tags are honored, and these are:
+- prompt
+- sprompt
+- choice
+- env
+
+Note that these can be combined.
+
+<a name="prompt-options"></a>
+### Prompt option tag
+
+Taken from [Options — Click Documentation (7.x)](https://click.palletsprojects.com/en/7.x/options/#prompting)
+
+Suppose you want a set of *optional* options such that:
+- You will be prompted if said option is not provided a value
+
+You can accomplish this by defining your options with a 'prompt' option tag, as with:
+```
+optional_parameters:
+  -u|--username|prompt: username ## Specify password
+  -p|--password|sprompt: password ## Specify password
+```
+
+In the above configuration, *not* calling the options for 
+username and password invoke a prompt
+
+There are two types of option tags related to prompting:
+- prompt
+- sprompt
+
+The latter will hide the input, and so is best used for accepting sensitive input, such as passwords.
+
+A sample is provided in the [examples](examples) directory.
+
+<a name="choice-options"></a>
+### Choice option tag
+
+Taken from [Options — Click Documentation (7.x)](https://click.palletsprojects.com/en/7.x/options/#choice-options)
+
+Suppose you want a set of options such that:
+- The value you provide for such an option must come from a list of pre-defined values.
+
+You can accomplish this by defining your options with a 'choice' option tag, as with:
+
+```
+-s|--selection|choice: selection ## Specify a selection
+  - choice1
+  - choice2
+  - choice3
+```
+
+In the above configuration, providing a value for _selection_
+will limit you to the values defined in the option list.
+
+A sample is provided in the [examples](examples) directory.
+
+
+<a name="combining-option-tags"></a>
+### Combining option tags
+
+Suppose you want a set of options that combine some or all of the behavior described above.
+
+You can accomplish this by defining your options with a multiple tags, as with:
+
+```
+-u|--username|env|prompt: username ## Specify password
+-p|--password|env|sprompt: password ## Specify password
+```
+
+Note that the _choice_ option tag only works with values that are a list type, 
+so you can't do something like:
+
+```
+-u|--username|env|choice: username ## Specify password
+-p|--password|env|choice: password ## Specify password
+```
 
 <a name="simple-templating"></a>
 

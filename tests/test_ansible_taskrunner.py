@@ -3,11 +3,12 @@
 """ Unit tests for ansible taskrunner
 """
 from __future__ import print_function, absolute_import
+from click.testing import CliRunner
 import os
+from subprocess import PIPE, Popen
 import sys
 import unittest
 import warnings
-from click.testing import CliRunner
 
 # Globals
 __author__ = 'etejeda'
@@ -58,6 +59,12 @@ class TestCli(unittest.TestCase):
         """
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---make', 'hello','---echo']).exit_code, 0)
         pass
+
+    def test_direct_call(self):
+        proc = Popen(['python', 'ansible_taskrunner/cli.py', '--help'], stdout=PIPE)
+        stdout, stderr = proc.communicate()
+        self.assertTrue(stdout.startswith(b'Usage:'))
+        self.assertEquals(0, proc.returncode)        
 
 
 if __name__ == '__main__':
