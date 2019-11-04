@@ -14,15 +14,16 @@
         Task Runner for the Task Runner!
       examples:
         - Build Python Module and Push to PyPi: |-
-            python ansible_taskrunner/cli.py -f Makefile.yaml run ---make pypi -U $username -P $password
+            python ansible_taskrunner/cli.py -f Makefile.yaml pypi run ---make pypi -U $username -P $password
     inventory: |
       [local]
       localhost      
     required_parameters:
     optional_parameters:
-      --pypi-username|-U: pypi_username ## Specify the username for authenticating against pypi.org
-      --pypi-password|-P: pypi_password ## Specify the password for authenticating against pypi.org
-      --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
+      pypi:
+        --pypi-username|-U|prompt: pypi_username ## Specify the username for authenticating against pypi.org
+        --pypi-password|-P|sprompt: pypi_password ## Specify the password for authenticating against pypi.org
+        --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
       -bz: build_zip ## Invoke the 'build_zip' make-style function
       -br: pypi ## Invoke the 'pypi' make-style function
       -c: clean ## Invoke the 'clean' make-style function
