@@ -2,6 +2,12 @@
 History
 =======
 
+## Release 2019-11-04 v1.3.3
+
+* Fixed bug in cli invocation when specifying taskfile override [7a07d1a](https://github.com/berttejeda/ansible-taskrunner/commit/7a07d1af4060d96a487df4a8a69e347a94deb56e)
+* Removed dependency on crayons package for ansi colors [9d985ef](https://github.com/berttejeda/ansible-taskrunner/commit/9d985ef7f4791e81aecad6475242d18050f6a8f9)
+* Support for ad-hoc bastion-mode (no sftp config file) [9d985ef](https://github.com/berttejeda/ansible-taskrunner/commit/9d985ef7f4791e81aecad6475242d18050f6a8f9)
+
 ## Release 2019-11-03 v1.3.2
 
 * Values from env should only be enabled by option tag [a792c52](https://github.com/berttejeda/ansible-taskrunner/commit/a792c5200da38ec59106f84a031e8298e7a6fb0b)

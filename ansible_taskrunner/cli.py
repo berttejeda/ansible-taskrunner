@@ -41,10 +41,10 @@ try:
     from libs.errorhandler import catchException
     from libs.errorhandler import ERR_ARGS_TASKF_OVERRIDE
     from libs.formatting import logging_format
+    from libs.bastion_mode import init_bastion_settings
     from libs.help import SAMPLE_CONFIG
     from libs.help import SAMPLE_TASKS_MANIFEST
-    if is_windows:
-        from libs.help import SAMPLE_SFTP_CONFIG    
+    from libs.help import SAMPLE_SFTP_CONFIG
     from libs.logger import init_logger
     from libs.superduperconfig import SuperDuperConfig
     from libs.click_extras import ExtendedEpilog
@@ -83,7 +83,7 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 __program_name__ = 'tasks'
 
 # Logging
@@ -262,12 +262,12 @@ Examples:
 @cli.command(cls=ExtendedHelp, help='Initialize local directory with sample files',
     epilog=init_epilog, context_settings=dict(max_content_width=180))
 @click.version_option(version=__version__)
-@click.option('--show-samples', '-m', is_flag=True,
+@click.option('---show-samples', is_flag=True,
               help='Only show a sample task manifest, don\'t write it')
 @extend_cli.bastion_mode
 def init(**kwargs):
     logger.info('Initializing ...')
-    if kwargs['show_samples']:
+    if kwargs.get('_show_samples'):
         logger.info('Displaying sample config')
         print(SAMPLE_CONFIG)
         logger.info('Displaying sample manifest')
@@ -292,28 +292,8 @@ def init(**kwargs):
         else:
             logger.info(
                 'File exists, not writing manifest %s' % tasks_file)
-        if is_windows:
-            bastion_remote_path = kwargs.get('bastion_remote_path')
-            bastion_host = kwargs['bastion_host']
-            bastion_host_port = kwargs.get('bastion_host_port') or '22'
-            bastion_user = kwargs.get('bastion_user') or local_username
-            bastion_ssh_key_file = kwargs.get('bastion_ssh_key_file')
-            if not bastion_remote_path:
-                cur_dir = os.path.basename(os.getcwd())
-                bastion_remote_path = '/home/{}/ansible-taskrunner/{}'.format(bastion_user, cur_dir)
-            if not bastion_ssh_key_file:
-                home_dir = os.path.expanduser('~')
-                bastion_ssh_key_file = os.path.join(home_dir, '.ssh', 'id_rsa')
-            if not os.path.exists(bastion_ssh_key_file):
-                logger.error("SSH key '%s' not found, specify/generate a new/different key" % bastion_ssh_key_file)
-                sys.exit(1)
-            settings_vars = {
-                'bastion_remote_path': bastion_remote_path,
-                'bastion_host': bastion_host,
-                'bastion_host_port': bastion_host_port,
-                'bastion_user': bastion_user,
-                'bastion_ssh_key_file': bastion_ssh_key_file.replace('\\', '\\\\')
-            }
+        if is_windows or kwargs.get('_bastion_mode'):
+            settings_vars = init_bastion_settings(kwargs)
             if not os.path.exists(sftp_config_file):
                 logger.info(
                     'Existing sftp config not found, writing %s' % sftp_config_file)
@@ -395,13 +375,11 @@ epilog = Template(epilog).safe_substitute(**available_vars)
 @click.option('---raw', is_flag=False,
               help='Specify raw options for underlying subprocess',
               required=False)
-@click.option('---bastion-mode',
-              is_flag=True,
-              help='Execute commands via a bastion host')
 @click.option('---echo',
               is_flag=True,
               help='Don\'t run, simply echo underlying commands')
 @extend_cli.options
+@extend_cli.bastion_mode
 @provider_cli.options
 def run(args=None, **kwargs):
     global param_set
@@ -417,8 +395,8 @@ def run(args=None, **kwargs):
     bastion_mode_enabled = True if is_windows else kwargs.get('_bastion_mode', False)
     if bastion_mode_enabled:
         bastion_settings = {
-        # Turn bastion Mode off if we explicitly don't want it
         'config_file': yamlr.deep_get(config, 'bastion_mode.config_file', 'sftp-config.json'),
+        # Turn bastion Mode off if we explicitly don't want it
         'enabled': yamlr.deep_get(config, 'bastion_mode.enabled', True),
         'keep_alive': yamlr.deep_get(config, 'bastion_mode.keep_alive', True),
         'poll_wait_time': yamlr.deep_get(config, 'bastion_mode.poll_wait_time', 5),
