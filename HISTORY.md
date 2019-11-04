@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-11-03 v1.3.2
+
+* Values from env should only be enabled by option tag [a792c52](https://github.com/berttejeda/ansible-taskrunner/commit/a792c5200da38ec59106f84a031e8298e7a6fb0b)
+
 ## Release 2019-11-03 v1.3.1
 
 * Add support for choice options [5778948](https://github.com/berttejeda/ansible-taskrunner/commit/577894802bb3ce29cdd2bb298939eeeae6323371)
