@@ -3,7 +3,6 @@
   gather_facts: true
   become: true
   vars:
-    oel76_box_url: https://yum.oracle.com/boxes/oraclelinux/ol76/ol76.box
     oel76_box_name: ubuntu/xenial64
     cli_provider: vagrant
     ubuntu_xenial_box_name: ubuntu/xenial64
