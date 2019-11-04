@@ -1,8 +1,16 @@
 import getpass
+import logging
 import os
 import sys
 
 local_username = getpass.getuser()
+
+# Setup Logging
+logger = logging.getLogger(__name__)
+if '--debug run' in ' '.join(sys.argv):
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 def init_bastion_settings(kwargs):
 	bastion_remote_path = kwargs.get('_bastion_remote_path')
