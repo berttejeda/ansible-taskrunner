@@ -54,12 +54,12 @@ class ProviderCLI:
         option = click.option('---debug', type=str, help='Start task run with ansible in debug mode',
                               default=False, required=False)
         func = option(func)
-        option = click.option('---inventory', is_flag=False, help='Override embedded inventory specification',
+        option = click.option('---inventory', help='Override embedded inventory specification',
                               required=False)
         func = option(func)
         return func
     
-    def invoke_bastion_mode(self, bastion_settings, invocation, remote_command):
+    def invoke_bastion_mode(self, bastion_settings, invocation, remote_command, kwargs):
         """Execute the underlying subprocess via a bastion host"""
         logger.info('Engage Bastion Mode')
         paramset = invocation.get('param_set')
@@ -85,8 +85,28 @@ class ProviderCLI:
                 )
                 sys.exit(1)
         else:
-            logger.error("Could not find %s, please run 'tasks init --help'" % bastion.config_file)
-            sys.exit(1)
+            # If no sftp config is found, 
+            # we should check if a bastion-host 
+            # was specified
+            bastion_host = kwargs.get('_bastion_host')
+            if bastion_host:
+                from string import Template
+                try:
+                    from libs.bastion_mode import init_bastion_settings
+                    from libs.help import SAMPLE_SFTP_CONFIG
+                except ImportError as e:
+                    print('Error in %s ' % os.path.basename(self_file_name))
+                    print('Failed to import at least one required module')
+                    print('Error was %s' % e)
+                    print('Please install/update the required modules:')
+                    print('pip install -U -r requirements.txt')
+                    sys.exit(1)                    
+                settings_vars = init_bastion_settings(kwargs)
+                in_memory_sftp_settings = Template(SAMPLE_SFTP_CONFIG).safe_substitute(**settings_vars)
+                settings = Struct(**json.loads(in_memory_sftp_settings))
+            else:
+                logger.error("Could not find %s, and no bastion-host was specified. Please run 'tasks init --help'" % bastion.config_file)
+                sys.exit(1)
         # Import third-party and custom modules
         try:
             from libs.proc_mgmt import Remote_CLIInvocation
@@ -97,7 +117,7 @@ class ProviderCLI:
             print('Error was %s' % e)
             print('Please install/update the required modules:')
             print('pip install -U -r requirements.txt')
-            sys.exit(1)            
+            sys.exit(1)
         ssh_client = SSHUtilClient(settings)
         sftp_sync = ssh_client.sync()
         remote_sub_process = Remote_CLIInvocation(settings, ssh_client)
@@ -162,11 +182,6 @@ class ProviderCLI:
             remote_path = os.path.normpath(_remote_path).replace('\\','/')
             logger.debug('Syncing {} to remote {}'.format(file_path, remote_path))
             sftp_sync.to_remote(file_path, remote_path)
-        # Derive remote command 
-        # (accounting for parameter sets)
-        if paramset:
-            for p in enumerate(paramset):
-                sys.argv.insert(p[0] + 1, p[1])
         # remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
         # tasks_file_override = invocation.get('tasks_file_override')
         # if tasks_file_override:
@@ -289,7 +304,7 @@ fi
                 print(ansible_command)
         else:
             if bastion_settings.get('enabled'):
-                self.invoke_bastion_mode(bastion_settings, invocation, command)
+                self.invoke_bastion_mode(bastion_settings, invocation, command, kwargs)
             else:
                 sub_process = CLIInvocation()
                 sub_process.call(command, debug_enabled=debug)
