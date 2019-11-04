@@ -14,7 +14,6 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    import crayons
 except ImportError as e:
     print('Failed to import at least one required module')
     print('Error was %s' % e)
@@ -35,13 +34,13 @@ class ExtendedHelp(click.Command):
 
     def colorize(self, formatter, color, string):
         if color == 'green':
-            formatter.write_text('%s' % crayons.green(string))
+            formatter.write_text('%s' % click.style(string, fg='green'))
         elif color == 'magenta':
-            formatter.write_text('%s' % crayons.magenta(string))
+            formatter.write_text('%s' % click.style(string, fg='magenta'))
         elif color == 'red':
-            formatter.write_text('%s' % crayons.red(string))
+            formatter.write_text('%s' % click.style(string, fg='red'))
         elif color == 'yellow':
-            formatter.write_text('%s' % crayons.yellow(string))
+            formatter.write_text('%s' % click.style(string, fg='yellow'))
         else:
             formatter.write_text(string)
 
@@ -284,22 +283,38 @@ class ExtendCLI():
         return func
 
     def bastion_mode(self, func):
-        if sys.platform in ['win32', 'cygwin']:
-            option = click.option('--bastion-host', '-h',
-                         help='Specify host (bastion mode settings file)',
-                         required=True)
+        """
+        Explicity define command-line options for bastion mode operation
+        """
+        option = click.option('---bastion-mode',
+                      is_flag=True,
+                      help='Force execution of commands via a bastion host')        
+        func = option(func)
+        # Determine if bastion host is a required parameter
+        if len(sys.argv) > 0 and sys.argv[0] == 'init':
+            bastion_host_required = True if sys.argv[0] == 'init' else False
+        elif len(sys.argv) > 1:
+            bastion_host_required = True if sys.argv[1] == 'init' else False
+        else:
+            bastion_host_required = False
+        # Determine if bastion mode is forced
+        force_bastion_mode = True if '---bastion-mode' in sys.argv else False
+        if sys.platform in ['win32', 'cygwin'] or force_bastion_mode:
+            option = click.option('---bastion-host',
+                         help='Specify bastion host',
+                         required=bastion_host_required)
             func = option(func)
-            option = click.option('--bastion-host-port', '-p',
-                         help='Specify host port (bastion mode settings file)')
+            option = click.option('---bastion-host-port',
+                         help='Specify bastion host port')
             func = option(func)            
-            option = click.option('--bastion-user', '-u',
-                         help='Override username (bastion mode settings file)')
+            option = click.option('---bastion-user',
+                         help='Override default username')
             func = option(func)
-            option = click.option('--bastion-remote-path', '-r',
-                          help='Specify remote workspace (bastion mode settings file)')
+            option = click.option('---bastion-remote-path',
+                          help='Specify remote workspace')
             func = option(func)
-            option = click.option('--bastion-ssh-key-file', '-k',
-                          help='Override ssh key file (bastion mode settings file)')
+            option = click.option('---bastion-ssh-key-file',
+                          help='Override default ssh key file')
             func = option(func)
         return func
 
