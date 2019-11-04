@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2019-11-04 v1.3.4
+
+* Import missing logging module [56b3ca4](https://github.com/berttejeda/ansible-taskrunner/commit/56b3ca4292a189d169937efc5d8c3a7dbcfb0563)
+* Add missing logger instantiation [02a6656](https://github.com/berttejeda/ansible-taskrunner/commit/02a6656345999c9d8568f499196856aba0f5b566)
+
 ## Release 2019-11-04 v1.3.3
 
 * Fixed bug in cli invocation when specifying taskfile override [7a07d1a](https://github.com/berttejeda/ansible-taskrunner/commit/7a07d1af4060d96a487df4a8a69e347a94deb56e)
