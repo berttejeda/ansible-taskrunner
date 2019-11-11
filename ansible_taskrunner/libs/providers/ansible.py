@@ -148,7 +148,7 @@ class ProviderCLI:
                 sys.exit(1)                
         logger.info('Checking for locally changed files ...')
         if loc_is_git:
-            cmd = 'git diff-index --name-only HEAD -- && git ls-files --others --exclude-standard'
+            cmd = '''(git diff-index HEAD --name-status | awk '$1 != "D" {print $2}') && git ls-files --others --exclude-standard'''
             local_changed = os.popen(cmd).readlines()
         else:
             # If local path is not a git repo then
@@ -171,6 +171,7 @@ class ProviderCLI:
                 sys.exit(1)
         else:
             to_sync = list(set(local_changed))
+        logger.debug('Files to sync: %s' % ' '.join(to_sync))
         if len(to_sync) > 0:
             logger.info("Performing sync to %s ..." % remote_dir)
         for path in to_sync:
