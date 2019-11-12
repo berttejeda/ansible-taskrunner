@@ -20,6 +20,7 @@ else:
 try:
     import paramiko
     from paramiko import SSHClient, ssh_exception
+    from libs.sshutil.scp import SCPException
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
@@ -49,12 +50,15 @@ class SSHSync:
                 self.sftp_obj.stat(directory)
 
     def to_remote(self, local_path, remote_path):
-        logger.debug("Lcl Sync Target {}".format(local_path))
-        logger.debug("Rmt Sync Target {}".format(remote_path))
+        logger.debug("Loc Sync Target {}".format(local_path))
+        logger.debug("Rem Sync Target {}".format(remote_path))
         if os.path.exists(local_path):
-            self.create_parent_dirs(remote_path)
-            self.scp.put(local_path, remote_path=remote_path, preserve_times=True, recursive=True)
-            logger.debug("Successfully copied to remote.")
+            try:
+                self.create_parent_dirs(remote_path)
+                self.scp.put(local_path, remote_path=remote_path, preserve_times=True, recursive=True)
+                logger.debug('Sync ok for %s' % local_path)
+            except SCPException as e:
+                logger.error('Failed to sync {} to remote {} - error was {}'.format(local_path, remote_path, e))                
         else:
             logger.warning("Skipping %s as it does not exist" % local_path.strip())
         return

@@ -2,6 +2,15 @@
 History
 =======
 
+## Release 2019-11-11 v1.3.6
+
+* Refactor git diff command and embedded inventory file logic [330d5de](https://github.com/berttejeda/ansible-taskrunner/commit/330d5de010758e6467312afa827863ba2388e073)
+* Skip deleted files when syncing local git folder to remote [64943b1](https://github.com/berttejeda/ansible-taskrunner/commit/64943b1c9c62fc8192d6d35e17db5002dfb995a9)
+
+## Release 2019-11-04 v1.3.5
+
+* Catch potential crash due to unexpected parameter mapping (python 2.x) [3f37e3e](https://github.com/berttejeda/ansible-taskrunner/commit/3f37e3e6c3bfa6cafc66fa5db5514f81e91879a2)
+
 ## Release 2019-11-04 v1.3.4
 
 * Import missing logging module [56b3ca4](https://github.com/berttejeda/ansible-taskrunner/commit/56b3ca4292a189d169937efc5d8c3a7dbcfb0563)

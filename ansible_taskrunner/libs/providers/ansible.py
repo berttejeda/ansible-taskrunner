@@ -54,9 +54,12 @@ class ProviderCLI:
         option = click.option('---debug', type=str, help='Start task run with ansible in debug mode',
                               default=False, required=False)
         func = option(func)
-        option = click.option('---inventory', help='Override embedded inventory specification',
+        option = click.option('---inventory', help='Specify inventory path if not using embedded inventory',
                               required=False)
         func = option(func)
+        option = click.option('---inventory-tmp-dir', help='Override path where we create embedded temporary inventory',
+                              required=False)
+        func = option(func)        
         return func
     
     def invoke_bastion_mode(self, bastion_settings, invocation, remote_command, kwargs):
@@ -148,8 +151,12 @@ class ProviderCLI:
                 sys.exit(1)                
         logger.info('Checking for locally changed files ...')
         if loc_is_git:
-            cmd = 'git diff-index --name-only HEAD -- && git ls-files --others --exclude-standard'
-            local_changed = os.popen(cmd).readlines()
+            # List modified and untracked files
+            changed_cmd = '''git diff-index HEAD --name-status'''
+            changed_files = [f.strip().split('\t')[1] for f in os.popen(changed_cmd).readlines() if not f.startswith('D\t')]
+            untracked_cmd = '''git ls-files --others --exclude-standard'''
+            untracked_files = [f.strip() for f in os.popen(untracked_cmd).readlines()]
+            local_changed = changed_files + untracked_files
         else:
             # If local path is not a git repo then
             # we'll only sync files in the current working directory
@@ -160,6 +167,7 @@ class ProviderCLI:
         logger.info('Checking for remotely changed files ...')
         no_clobber = settings.get('at_no_clobber')
         if rem_is_git:
+            remote_changed_cmd = '''{} | awk '$1 != "D" {{print $2}}' && {}'''.format(changed_cmd, untracked_cmd)
             remote_changed = remote_sub_process.call(remote_dir, cmd)
             if remote_changed:
                 if no_clobber:
@@ -182,12 +190,6 @@ class ProviderCLI:
             remote_path = os.path.normpath(_remote_path).replace('\\','/')
             logger.debug('Syncing {} to remote {}'.format(file_path, remote_path))
             sftp_sync.to_remote(file_path, remote_path)
-        # remote_command = ' '.join([a for a in sys.argv if a != '---bastion-mode'][1:])
-        # tasks_file_override = invocation.get('tasks_file_override')
-        # if tasks_file_override:
-        #     remote_command = 'tasks -f {} {}'.format(tasks_file_override, remote_command)
-        # else:
-        #     remote_command = 'tasks {}'.format(remote_command)
         remote_command_result = remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
         if remote_command_result.returncode > 0:
             logger.error('Remote command failed with: %s' % ' '.join(remote_command_result.stderr))
@@ -217,7 +219,10 @@ class ProviderCLI:
             'ansible_playbook_command', 'ansible-playbook')
         # Embedded inventory logic
         embedded_inventory = False
+        # Employ an exit trap if we're using bastion mode
         trap = ''
+        # Where to create the temporary inventory (if applicable)
+        inventory_dir = kwargs.get('_inventory_tmp_dir') or yaml_vars.get('inventory_dir')
         inventory_input = kwargs.get('_inventory')
         embedded_inventory_string = yaml_vars.get('inventory')
         if not inventory_input and not embedded_inventory_string:
@@ -233,12 +238,13 @@ class ProviderCLI:
                     trap = 'trap "rm -f %s" EXIT' % ans_inv_fp            
         else:
             if bastion_settings.get('enabled'):
-                ans_inv_fp = '/tmp/ansible.inventory.%s.tmp.ini' % str(uuid.uuid4())
+                inventory_dir = '/tmp' if not inventory_dir else inventory_dir
+                ans_inv_fp = '{}/ansible.inventory.{}.tmp.ini'.format(inventory_dir, uuid.uuid4())
                 ans_inv_fso_desc = None
                 if not debug:
                     trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
             else:
-                ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini')                 
+                ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)                 
                 logger.info("No inventory specified")
                 logger.info("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
             inventory_input = embedded_inventory_string
