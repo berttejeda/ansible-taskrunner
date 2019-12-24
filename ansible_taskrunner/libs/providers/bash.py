@@ -83,4 +83,5 @@ class ProviderCLI:
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            sub_process.call(command, debug_enabled=debug)
+            result = sub_process.call(command, debug_enabled=debug)
+            sys.exit(result.returncode)

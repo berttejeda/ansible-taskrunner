@@ -193,7 +193,7 @@ class ProviderCLI:
         remote_command_result = remote_sub_process.call(remote_dir, remote_command, stdout_listen=True)
         if remote_command_result.returncode > 0:
             logger.error('Remote command failed with: %s' % ' '.join(remote_command_result.stderr))
-            sys.exit(1)
+            sys.exit(remote_command_result.returncode)
         else:
             return remote_command_result
 
@@ -310,10 +310,10 @@ fi
                 print(ansible_command)
         else:
             if bastion_settings.get('enabled'):
-                self.invoke_bastion_mode(bastion_settings, invocation, command, kwargs)
+                result = self.invoke_bastion_mode(bastion_settings, invocation, command, kwargs)
             else:
                 sub_process = CLIInvocation()
-                sub_process.call(command, debug_enabled=debug)
+                result = sub_process.call(command, debug_enabled=debug)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
@@ -328,3 +328,7 @@ fi
             if ans_inv_fso_desc:
                 os.close(ans_inv_fso_desc)
                 remove(ans_inv_fp)
+        if result:
+            sys.exit(result.returncode)
+        else:
+            sys.exit()
