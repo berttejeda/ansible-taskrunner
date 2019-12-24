@@ -134,7 +134,9 @@ class CLIInvocation:
                             self.invocation.returncode = p.returncode
                             self.invocation.stdout = 'Encountered error code {errcode} in the specified command {args}'.format(
                                 errcode=p.returncode, args=p.args)
-                            return self.invocation
+                            self.done = True
+                    self.done = True
+                    self.invocation.returncode = self.proc.returncode
                 else:
                     # Invoke process
                     self.proc = Popen(
@@ -149,9 +151,10 @@ class CLIInvocation:
                         sys.stdout.write(nextline)
                         sys.stdout.flush()
                     self.done = True
+                    self.invocation.returncode = self.proc.returncode
+                    # ['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_child_created', '_close_fds', '_communicate', '_communicate_with_poll', '_communicate_with_select', '_execute_child', '_get_handles', '_handle_exitstatus', '_internal_poll', '_set_cloexec_flag', '_translate_newlines', 'communicate', 'kill', 'pid', 'pipe_cloexec', 'poll', 'returncode', 'send_signal', 'stderr', 'stdin', 'stdout', 'terminate', 'universal_newlines', 'wait']                    
             except Exception:
                 self.done = True
-            self.done = True
 
         try:
             if sys.version_info[0] >= 3:
@@ -164,6 +167,7 @@ class CLIInvocation:
         try:
             while not self.done:
                 time.sleep(0.1)
+            return self.invocation
 
         except KeyboardInterrupt:
             print("KeyboardInterrupt")
