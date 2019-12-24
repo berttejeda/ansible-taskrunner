@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2019-12-24 v1.3.7
+
+* Ensure the main process return code matches that of the subprocess [44a2540](https://github.com/berttejeda/ansible-taskrunner/commit/44a25409d862a5322a0820e99533727eefa148fc)
+
 ## Release 2019-11-11 v1.3.6
 
 * Refactor git diff command and embedded inventory file logic [330d5de](https://github.com/berttejeda/ansible-taskrunner/commit/330d5de010758e6467312afa827863ba2388e073)
