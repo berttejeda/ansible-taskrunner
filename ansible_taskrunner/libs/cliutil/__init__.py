@@ -39,7 +39,7 @@ def get_invocation(script_name):
         raw_args = sys.argv[raw_run_index + 1:]
         sys.argv = sys.argv[0:raw_run_index]
     else:
-        raw_args = None
+        raw_args = ''
     if arg_tf_index: 
         if arg_run_index:
             if arg_run_index > arg_tf_index:
