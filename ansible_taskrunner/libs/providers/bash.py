@@ -58,10 +58,11 @@ class ProviderCLI:
                    prefix='',
                    raw_args='',
                    string_vars=[],
+                   suppress_output=False,
                    yaml_input_file=None,
                    yaml_vars={}):
         """Invoke commands according to provider"""
-        logger.info('Bash Command Provider')
+        logger.debug('Bash Command Provider')
         sub_process = CLIInvocation()
         command = '''
 {clv}
@@ -83,5 +84,5 @@ class ProviderCLI:
             logger.info("ECHO MODE ON")
             print(command)
         else:
-            result = sub_process.call(command, debug_enabled=debug)
+            result = sub_process.call(command, debug_enabled=debug, suppress_output=suppress_output)
             sys.exit(result.returncode)

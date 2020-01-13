@@ -115,7 +115,7 @@ class CLIInvocation:
                     return exe_file
         return None   
 
-    def call(self, cmd, exe='bash', debug_enabled=False):    
+    def call(self, cmd, exe='bash', debug_enabled=False, suppress_output=False):    
 
         executable = self.which(exe)
         if debug_enabled:
@@ -127,8 +127,9 @@ class CLIInvocation:
             try:
                 if sys.version_info[0] >= 3:
                     with Popen(process_invocation, stdout=PIPE, stderr=STDOUT, bufsize=1, universal_newlines=True) as self.proc:
-                        for line in self.proc.stdout:
-                            sys.stdout.write(line)  # process line here
+                        if not suppress_output:
+                            for line in self.proc.stdout:
+                                sys.stdout.write(line)  # process line here
                         if self.proc.returncode != 0:
                             self.invocation.failed = True
                             self.invocation.returncode = p.returncode
@@ -148,8 +149,9 @@ class CLIInvocation:
                         nextline = self.proc.stdout.readline()
                         if nextline == '' and self.proc.poll() is not None:
                             break
-                        sys.stdout.write(nextline)
-                        sys.stdout.flush()
+                        if not suppress_output:                        
+                            sys.stdout.write(nextline)
+                            sys.stdout.flush()
                     self.done = True
                     self.invocation.returncode = self.proc.returncode
                     # ['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_child_created', '_close_fds', '_communicate', '_communicate_with_poll', '_communicate_with_select', '_execute_child', '_get_handles', '_handle_exitstatus', '_internal_poll', '_set_cloexec_flag', '_translate_newlines', 'communicate', 'kill', 'pid', 'pipe_cloexec', 'poll', 'returncode', 'send_signal', 'stderr', 'stdin', 'stdout', 'terminate', 'universal_newlines', 'wait']                    
