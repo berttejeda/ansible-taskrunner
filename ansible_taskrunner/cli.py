@@ -102,6 +102,7 @@ cli_invocation = get_invocation(script_name)
 local_username = getpass.getuser()
 
 param_set = cli_invocation['param_set']
+raw_args = cli_invocation['raw_args']
 tasks_file = cli_invocation.get('tasks_file_override') or cli_invocation['tasks_file']
 tasks_file_override = cli_invocation['tasks_file_override']
 
@@ -372,9 +373,6 @@ epilog = Template(epilog).safe_substitute(**available_vars)
 @click.option('---make', 'make_mode_engage', is_flag=False,
               help='Call make-style function',
               required=False)
-@click.option('---raw', is_flag=False,
-              help='Specify raw options for underlying subprocess',
-              required=False)
 @click.option('---echo',
               is_flag=True,
               help='Don\'t run, simply echo underlying commands')
@@ -384,7 +382,6 @@ epilog = Template(epilog).safe_substitute(**available_vars)
 def run(args=None, **kwargs):
     global param_set
     # Process Raw Args
-    raw_args = kwargs['_raw'] if kwargs.get('_raw') else ''
     # Process run args, if any
     args = ' '.join(args) if args else ''
     # Initialize values for subshell
