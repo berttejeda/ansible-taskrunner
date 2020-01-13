@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2020-01-13 v1.3.8
+
+* Add ability to completely suppress output [17a9f32](https://github.com/berttejeda/ansible-taskrunner/commit/17a9f328b23b3025436060f6e967d3079aea680b)
+* Anything after '---raw' is passed down directly to the subprocess (#111) [236c270](https://github.com/berttejeda/ansible-taskrunner/commit/236c27005a558594fe3bf5206ff1c673a5adaa16)
+
 ## Release 2019-12-24 v1.3.7
 
 * Ensure the main process return code matches that of the subprocess [44a2540](https://github.com/berttejeda/ansible-taskrunner/commit/44a25409d862a5322a0820e99533727eefa148fc)
