@@ -301,6 +301,7 @@ fi
         command = pre_commands + ansible_command
         # Command invocation
         # Bastion host logic
+        result = None
         if prefix == 'echo':
             if debug:
                 print(pre_commands)
@@ -331,4 +332,4 @@ fi
         if result:
             sys.exit(result.returncode)
         else:
-            sys.exit()
+            sys.exit(0)

@@ -30,10 +30,16 @@ else:
 def get_invocation(script_name):
     # Are we invoking the run subcommand?
     arg_run_index = sys.argv.index('run') if 'run' in sys.argv else None
+    raw_run_index = sys.argv.index('---raw') if '---raw' in sys.argv else None
     # Are we specifing a Taskfile override (option -f)?
     # If so, make sure this special cli option 
     # occurs before the 'run' subcommand
     arg_tf_index = sys.argv.index('-f') if '-f' in sys.argv else None
+    if raw_run_index:
+        raw_args = sys.argv[raw_run_index + 1:]
+        sys.argv = sys.argv[0:raw_run_index]
+    else:
+        raw_args = None
     if arg_tf_index: 
         if arg_run_index:
             if arg_run_index > arg_tf_index:
@@ -49,7 +55,8 @@ def get_invocation(script_name):
     invocation = {
         'param_set': [],
         'tasks_file': 'Taskfile.yaml',
-        'tasks_file_override': None
+        'tasks_file_override': None,
+        'raw_args': raw_args
     }
     if arg_run_index:
         # Determine the actual run arguments
