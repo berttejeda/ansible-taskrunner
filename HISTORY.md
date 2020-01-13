@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2020-01-13 v1.3.9
+
+* Address bug whereby raw args were being interpreted as an array instead of a string [54e3245](https://github.com/berttejeda/ansible-taskrunner/commit/54e3245945085cde64c518b1734f0815fb605d13)
+* When unspecified, raw args should evaluate to empty string, not None [4f2ef3f](https://github.com/berttejeda/ansible-taskrunner/commit/4f2ef3fdae25373a9a3fb1eebdb7695420f9ad84)
+
 ## Release 2020-01-13 v1.3.8
 
 * Add ability to completely suppress output [17a9f32](https://github.com/berttejeda/ansible-taskrunner/commit/17a9f328b23b3025436060f6e967d3079aea680b)
