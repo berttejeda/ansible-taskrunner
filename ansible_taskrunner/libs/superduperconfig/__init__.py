@@ -58,7 +58,7 @@ class SuperDuperConfig():
                     config_dict = cfg[data_key] if data_key is not None else cfg
                     config_is_valid = all([m[m.keys()[0]].get(k)
                                            for k in req_keys for m in config_dict])
-                    self.logger.info(
+                    self.logger.debug(
                         "Found input file - {cf}".format(cf=config_path))
                     if not config_is_valid:
                         logger.warning(

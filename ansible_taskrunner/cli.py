@@ -142,6 +142,7 @@ logging_maxBytes = yamlr.deep_get(config, 'logging.maxBytes', 10000000)
 logging_backupCount = yamlr.deep_get(config, 'logging.backupCount', 5)
 __debug = yamlr.deep_get(config, 'logging.debug', False)
 verbose = yamlr.deep_get(config, 'logging.verbose', 0)
+suppress_output = yamlr.deep_get(config, 'logging.silent', 0)
 log_file = yamlr.deep_get(config, 'logging.log_file', None)
 path_string = yamlr.deep_get(config, 'taskfile.path_string', 'vars')
 
@@ -214,11 +215,13 @@ click_help_epilog = ""
 @click.option('--config', type=str, nargs=1,
               help='Specify a config file (default is config.ini)')
 @click.option('--debug', is_flag=True, help='Enable debug output')
+@click.option('--silent', is_flag=True, help='Suppress all output')
 @click.option('--verbose', count=True,
               help='Increase verbosity of output')
 @click.option('--log', is_flag=True, help='Enable output logging')
 def cli(**kwargs):
-    global config, config_file, __debug, verbose, loglevel, logger
+    global config, config_file, __debug, verbose, loglevel, logger, suppress_output
+    suppress_output = True if kwargs.get('silent') else False
     # Are we specifying an alternate config file?
     if kwargs['config']:
         config = superconf.load_config(config_file)
@@ -237,6 +240,11 @@ def cli(**kwargs):
     else:
         loglevel = logging.INFO  # 20
     logger.setLevel(loglevel)
+    if suppress_output:
+        if sys.version_info[0] >= 3:
+            logging.disable(sys.maxsize) # Python 3        
+        else:
+            logging.disable(sys.maxint) # Python 2
     # Add the log  file handler to the logger, if applicable
     if kwargs.get('log') and not log_file:
         logger.warning('Logging enabled, but no log_file specified in %s' % config_file)
@@ -384,6 +392,7 @@ def run(args=None, **kwargs):
     # Process Raw Args
     # Process run args, if any
     args = ' '.join(args) if args else ''
+    # Silence Output if so required
     # Initialize values for subshell
     prefix = 'echo' if kwargs.get('_echo') else ''
     # Are we executing commands via bastion host?
@@ -532,7 +541,7 @@ def run(args=None, **kwargs):
         if prefix == 'echo':
             print(command)
         else:
-            sub_process.call(command, debug_enabled=__debug)
+            sub_process.call(command, debug_enabled=__debug, suppress_output=suppress_output)
     else:
         # Invoke the cli provider
         provider_cli.invocation(
@@ -548,6 +557,7 @@ def run(args=None, **kwargs):
             prefix=prefix,
             raw_args=raw_args,
             string_vars=defaults_string_vars,
+            suppress_output=suppress_output,
             yaml_input_file=yaml_input_file,
             yaml_vars=yaml_vars
         )
