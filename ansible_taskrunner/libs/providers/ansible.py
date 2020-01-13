@@ -332,4 +332,4 @@ fi
         if result:
             sys.exit(result.returncode)
         else:
-            sys.exit()
+            sys.exit(0)
