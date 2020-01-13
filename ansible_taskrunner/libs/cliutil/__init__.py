@@ -36,7 +36,7 @@ def get_invocation(script_name):
     # occurs before the 'run' subcommand
     arg_tf_index = sys.argv.index('-f') if '-f' in sys.argv else None
     if raw_run_index:
-        raw_args = sys.argv[raw_run_index + 1:]
+        raw_args = ' '.join(sys.argv[raw_run_index + 1:])
         sys.argv = sys.argv[0:raw_run_index]
     else:
         raw_args = ''
