@@ -211,10 +211,11 @@ class ProviderCLI:
                    prefix='',
                    raw_args='',
                    string_vars=[],
+                   suppress_output=False,
                    yaml_input_file=None,
                    yaml_vars={}):
         """Invoke commands according to provider"""
-        logger.info('Ansible Command Provider')
+        logger.debug('Ansible Command Provider')
         ansible_playbook_command = default_vars.get(
             'ansible_playbook_command', 'ansible-playbook')
         # Embedded inventory logic
@@ -301,7 +302,9 @@ fi
         command = pre_commands + ansible_command
         # Command invocation
         # Bastion host logic
+        result = None
         if prefix == 'echo':
+            logger.info("ECHO MODE ON")
             if debug:
                 print(pre_commands)
                 print(ansible_command)
@@ -313,7 +316,7 @@ fi
                 result = self.invoke_bastion_mode(bastion_settings, invocation, command, kwargs)
             else:
                 sub_process = CLIInvocation()
-                result = sub_process.call(command, debug_enabled=debug)
+                result = sub_process.call(command, debug_enabled=debug, suppress_output=suppress_output)
         # Debugging
         if debug:
             ansible_command_file_descriptor, ansible_command_file_path = mkstemp(prefix='ansible-command',
@@ -331,4 +334,4 @@ fi
         if result:
             sys.exit(result.returncode)
         else:
-            sys.exit()
+            sys.exit(0)

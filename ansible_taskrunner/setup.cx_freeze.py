@@ -135,7 +135,7 @@ bdist_msi_options = {
 }
 
 setup(
-    name="ansible-taskrunner",
+    name="ansible-taskrunner %s" % version,
     version = version,
     author="Engelbert Tejeda",
     description="ansible-playbook wrapper with YAML-abstracted python click cli options",
@@ -150,7 +150,7 @@ setup(
         # tkinter for GUI programming
         base=None,
         targetName="tasks.exe",
-        copyright="Copyright (C) 2019 %s" % COMPANY_NAME,
+        copyright="Copyright (C) 2020 %s" % COMPANY_NAME,
         shortcutName = "Ansible Taskrunner"
     )],
 )
