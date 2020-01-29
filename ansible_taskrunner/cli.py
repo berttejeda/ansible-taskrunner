@@ -34,20 +34,14 @@ sys.path.insert(0, project_root)
 py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
 sys.path.insert(0, os.path.join(project_root, 'libs', py_path))
 
-# cancel SGR codes if we don't write to a terminal
-if not __import__("sys").stdout.isatty():
-    for _ in dir():
-        if isinstance(_, str) and _[0] != "_":
-            locals()[_] = "" 
-else:
-    # set Windows console in VT mode
-    if is_windows:
-        try:
-            kernel32 = __import__("ctypes").windll.kernel32
-            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-            del kernel32 
-        except Exception:
-            pass
+# set Windows console in VT mode
+if is_windows:
+    try:
+        kernel32 = __import__("ctypes").windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        del kernel32 
+    except Exception:
+        pass
 
 # Import third-party and custom modules
 try:
