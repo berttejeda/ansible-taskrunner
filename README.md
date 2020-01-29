@@ -681,7 +681,7 @@ Quick usage examples:
 * Initialize your workspace<br />
   `tasks init`<br />
 * Run the Taskfile.yaml playbook, passing in additional options to the underlying subprocess<br />
-  `tasks run -d dbhost1 -w webhost1 -t value1 ---raw '-vvv'`</br>
+  `tasks run -d dbhost1 -w webhost1 -t value1 ---raw -vvv`</br>
 * Don't do anything, just echo the underlying shell command<br />
   `tasks run -d dbhost1 -w webhost1 -t value1 ---echo`<br />
   Result should be similar to:<br />
