@@ -34,6 +34,15 @@ sys.path.insert(0, project_root)
 py_path = 'py3' if sys.version_info[0] >= 3 else 'py2'
 sys.path.insert(0, os.path.join(project_root, 'libs', py_path))
 
+# set Windows console in VT mode
+if is_windows:
+    try:
+        kernel32 = __import__("ctypes").windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        del kernel32 
+    except Exception:
+        pass
+
 # Import third-party and custom modules
 try:
     import click
@@ -99,7 +108,11 @@ global sys_platform
 global tf_path
 
 cli_invocation = get_invocation(script_name)
-local_username = getpass.getuser()
+
+try:
+    local_username = getpass.getuser() 
+except Exception:
+    local_username = os.environ.get('USERNAME') or os.environ.get('USER')
 
 param_set = cli_invocation['param_set']
 raw_args = cli_invocation['raw_args']
@@ -441,11 +454,14 @@ def run(args=None, **kwargs):
         ordered_args = {}
         for k, v in parameter_mapping.items():
             for a in sys.argv:
-                if re.match(k, a):
-                    for o in k.split('|'):
-                        if o in sys.argv:
-                            i = sys.argv.index(o)
-                            ordered_args[k] = i
+                try:
+                    if re.match(k, a):
+                        for o in k.split('|'):
+                            if o in sys.argv:
+                                i = sys.argv.index(o)
+                                ordered_args[k] = i
+                except Exception as e:
+                    logger.debug("Skipped {_k} due to error {_e}".format(_k=k, _e=e))
         # Lastly, we convert our kwargs object to
         # an ordered dictionary object as per the above
         # making sure we include any existing kwargs items
