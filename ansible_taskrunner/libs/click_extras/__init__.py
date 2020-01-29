@@ -1,5 +1,6 @@
 # Imports
 import logging
+import os
 import re
 import sys
 from string import Template
@@ -11,12 +12,20 @@ if '--debug run' in ' '.join(sys.argv):
 else:
     logger.setLevel(logging.INFO)
 
+if getattr(sys, 'frozen', False):
+    # frozen
+    self_file_name = os.path.basename(sys.executable)
+else:
+    self_file_name = os.path.basename(__file__)
+
 # Import third-party and custom modules
 try:
     import click
 except ImportError as e:
+    print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
     print('Error was %s' % e)
+    print('Please install/update the required modules:')
     print('pip install -U -r requirements.txt')
     sys.exit(1)
 
@@ -34,13 +43,13 @@ class ExtendedHelp(click.Command):
 
     def colorize(self, formatter, color, string):
         if color == 'green':
-            formatter.write_text('%s' % click.style(string, fg='green'))
+            formatter.write_text('%s' % click.style(string, fg='bright_green'))
         elif color == 'magenta':
-            formatter.write_text('%s' % click.style(string, fg='magenta'))
+            formatter.write_text('%s' % click.style(string, fg='bright_magenta'))
         elif color == 'red':
-            formatter.write_text('%s' % click.style(string, fg='red'))
+            formatter.write_text('%s' % click.style(string, fg='bright_red'))
         elif color == 'yellow':
-            formatter.write_text('%s' % click.style(string, fg='yellow'))
+            formatter.write_text('%s' % click.style(string, fg='bright_yellow'))
         else:
             formatter.write_text(string)
 

@@ -21,8 +21,8 @@
     required_parameters:
     optional_parameters:
       pypi:
-        --pypi-username|-U|prompt: pypi_username ## Specify the username for authenticating against pypi.org
         --pypi-password|-P|sprompt: pypi_password ## Specify the password for authenticating against pypi.org
+        --pypi-username|-U|prompt: pypi_username ## Specify the username for authenticating against pypi.org
         --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
       -bz: build_zip ## Invoke the 'build_zip' make-style function
       -br: pypi ## Invoke the 'pypi' make-style function
@@ -99,7 +99,7 @@
         shell: bash
         source: |-
             python setup.py test      
-      pypi:
+      py_pi:
         shell: bash
         help: Calls dist and release make-style functions
         source: |-
