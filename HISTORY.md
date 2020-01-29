@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2020-01-13 v1.4.0
+
+* Feature/win32 colorize (#117) [4717d68](https://github.com/berttejeda/ansible-taskrunner/commit/4717d68db3fe28849ba2e62c9100e1c4fa9dd692)
+
 ## Release 2020-01-13 v1.3.9
 
 * Address bug whereby raw args were being interpreted as an array instead of a string [54e3245](https://github.com/berttejeda/ansible-taskrunner/commit/54e3245945085cde64c518b1734f0815fb605d13)
