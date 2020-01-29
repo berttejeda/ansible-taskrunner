@@ -114,7 +114,11 @@ global sys_platform
 global tf_path
 
 cli_invocation = get_invocation(script_name)
-local_username = getpass.getuser()
+
+try:
+    local_username = getpass.getuser() 
+except Exception:
+    local_username = os.environ.get('USERNAME') or os.environ.get('USER')
 
 param_set = cli_invocation['param_set']
 raw_args = cli_invocation['raw_args']
