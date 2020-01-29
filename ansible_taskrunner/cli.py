@@ -456,11 +456,14 @@ def run(args=None, **kwargs):
         ordered_args = {}
         for k, v in parameter_mapping.items():
             for a in sys.argv:
-                if re.match(k, a):
-                    for o in k.split('|'):
-                        if o in sys.argv:
-                            i = sys.argv.index(o)
-                            ordered_args[k] = i
+                try:
+                    if re.match(k, a):
+                        for o in k.split('|'):
+                            if o in sys.argv:
+                                i = sys.argv.index(o)
+                                ordered_args[k] = i
+                except Exception as e:
+                    logger.debug("Skipped {_k} due to error {_e}".format(_k=k, _e=e))
         # Lastly, we convert our kwargs object to
         # an ordered dictionary object as per the above
         # making sure we include any existing kwargs items
