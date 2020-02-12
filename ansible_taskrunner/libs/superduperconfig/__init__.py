@@ -79,7 +79,7 @@ class SuperDuperConfig():
                 self.logger.error("Could not find %s. Aborting." % config_file)
                 sys.exit(1)
             else:
-                self.logger.warning(
+                self.logger.debug(
                     "Could not find %s, not loading values" % config_file)
 
         if config_found and config_is_valid:
