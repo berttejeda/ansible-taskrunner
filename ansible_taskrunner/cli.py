@@ -239,8 +239,8 @@ def cli(**kwargs):
     if kwargs['config']:
         config = superconf.load_config(config_file)
     if config is None:
-        logger.warning('No valid config file found %s' % config_file)
-        logger.warning('Using program defaults')
+        logger.debug('No valid config file found %s' % config_file)
+        logger.debug('Using program defaults')
         # Verbose mode enabled?
     verbose = kwargs.get('verbose', None)
     # Debug mode enabled?
@@ -513,7 +513,7 @@ def run(args=None, **kwargs):
                 list_vars.append('{k}=$(cat <<EOF\n{v}\nEOF\n)'.format(
                     k=var, v='\n'.join(_var)))
             except TypeError as e:
-                logger.warning("Unsupported variable type, skipped variable '%s'" % var)
+                logger.debug("Unsupported variable type, skipped variable '%s'" % var)
                 logger.debug("Skip Reason %s" % e)
     # String-type variables
     defaults_string_vars = [] 
@@ -524,7 +524,7 @@ def run(args=None, **kwargs):
                 defaults_string_vars.append(
                     '{k}="""{v}"""'.format(k=var, v=_var))
             except TypeError as e:
-                logger.warning("Unsupported variable type, skipped variable '%s'" % var)
+                logger.debug("Unsupported variable type, skipped variable '%s'" % var)
                 logger.debug("Skip Reason %s" % e)
     # Append the __tasks_file variable to the above list
     defaults_string_vars.append(

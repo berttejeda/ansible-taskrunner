@@ -175,7 +175,7 @@ class ExtendCLI():
                 opt_option = cli_option_l[1]
                 opt_option_value = parameters.get(opt_option, '')
                 if not opt_option_value:
-                    logger.warning('Skipping mutually exclusive option %s due to possible broken association' % opt_option)
+                    logger.debug('Skipping mutually exclusive option %s due to possible broken association' % opt_option)
                     continue
             #If a given option is mutually exclusive with another, 
             #then whether or not it is required depends on the
@@ -341,7 +341,7 @@ class ExtendCLI():
             # Accounting for mutually exclusive options
             for param in param_list:
                 if param[0] != 'or' and param[1] is None:
-                    logger.warning("Removing invalid option key '%s'" % param[0])
+                    logger.debug("Removing invalid option key '%s'" % param[0])
                     required_parameters.pop(param[0])
         extended_cli_func_required = self.process_options(
             required_parameters, func, is_required=True)
@@ -354,7 +354,7 @@ class ExtendCLI():
             # Accounting for mutually exclusive options
             for param in param_list:
                 if param[0] != 'or' and param[1] is None:
-                    logger.warning("Removing invalid option key '%s'" % param[0])
+                    logger.debug("Removing invalid option key '%s'" % param[0])
                     optional_parameters.pop(param[0])
         extended_cli_func = self.process_options(
             optional_parameters, extended_cli_func_required)
