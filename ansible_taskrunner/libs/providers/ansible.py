@@ -233,7 +233,7 @@ class ProviderCLI:
         elif inventory_input:
             ans_inv_fp = inventory_input
             ans_inv_fso_desc = None
-            logger.info("Using specified inventory file %s" % ans_inv_fp)
+            logger.debug("Using specified inventory file %s" % ans_inv_fp)
             if bastion_settings.get('enabled'):
                 if not debug:
                     trap = 'trap "rm -f %s" EXIT' % ans_inv_fp            
@@ -246,8 +246,8 @@ class ProviderCLI:
                     trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
             else:
                 ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)                 
-                logger.info("No inventory specified")
-                logger.info("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
+                logger.debug("No external inventory specified")
+                logger.debug("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
             inventory_input = embedded_inventory_string
             embedded_inventory = True
         ansible_extra_options = [
