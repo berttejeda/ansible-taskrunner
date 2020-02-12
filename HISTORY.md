@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2020-02-12 v1.4.1
+
+* Relegate many of the warnings to debug output [6505ad9](https://github.com/berttejeda/ansible-taskrunner/commit/6505ad9e0e2d1fe2914b79d1b76cedae13bdf7d5)
+
 ## Release 2020-01-13 v1.4.0
 
 * Feature/win32 colorize (#117) [4717d68](https://github.com/berttejeda/ansible-taskrunner/commit/4717d68db3fe28849ba2e62c9100e1c4fa9dd692)
