@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2020-05-07 v1.4.2
+
+* Added check for embedded libraries [293f9f5](https://github.com/berttejeda/ansible-taskrunner/commit/293f9f54d99637fe3f9c29f54f9e3014c8808021)
+* Various improvements to sftp sync functionality in bastion mode [a4b9a1a](https://github.com/berttejeda/ansible-taskrunner/commit/a4b9a1a501014319b831f00be4e810a019ae24d4)
+
 ## Release 2020-02-12 v1.4.1
 
 * Relegate many of the warnings to debug output [6505ad9](https://github.com/berttejeda/ansible-taskrunner/commit/6505ad9e0e2d1fe2914b79d1b76cedae13bdf7d5)

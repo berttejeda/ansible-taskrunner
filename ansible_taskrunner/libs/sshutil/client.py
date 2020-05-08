@@ -34,9 +34,10 @@ is_zip = True if zipfile.is_zipfile(tasks_file_path) else False
 logger.debug('{} is Zip: {}'.format(tasks_file_path, is_zip))
 
 if is_zip:
-    pyver = "py%s" % sys.version_info[0]
-    dll_cache_path = os.path.expanduser("~/.ansible_taskrunner")
-    dll_sys_path = os.path.join(dll_cache_path, 'lib', pyver)
+    pyver = "py_%s" % '.'.join(['%s' % s for s in sys.version_info[0:3]])
+    user_profile = os.environ['USERPROFILE']
+    dll_cache_path = '{}\\{}'.format(user_profile, ".ansible_taskrunner")
+    dll_sys_path = os.path.join(dll_cache_path, 'libs', pyver)    
     logger.info('Checking for dll sys path %s' % dll_sys_path)
     if not os.path.exists(dll_sys_path):
         if not os.path.exists(dll_cache_path):

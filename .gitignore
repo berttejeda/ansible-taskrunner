@@ -27,7 +27,9 @@ wheels/
 release
 ansible_taskrunner/windows/libs
 ansible_taskrunner/libs/py2
+ansible_taskrunner/libs/py2.7.15
 ansible_taskrunner/libs/py3
+ansible_taskrunner/libs/py3.7.4
 ansible_taskrunner/tasks
 
 # PyInstaller
