@@ -145,8 +145,12 @@
         shell: bash
         hidden: true
         source: |-
+          echo '!!!Caveate emptor!!!'
+          echo -e '''Make sure of the following
+            - That your virtual python environments match the version of the python interpreter you intend to use!
+          '''
           echo Checking for embedded library directories ...
-          for pyver in py2 py3;do
+          for pyver in py2.7.15 py3.7.4;do
             if ! test -d ${lib_dir_name}/${pyver};then 
               echo ${lib_dir_name}/${pyver} not found, creating ...
               mkdir ${lib_dir_name}/${pyver}
