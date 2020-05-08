@@ -309,20 +309,20 @@ class ExtendCLI():
         # Determine if bastion mode is forced
         force_bastion_mode = True if '---bastion-mode' in sys.argv else False
         if sys.platform in ['win32', 'cygwin'] or force_bastion_mode:
-            option = click.option('---bastion-host',
+            option = click.option('---bastion-host','-h',
                          help='Specify bastion host',
                          required=bastion_host_required)
             func = option(func)
-            option = click.option('---bastion-host-port',
+            option = click.option('---bastion-host-port','-p',
                          help='Specify bastion host port')
             func = option(func)            
-            option = click.option('---bastion-user',
+            option = click.option('---bastion-user','-u',
                          help='Override default username')
             func = option(func)
-            option = click.option('---bastion-remote-path',
+            option = click.option('---bastion-remote-path','-r',
                           help='Specify remote workspace')
             func = option(func)
-            option = click.option('---bastion-ssh-key-file',
+            option = click.option('---bastion-ssh-key-file','-k',
                           help='Override default ssh key file')
             func = option(func)
         return func

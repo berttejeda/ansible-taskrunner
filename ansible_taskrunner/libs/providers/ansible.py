@@ -136,15 +136,15 @@ class ProviderCLI:
         loc_is_git = True if os.path.exists('.git') else False
         rem_is_git = True if rms == 2 else False
         if rem_is_git:
-            logger.info('OK, remote path exists and is a git repo')
+            logger.info('OK, remote path exists and is a git repo - %s' % remote_dir)
         elif rem_exists:
-            logger.info('OK, remote path exists')
+            logger.info('OK, remote path exists - %s' % remote_dir)
         else:            
             cmd = 'mkdir -p %s' % remote_dir
             mkdir_result = remote_sub_process.call('/', cmd)
             if mkdir_result:
                 logger.info("Performing initial sync to %s ..." % remote_dir)
-                sftp_sync.to_remote('.', remote_dir)
+                sftp_sync.to_remote(os.getcwd(), '%s/..' % remote_dir)
                 rem_exists = True
             else:
                 logger.error('Unable to create remote path!')
