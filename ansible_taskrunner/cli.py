@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # Import builtins
 from __future__ import print_function
-from collections import OrderedDict
 import getpass
 import logging
 import logging.handlers
 import os
 import re
 import sys
+from collections import OrderedDict
+from getversion import get_module_version
 from string import Template
+import ansible_taskrunner
 
 # OS Detection
 is_windows = True if sys.platform in ['win32', 'cygwin'] else False
@@ -92,7 +94,9 @@ Ansible Taskrunner - ansible-playbook wrapper
 
 # Private variables
 __author__ = 'etejeda'
-__version__ = '1.4.2'
+# Version
+__version__ = get_module_version(ansible_taskrunner)[0]
+
 __program_name__ = 'tasks'
 
 # Logging
