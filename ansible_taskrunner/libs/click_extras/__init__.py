@@ -116,7 +116,6 @@ class ExtendCLI():
         self.vars = vars_input
         self.help_msg_map = help_msg_map
         self.parameter_set = parameter_set
-        self.logger = logger
         # Populate list of available variables for use in internal string Templating
         self.sys_platform = sys.platform
         self.available_vars = vars(self)
