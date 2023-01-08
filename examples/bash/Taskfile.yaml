@@ -16,7 +16,7 @@
     required_parameters:
     optional_parameters:
       -h|--target-hosts: target_hosts ## Specify target hosts to ping
-      --ping-google: ping_google ## Invoke the 'ping_google' make-style function
+      --ping-google: ping_google ## Invoke the 'ping_google' shell function
     functions:
       ping_google:
         shell: bash

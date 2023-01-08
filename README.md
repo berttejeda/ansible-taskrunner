@@ -18,8 +18,8 @@
     - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
   - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
   - [Populate the vars block - inventory](#populate-the-vars-block---inventory)
-  - [Populate the vars block - embedded make-style functions](#populate-the-vars-block---embedded-make-style-functions)
-    - [About make-style functions](#about-make-style-functions)
+  - [Populate the vars block - embedded shell functions](#populate-the-vars-block---embedded-shell-functions)
+    - [About shell functions](#about-shell-functions)
       - [Bash example:](#bash-example)
       - [Python example:](#python-example)
       - [Ruby example:](#ruby-example)
@@ -143,7 +143,7 @@ Employ a pre-execution script that operates above the `ansible-playbook` command
   - Accomplishes the same as the above, but in more uniform manner
   - Support for custom command-line parameters/flags
   - Embedded dynamic inventory
-  - Embedded make-style shell functions
+  - Embedded shell shell functions
 
 Advantages to this approach:
 - Easier to manage
@@ -294,8 +294,8 @@ shell_var: $(grep somestring /some/file.txt) | Depends on output       | String
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
 ```   
 
@@ -384,8 +384,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -434,8 +434,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -460,12 +460,12 @@ Again, this variable is made available to the underlying subprocess call, and wi
 
 </details>
 
-<a name="populate-the-vars-block---embedded-make-style-functions"></a>
+<a name="populate-the-vars-block---embedded-shell-functions"></a>
 
-## Populate the vars block - embedded make-style functions
+## Populate the vars block - embedded shell functions
 
 <details>
-  <summary>Add embedded make-style functions: </summary>
+  <summary>Add embedded shell functions: </summary>
 
 *Taskfile.yaml*
 
@@ -492,8 +492,8 @@ Again, this variable is made available to the underlying subprocess call, and wi
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
@@ -540,11 +540,11 @@ will short-circuit normal operation and execute the corresponding functions in t
 
 For usage examples, see the [appendix](#usage-examples).
 
-<a name="about-make-style-functions"></a>
+<a name="about-shell-functions"></a>
 
-### About make-style functions
+### About shell functions
 
-Let's briefly side-step into make-style functions 
+Let's briefly side-step into shell functions 
 
 The syntax for nesting these under the _functions_ key is as follows:
 
@@ -630,8 +630,8 @@ The syntax for nesting these under the _functions_ key is as follows:
       -t|--some-parameter: some_value ## Specify some value
     optional_parameters:
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |

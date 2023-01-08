@@ -24,9 +24,9 @@
         --pypi-password|-P|sprompt: pypi_password ## Specify the password for authenticating against pypi.org
         --pypi-username|-U|prompt: pypi_username ## Specify the username for authenticating against pypi.org
         --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
-      -bz: build_zip ## Invoke the 'build_zip' make-style function
-      -br: pypi ## Invoke the 'pypi' make-style function
-      -c: clean ## Invoke the 'clean' make-style function
+      -bz: build_zip ## Invoke the 'build_zip' shell function
+      -br: pypi ## Invoke the 'pypi' shell function
+      -c: clean ## Invoke the 'clean' shell function
       -dp|--deploy: deployment_host_and_path ## Specify host:/path to deploy tasks zipapp to via SCP
       --replace-exe: REPLACE_EXE ## Replace exe (used with build)
     functions:
@@ -101,7 +101,7 @@
             python setup.py test      
       py_pi:
         shell: bash
-        help: Calls dist and release make-style functions
+        help: Calls dist and release shell functions
         source: |-
           dist && release
       dist:

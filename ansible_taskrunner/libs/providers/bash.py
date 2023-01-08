@@ -21,8 +21,8 @@ else:
 # Import third-party and custom modules
 try:
     import click
-    from libs.proc_mgmt import shell_invocation_mappings
-    from libs.proc_mgmt import CLIInvocation
+    from ansible_taskrunner.libs.proc_mgmt import shell_invocation_mappings
+    from ansible_taskrunner.libs.proc_mgmt import CLIInvocation
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')
@@ -47,7 +47,7 @@ class ProviderCLI:
     @staticmethod
     def invocation(args=None,
                    bastion_settings={},
-                   bash_functions=[],
+                   shell_functions=[],
                    cli_vars='',
                    debug=False,
                    default_vars={},
@@ -75,7 +75,7 @@ class ProviderCLI:
             dsv='\n'.join(string_vars),
             psv=paramset_var,
             clv=cli_vars,
-            bfn='\n'.join(bash_functions),
+            bfn='\n'.join(shell_functions),
             deb=debug
         )
         command = command

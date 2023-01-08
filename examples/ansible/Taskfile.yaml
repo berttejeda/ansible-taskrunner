@@ -25,7 +25,7 @@
       -t|--target-path: target_path ## Target path on host you're copying files to
       -p|--local-path: local_path ## Local path you're copying from
     optional_parameters:
-      --mock: mock_test ## Invoke the 'mock_test' make-style function
+      --mock: mock_test ## Invoke the 'mock_test' shell function
     functions:
       mock_test:
         shell: bash

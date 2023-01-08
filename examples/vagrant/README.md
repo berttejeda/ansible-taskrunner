@@ -54,11 +54,11 @@ command, e.g. providing some custom cli options and the like
 
 Options:
   --version             Show the version and exit.
-  ---make, ---m TEXT    Call make-style function
+  ---make, ---m TEXT    Call shell function
   ---raw TEXT           Specify raw options for underlying subprocess
   ---echo               Don't run, simply echo underlying commands
-  --oel76               Invoke the 'vagrant_up_oel76' make-style function
-  --xenial              Invoke the 'vagrant_up_xenial' make-style function
+  --oel76               Invoke the 'vagrant_up_oel76' shell function
+  --xenial              Invoke the 'vagrant_up_xenial' shell function
   ---vagrant-test-flag  Set the _vagrant_test_flag value to true
   --help                Show this message and exit.
 
@@ -70,7 +70,7 @@ tasks run --xenial
 - You want to fire up an Oracle Enterprise Linux 7.6 x64 machine:
 tasks run --oel76
 
-Available make-style functions:
+Available shell functions:
 vagrant_up_oel76: Bring up an Oracle Enterprise Linux 7.6 x64 Virtual Machine
 vagrant_up_xenial: Bring up an Ubuntu Xenial x64 Virtual Machine
 ```

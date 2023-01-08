@@ -1,34 +1,15 @@
 # Imports
-import logging
-import os
 import re
 import sys
 from string import Template
 
-# Setup Logging
-logger = logging.getLogger(__name__)
-if '--debug run' in ' '.join(sys.argv):
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
-
-if getattr(sys, 'frozen', False):
-    # frozen
-    self_file_name = os.path.basename(sys.executable)
-else:
-    self_file_name = os.path.basename(__file__)
-
 # Import third-party and custom modules
-try:
-    import click
-except ImportError as e:
-    print('Error in %s ' % os.path.basename(self_file_name))
-    print('Failed to import at least one required module')
-    print('Error was %s' % e)
-    print('Please install/update the required modules:')
-    print('pip install -U -r requirements.txt')
-    sys.exit(1)
+from ansible_taskrunner.logger import Logger
+from bertdotconfig.configutils import AttrDict
+import click
 
+logger_obj = Logger()
+logger = logger_obj.init_logger(__name__)
 
 class ExtendedEpilog(click.Group):
     def format_epilog(self, ctx, formatter):
@@ -96,14 +77,13 @@ class NotRequiredIf(click.Option):
         if other_present:
             if we_are_present:
                 if self.name == self.not_required_if:
-                    logger.error("Option order error: `%s`" % self.name)
+                    logger.error(f"Option order error: `{self.name}`")
                     logger.error("Make sure you call this option BEFORE any mutually-exlusive options referencing it")
                     logger.error("Check your tasks manifest")
                     sys.exit(1)
-                else:                    
+                else:
                     logger.error(
-                        "Illegal usage: `%s` is mutually exclusive with `%s`" % (
-                            self.name, self.not_required_if))
+                        f"Illegal usage: `{self.name}` is mutually exclusive with `{self.not_required_if}`")
                     sys.exit(1)
             else:
                 self.prompt = None
@@ -112,15 +92,19 @@ class NotRequiredIf(click.Option):
             ctx, opts, args)
 
 class ExtendCLI():
-    def __init__(self, parameter_set=None, vars_input={}, help_msg_map={}):
-        self.vars = vars_input
-        self.help_msg_map = help_msg_map
-        self.parameter_set = parameter_set
-        self.logger = logger
+
+    def __init__(self, **kwargs):
+
+        self.parameter_set = kwargs.get('parameter_set')
+        global_options = kwargs.get('global_options', {})
+        self.command_vars = kwargs.get('command_vars', {})
+        # Merge in global options
+        AttrDict.merge(self.command_vars, {'options': global_options})
+        self.help_msg_map = kwargs.get('help_msg_map', {})
+        self.available_vars = kwargs.get('available_vars', {})
         # Populate list of available variables for use in internal string Templating
         self.sys_platform = sys.platform
-        self.available_vars = vars(self)
-        self.available_vars = dict([(v, self.available_vars[v]) for v in self.available_vars.keys() if not type(self.available_vars[v]) == dict])
+        self.seen_options = set()
         pass
 
     def process_options(self, parameters, func, is_required=False):
@@ -133,11 +117,11 @@ class ExtendCLI():
             [(k, v) for k, v in parameters.items() if not isinstance(parameters[k], dict)])
         if self.parameter_set:
             existing_parameter_sets = dict(
-                [(k, v) for k, v in parameters.items() if isinstance(parameters[k], dict)])            
+                [(k, v) for k, v in parameters.items() if isinstance(parameters[k], dict)])
             # Exclude parameter sets we have not activated
             excluded_parameter_sets = set(existing_parameter_sets) - set(self.parameter_set)
             for es in excluded_parameter_sets:
-                parameters.pop(es)            
+                parameters.pop(es)
             # Build the options dictionary
             for ps in self.parameter_set:
                 _parameters = parameters.get(ps, {})
@@ -157,14 +141,27 @@ class ExtendCLI():
         secure_input = False
         option_type = None
         value_from_env = None
-        for cli_option, value in parameters.items():            
+        for cli_option, value in parameters.items():
+
             cli_option = Template(cli_option).safe_substitute(**self.available_vars)
+
+            if cli_option not in self.seen_options:
+                self.seen_options.add(cli_option)
+            else:
+                if logger.level == 10:
+                    logger.warning(f"Not adding {cli_option}: {value} because it is a duplicate option")
+                continue
+
+            if self.help_msg_map.get(cli_option):
+                option_help = self.help_msg_map[cli_option]
+            else:
+                option_help = value
             if isinstance(value, list):
                 value = [Template(v).safe_substitute(**self.available_vars) if isinstance(v, str) else v for v in value if isinstance(v, (str, int))]
             elif isinstance(value, str):
                 value = Template(value).safe_substitute(**self.available_vars)
             else:
-                logger.error('Skipping unsupported value type %s' % s)
+                logger.debug(f'Skipping unsupported value type for {value} ({type(value)})')
                 continue
             opt_option = None
             opt_option_value = None
@@ -175,12 +172,12 @@ class ExtendCLI():
                 opt_option = cli_option_l[1]
                 opt_option_value = parameters.get(opt_option, '')
                 if not opt_option_value:
-                    logger.debug('Skipping mutually exclusive option %s due to possible broken association' % opt_option)
+                    logger.debug(f'Skipping mutually exclusive option {opt_option} due to possible broken association')
                     continue
-            #If a given option is mutually exclusive with another, 
-            #then whether or not it is required depends on the
-            #command-line invocation relating 
-            # to its mutually exclusive partners            
+            # If a given option is mutually exclusive with another,
+            # then whether it is required depends on the
+            # command-line invocation relating
+            # to its mutually exclusive partners
             cli_option_is_me = any(['or %s' % cli_option in o for o,v in parameters.items()])
             cli_option_me_pattern = re.compile(cli_option)
             cli_option_is_called = any([cli_option_me_pattern.match(a) for a in sys.argv])
@@ -209,10 +206,6 @@ class ExtendCLI():
             # Account for click.Choice types
             elif isinstance(value, list):
                 option_type = 'choice'
-            if self.help_msg_map.get(cli_option):
-                option_help = self.help_msg_map[cli_option]
-            else:
-                option_help = value
             if '|' in cli_option:
                 option_strings = cli_option.split('|')
                 first_option = option_strings[0].strip()
@@ -230,35 +223,35 @@ class ExtendCLI():
                 numargs = 1 if numargs < 1 else numargs
                 if opt_option:
                     if option_type == 'choice':
-                        option = click.option(first_option, second_option, 
-                        type=click.Choice(value), help=option_help, cls=NotRequiredIf,
-                        prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                        envvar=value_from_env)
+                        option = click.option(first_option, second_option,
+                                              type=click.Choice(value), help=option_help, cls=NotRequiredIf,
+                                              prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
+                                              envvar=value_from_env)
                     else:
-                        option = click.option(first_option, second_option, value, 
-                        type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
-                        prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
-                        envvar=value_from_env)
+                        option = click.option(first_option, second_option, value,
+                                              type=str, nargs=numargs, help=option_help, cls=NotRequiredIf,
+                                              prompt=prompt_if_missing, hide_input=secure_input, not_required_if=opt_option_value,
+                                              envvar=value_from_env)
                 else:
                     if cli_option_is_me and cli_option_other_is_called:
                         _is_required = False
                     else:
                         _is_required = is_required
                     if option_type == 'choice':
-                        option = click.option(first_option, second_option, 
-                        type=click.Choice(value), help=option_help, 
-                        prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                        envvar=value_from_env)
+                        option = click.option(first_option, second_option,
+                                              type=click.Choice(value), help=option_help,
+                                              prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
+                                              envvar=value_from_env)
                     else:
-                        option = click.option(first_option, second_option, 
-                        value, type=str, nargs=numargs, help=option_help, 
-                        prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
-                        envvar=value_from_env)
+                        option = click.option(first_option, second_option,
+                                              value, type=str, nargs=numargs, help=option_help,
+                                              prompt=prompt_if_missing, hide_input=secure_input, required=_is_required,
+                                              envvar=value_from_env)
             else:
                 if nargs_ul_is_set and \
-                not nargs_ul_count > nargs_ul_count_max:
+                    not nargs_ul_count > nargs_ul_count_max:
                     option = click.argument(
-                        cli_option, value, help=option_help, 
+                        cli_option, value, help=option_help,
                         nargs=numargs, prompt=prompt_if_missing, hide_input=secure_input, required=is_required,
                         envvar=value_from_env)
                 else:
@@ -266,7 +259,7 @@ class ExtendCLI():
                     if opt_option:
                         option = click.option(
                             cli_option, value, cls=NotRequiredIf,
-                            is_flag=True, default=False, 
+                            is_flag=True, default=False,
                             help=option_help, not_required_if=opt_option_value,
                             envvar=value_from_env)
                     else:
@@ -275,8 +268,8 @@ class ExtendCLI():
                         else:
                             _is_required = is_required
                         option = click.option(
-                            cli_option, value, is_flag=True, 
-                            default=False, help=option_help, 
+                            cli_option, value, is_flag=True,
+                            default=False, help=option_help,
                             required=_is_required, envvar=value_from_env)
             try:
                 func = option(func)
@@ -297,7 +290,7 @@ class ExtendCLI():
         """
         option = click.option('---bastion-mode',
                       is_flag=True,
-                      help='Force execution of commands via a bastion host')        
+                      help='Force execution of commands via a bastion host')
         func = option(func)
         # Determine if bastion host is a required parameter
         if len(sys.argv) > 0 and sys.argv[0] == 'init':
@@ -315,7 +308,7 @@ class ExtendCLI():
             func = option(func)
             option = click.option('---bastion-host-port','-p',
                          help='Specify bastion host port')
-            func = option(func)            
+            func = option(func)
             option = click.option('---bastion-user','-u',
                          help='Override default username')
             func = option(func)
@@ -329,10 +322,10 @@ class ExtendCLI():
 
     def options(self, func):
         """
-        Read dictionary of parameters, append these 
+        Read dictionary of parameters, append these
         as additional options to incoming click function
         """
-        required_parameters = self.vars.get('required_parameters', {})
+        required_parameters = self.command_vars.get('options.required', {})
         if not required_parameters:
             required_parameters = {}
         else:
@@ -341,11 +334,11 @@ class ExtendCLI():
             # Accounting for mutually exclusive options
             for param in param_list:
                 if param[0] != 'or' and param[1] is None:
-                    logger.debug("Removing invalid option key '%s'" % param[0])
+                    logger.debug(f"Removing invalid option key '{param[0]}'")
                     required_parameters.pop(param[0])
         extended_cli_func_required = self.process_options(
             required_parameters, func, is_required=True)
-        optional_parameters = self.vars.get('optional_parameters', {})
+        optional_parameters = self.command_vars.get('options.optional', {})
         if not optional_parameters:
             optional_parameters = {}
         else:
@@ -354,7 +347,7 @@ class ExtendCLI():
             # Accounting for mutually exclusive options
             for param in param_list:
                 if param[0] != 'or' and param[1] is None:
-                    logger.debug("Removing invalid option key '%s'" % param[0])
+                    logger.debug(f"Removing invalid option key '{param[0]}'")
                     optional_parameters.pop(param[0])
         extended_cli_func = self.process_options(
             optional_parameters, extended_cli_func_required)

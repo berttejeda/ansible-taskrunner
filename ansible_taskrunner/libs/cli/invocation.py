@@ -10,8 +10,8 @@ else:
         
 # Import third-party and custom modules
 try:
-    from libs.errorhandler import catchException
-    from libs.errorhandler import ERR_ARGS_TASKF_OVERRIDE
+    from ansible_taskrunner.libs.errorhandler import catchException
+    from ansible_taskrunner.libs.errorhandler import ERR_ARGS_TASKF_OVERRIDE
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')

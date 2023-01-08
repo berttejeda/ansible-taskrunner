@@ -30,8 +30,8 @@
       -w|--web-hosts: webhosts ## Specify a WebHost
       -t|--some-parameter: some_value ## Specify some value
       -l|--another-parameter: another_value ## Specify another value
-      -A: hello ## Invoke the 'hello' make-style function
-      -PR: preflight_and_run ## Invoke the 'preflight_and_run' make-style function
+      -A: hello ## Invoke the 'hello' shell function
+      -PR: preflight_and_run ## Invoke the 'preflight_and_run' shell function
       --debug-mode: debug_mode ## Enable debug mode
     help:
       message: |
