@@ -89,9 +89,9 @@ class CLICK_Commands_SUB:
           k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
                        value and key in internal_functions.keys()]
       provider_vars = {}
-      _yaml_variables = dict([(t[0], t[1]) for t in yaml_variables if not self.skip_vars_pattern.search(str(t[1]))])
-      AttrDict.merge(provider_vars, _yaml_variables)
+      yaml_variables_wo_jinja = dict([(t[0], t[1]) for t in yaml_variables if not self.skip_vars_pattern.search(str(t[1]))])
       AttrDict.merge(provider_vars, kwargs)
+      AttrDict.merge(provider_vars, yaml_variables_wo_jinja)
       # Add the k,v for __tasks_file__
       provider_vars['__tasks_file__'] = self.tf_path
       # Add the k,v for __command__
