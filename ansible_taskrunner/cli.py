@@ -24,7 +24,6 @@ else:
 
 # OS Detection
 is_windows = True if sys.platform in ['win32', 'cygwin'] else False
-is_darwin = True if sys.platform in ['darwin'] else False
 
 # set Windows console in VT mode
 if is_windows:
@@ -62,7 +61,7 @@ __program_name__ = 'tasks'
 
 logger.debug(f'{__program_name__} version is {__version__}')
 
-cli_obj = CLI(script_name=script_name, doc=_doc, version=__version__)
+cli_obj = CLI(is_windows=is_windows, doc=_doc, script_name=script_name, version=__version__)
 cli = cli_obj.create_cli_entrypoint()
 
 # Replace cli invocation in case we're calling the script directly

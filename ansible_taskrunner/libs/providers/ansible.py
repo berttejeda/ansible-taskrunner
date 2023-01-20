@@ -194,13 +194,10 @@ class ProviderCLI:
         bastion_settings = kwargs.get('bastion_settings', {})
         extra_vars = kwargs.get('extra_vars', '')
         shell_functions = kwargs.get('shell_functions', [])
-        provider_vars = kwargs.get('provider_vars', {})
-        AttrDict.merge(available_vars, provider_vars)
         debug = kwargs.get('debug', False)
         provider_vars = kwargs.get('provider_vars', {})
         provider_vars_string_block = kwargs.get('provider_vars_string_block', '')
         invocation = kwargs.get('invocation', {})
-        list_vars = kwargs.get('list_vars', [])
         prefix = kwargs.get('prefix', '')
         raw_args = kwargs.get('raw_args', '')
         suppress_output = kwargs.get('suppress_output')
@@ -262,11 +259,10 @@ class ProviderCLI:
         else:
             inventory_command = ''
         anc = ansi_colors.strip()
-        dlv = '\n'.join(list_vars)
         psb = provider_vars_string_block
         bfn = '\n'.join(shell_functions)
         inc = inventory_command
-        pre_commands = f'{anc}\n{psb}\n{dlv}\n{bfn}\n{inc}'
+        pre_commands = f'{anc}\n{psb}\n{bfn}\n{inc}'
         apc = ansible_playbook_command
         if embedded_inventory_string_is_file:
             inf = inventory_input

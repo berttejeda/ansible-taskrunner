@@ -26,6 +26,7 @@ class CLI(CLICK_Commands_CLI_Entrypoint, CLICK_Commands_INIT, CLICK_Commands_SUB
   def __init__(self, **kwargs):
 
     script_name = kwargs['script_name']
+    self.is_windows = kwargs.get('is_windows')
     self.doc = kwargs['doc']
     self.version = kwargs['version']
     self.exe_path = None
