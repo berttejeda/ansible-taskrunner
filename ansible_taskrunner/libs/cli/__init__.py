@@ -46,7 +46,9 @@ class CLI(CLICK_Commands_CLI_Entrypoint, CLICK_Commands_INIT, CLICK_Commands_SUB
     self.tf_path = os.path.normpath(os.path.expanduser(self.tasks_file))
     # Instantiate the cli invocation class
     self.sub_process = CLIInvocation()
-    self.skip_vars_pattern = re.compile('{{ .* }}')
+    self.special_vars_pattern = re.compile('ANSIBLE_EXTRA_VARS')
+    self.skip_keys_pattern = re.compile('ANSIBLE_EXTRA_VARS')
+    self.skip_values_pattern = re.compile('{{ .* }}')
     # Configuration Files
     self.attrdict = AttrDict()
     self.config_file = 'config.yaml'

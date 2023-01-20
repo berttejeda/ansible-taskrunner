@@ -192,6 +192,7 @@ class ProviderCLI:
         args = kwargs.get('args')
         available_vars = kwargs.get('available_vars', {})
         bastion_settings = kwargs.get('bastion_settings', {})
+        extra_vars = kwargs.get('extra_vars', '')
         shell_functions = kwargs.get('shell_functions', [])
         provider_vars = kwargs.get('provider_vars', {})
         AttrDict.merge(available_vars, provider_vars)
@@ -275,7 +276,8 @@ class ProviderCLI:
         pb = yaml_input_file
         arg = args
         raw = raw_args
-        ansible_command_strings = [apc, '${__ansible_extra_options}', f'-i {inf}', opt, arg, raw, pb]
+        ev = extra_vars
+        ansible_command_strings = [apc, '${__ansible_extra_options__}', f'-i {inf}', opt, arg, ev, raw, pb]
         ansible_command = ' \\\n'.join(s for s in ansible_command_strings if s)
         command = pre_commands + ansible_command
         # Command invocation

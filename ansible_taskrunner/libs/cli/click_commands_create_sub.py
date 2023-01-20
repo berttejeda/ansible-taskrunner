@@ -89,7 +89,20 @@ class CLICK_Commands_SUB:
           k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
                        value and key in internal_functions.keys()]
       provider_vars = {}
-      yaml_variables_wo_jinja = dict([(t[0], t[1]) for t in yaml_variables if not self.skip_vars_pattern.search(str(t[1]))])
+      yaml_variables_wo_jinja = dict(
+                                [
+                                    (t[0], t[1]) for t in yaml_variables
+                                    if not self.skip_values_pattern.search(str(t[1])) and
+                                    not self.skip_keys_pattern.search(str(t[0]))
+                                ]
+                                )
+      special_vars = dict(
+                                [
+                                    (t[0], t[1]) for t in yaml_variables
+                                    if self.special_vars_pattern.search(str(t[0]))
+                                ]
+                                )
+      extra_vars = special_vars.get('ANSIBLE_EXTRA_VARS', [])
       AttrDict.merge(provider_vars, kwargs)
       AttrDict.merge(provider_vars, yaml_variables_wo_jinja)
       # Add the k,v for __tasks_file__
@@ -105,7 +118,9 @@ class CLICK_Commands_SUB:
                   if logger.level == 10:
                     logger.error(f"Unsupported variable type, skipped variable {k}")
                     logger.error(f"Skip Reason {e}")
-      provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars.items()])
+      extra_vars_cli_string = ''.join(f'-e @{e} ' for e in extra_vars)
+      extra_vars_string = f'\nextra_vars="{extra_vars_cli_string}"'
+      provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars.items()]) + extra_vars_string
       if cli_functions:
           bf = '\n'.join(shell_functions)
           cf = '\n'.join(cli_functions)
@@ -121,6 +136,7 @@ class CLICK_Commands_SUB:
               bastion_settings=bastion_settings,
               cli_vars=cli_vars,
               debug=self.debug,
+              extra_vars=extra_vars_cli_string,
               invocation=self.cli_invocation,
               prefix=prefix,
               provider_vars=provider_vars,
