@@ -16,7 +16,6 @@ class CLICK_Commands_SUB:
   def create_cli_sub_command(self, **kwargs):
 
     bastion_settings = kwargs['bastion_settings']
-    cli_functions = kwargs['cli_functions']
     command_vars = kwargs.get('command_vars', {})
     extra_vars_cli_string = kwargs['extra_vars_cli_string']
     extra_vars_string = kwargs['extra_vars_string']
@@ -57,6 +56,10 @@ class CLICK_Commands_SUB:
 
       # Derive the provider vars string from provider vars
       provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars.items()]) + extra_vars_string
+
+      cli_functions = ['{k} {v}'.format(
+          k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
+          value and key in internal_functions.keys()]
 
       if cli_functions:
           bf = '\n'.join(shell_functions)

@@ -88,9 +88,7 @@ class CLICK_Commands_SUB_INIT:
 
         command_vars = cli_obj.yaml_vars.get(f'commands.{c}')
 
-        cli_functions = ['{k} {v}'.format(
-            k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
-            value and key in internal_functions.keys()]
+
         provider_vars = {}
         # Define the list of yaml variables, excluding the 'inventory' variable (if applicable)
         yaml_variables = [(key, value) for key, value in self.yaml_vars.items() if not isinstance(value, dict)]
@@ -132,7 +130,6 @@ class CLICK_Commands_SUB_INIT:
 
         cli_sub_kwargs = {
             'bastion_settings': bastion_settings,
-            'cli_functions': cli_functions,
             'command_vars': command_vars,
             'extra_vars_cli_string': extra_vars_cli_string,
             'extra_vars_string': extra_vars_string,
