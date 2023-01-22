@@ -4,13 +4,13 @@ import os
 from os import fdopen, remove
 import uuid
 from string import Template
+import re
 import sys
 import time
 from tempfile import mkstemp
 
 # Import third-party and custom modules
 import click
-from bertdotconfig.configutils import AttrDict
 from ansible_taskrunner.logger import Logger
 from ansible_taskrunner.libs.formatting import ansi_colors, Struct
 from ansible_taskrunner.libs.proc_mgmt import CLIInvocation
@@ -259,7 +259,7 @@ class ProviderCLI:
         else:
             inventory_command = ''
         anc = ansi_colors.strip()
-        psb = provider_vars_string_block
+        psb = re.sub(r'(ANSIBLE_)(.*?)=', 'export \\1\\2=', provider_vars_string_block)
         bfn = '\n'.join(shell_functions)
         inc = inventory_command
         pre_commands = f'{anc}\n{psb}\n{bfn}\n{inc}'
@@ -275,7 +275,7 @@ class ProviderCLI:
         ev = extra_vars
         ansible_command_strings = [apc, '${__ansible_extra_options__}', f'-i {inf}', opt, arg, ev, raw, pb]
         ansible_command = ' \\\n'.join(s for s in ansible_command_strings if s)
-        command = pre_commands + ansible_command
+        command = f'{pre_commands} {ansible_command}'
         # Command invocation
         # Bastion host logic
         result = None
