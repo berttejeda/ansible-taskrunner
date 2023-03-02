@@ -206,20 +206,20 @@ class ProviderCLI:
         ansible_playbook_command = provider_vars.get(
             'ansible_playbook_command', 'ansible-playbook')
         # Embedded inventory logic
-        embedded_inventory = False
+        inventory_is_embedded = False
         # Employ an exit trap if we're using bastion mode
         trap = ''
         # Where to create the temporary inventory (if applicable)
         inventory_dir = provider_vars.get('_inventory_tmp_dir') or provider_vars.get('inventory_dir')
         inventory_input = provider_vars.get('_inventory')
-        _embedded_inventory_string = provider_vars.get('inventory')
-        embedded_inventory_string = Template(_embedded_inventory_string).safe_substitute(**available_vars)
+        embedded_inventory_string = provider_vars.get('inventory')
         ans_inv_fso_desc = None
         embedded_inventory_string_is_file = os.path.isfile(
             os.path.abspath(
                 os.path.expanduser(embedded_inventory_string)
             )
         )
+
         if not inventory_input and not embedded_inventory_string:
             logger.error(
                 "Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
@@ -227,6 +227,7 @@ class ProviderCLI:
         elif inventory_input:
             ans_inv_fp = inventory_input
             logger.debug("Using specified inventory file %s" % ans_inv_fp)
+            effective_inventory_input = inventory_input
             if bastion_settings.get('enabled'):
                 if not debug:
                     trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
@@ -241,21 +242,21 @@ class ProviderCLI:
                     ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)
                     logger.debug("No external inventory specified")
                     logger.debug("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
-                    inventory_input = embedded_inventory_string
-                    embedded_inventory = True
+                    effective_inventory_input = embedded_inventory_string
+                    inventory_is_embedded = True
                 else:
-                    inventory_input = os.path.abspath(
+                    effective_inventory_input = os.path.abspath(
                         os.path.expanduser(embedded_inventory_string)
                     )
 
         ansible_extra_options = [
-            f'-e {key}="{value}"' for key, value in provider_vars.items() if value] #+ [f'-e {kv}' for kv in string_vars]
+            f'-e {key}="${{{key}}}"' for key, value in provider_vars.items() if value] #+ [f'-e {kv}' for kv in string_vars]
         # Build command string
         if ans_inv_fso_desc or bastion_settings.get('enabled'):
-            inventory_command = f'{trap}\nif [[ ($inventory) && ( "{embedded_inventory}" == "True") ]];then\n \
-            echo -e """{inventory_input}""" \
-            | while read line;do\n eval "echo -e ${{line}}" >> "{ans_inv_fp}";\ndone\n \
-            fi;\n'
+            inventory_command = f'{trap}\nif [[ ($inventory) && ( "{inventory_is_embedded}" == "True") ]];then\n' + \
+            f'echo -e """{effective_inventory_input}"""' + \
+            f'| while read line;do\n eval "echo -e ${{line}}" >> "{ans_inv_fp}";\ndone\n' + \
+            'fi;\n'
         else:
             inventory_command = ''
         anc = ansi_colors.strip()
@@ -274,7 +275,7 @@ class ProviderCLI:
         raw = raw_args
         ev = extra_vars
         ansible_command_strings = [apc, '${__ansible_extra_options__}', f'-i {inf}', opt, arg, ev, raw, pb]
-        ansible_command = ' \\\n'.join(s for s in ansible_command_strings if s)
+        ansible_command = ' '.join(s for s in ansible_command_strings if s)
         command = f'{pre_commands} {ansible_command}'
         # Command invocation
         # Bastion host logic
