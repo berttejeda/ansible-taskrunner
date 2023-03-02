@@ -91,7 +91,7 @@ class CLICK_Commands_SUB_INIT:
 
         provider_vars = {}
         # Define the list of yaml variables, excluding the 'inventory' variable (if applicable)
-        yaml_variables = [(key, value) for key, value in self.yaml_vars.items() if not isinstance(value, dict)]
+        yaml_variables = [(key, value) for key, value in self.yaml_vars.items()]
         yaml_variables_wo_jinja = dict(
             [
                 (t[0], t[1]) for t in yaml_variables
@@ -103,15 +103,23 @@ class CLICK_Commands_SUB_INIT:
         for tup in yaml_variables:
             key = tup[0]
             value = tup[1]
+            if '\n' in value:
+                value = value.split('\n')
             if value and key not in internal_functions.keys():
-                if isinstance(value, list) or isinstance(value, tuple):
+                # We don't want to 'commands' or 'inventory' down to the subprocess
+                if key in ['commands']:
+                    yaml_variables_wo_jinja.pop(key)
+                elif isinstance(value, list) or isinstance(value, tuple):
                     try:
                         value_string = '\n'.join(value)
                         yaml_variables_wo_jinja[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
                     except TypeError as e:
                         if logger.level == 10:
-                            logger.error(f"Unsupported variable type, skipped variable {k}")
+                            logger.error(f"Unsupported variable type, skipped variable {key}")
                             logger.error(f"Skip Reason {e}")
+                elif isinstance(value, dict):
+                    value_string = str(value)
+                    yaml_variables_wo_jinja[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
 
         special_vars = dict(
             [
