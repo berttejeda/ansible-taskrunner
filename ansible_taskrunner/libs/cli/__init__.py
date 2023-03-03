@@ -10,7 +10,7 @@ from ansible_taskrunner.config import AppConfig
 from bertdotconfig.configutils import AttrDict
 from ansible_taskrunner.libs.cli.invocation import get_invocation
 from ansible_taskrunner.libs.click_extras import ExtendCLI
-from ansible_taskrunner.libs.click_extras import ExtendedHelp
+from ansible_taskrunner.libs.click_extras.help import ExtendedHelp
 from ansible_taskrunner.libs.proc_mgmt import CLIInvocation
 from ansible_taskrunner.logger import Logger
 from ansible_taskrunner.libs.cli.click_commands_create_entrypoint import CLICK_Commands_CLI_Entrypoint

@@ -2,8 +2,7 @@
 from string import Template
 
 # Import third-party and custom modules
-from bertdotconfig.configutils import AttrDict
-from ansible_taskrunner.libs.click_extras import ExtendedHelp
+from ansible_taskrunner.libs.click_extras.help import ExtendedHelp
 from ansible_taskrunner.libs.proc_mgmt import shell_invocation_mappings
 from ansible_taskrunner.logger import Logger
 

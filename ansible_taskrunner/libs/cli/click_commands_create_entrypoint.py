@@ -3,7 +3,7 @@ import logging
 import sys
 
 from ansible_taskrunner.libs.formatting import logging_format
-from ansible_taskrunner.libs.click_extras import ExtendedEpilog
+from ansible_taskrunner.libs.click_extras.help import ExtendedEpilog
 from ansible_taskrunner.logger import Logger
 
 logger_obj = Logger()

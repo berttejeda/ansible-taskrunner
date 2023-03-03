@@ -1,6 +1,4 @@
 # Import builtins
-from collections import OrderedDict
-import sys
 
 # Import third-party and custom modules
 import click
@@ -32,12 +30,11 @@ class CLICK_Commands_SUB:
         command_vars=command_vars,
         help_msg_map=self.option_help_messages)
 
-    @click.option('---make', 'make_mode_engage', is_flag=False,
-                  help='Call shell function',
-                  required=False)
+    @click.option('---make', 'make_mode_engage', is_flag=True,
+                  help='Call shell function')
     @click.option('---echo',
                   is_flag=True,
-                  help='Don\'t run, simply echo underlying commands')
+                  help="Don't run, simply echo underlying commands")
     @extend_cli.options
     @extend_cli.bastion_mode
     @self.provider_cli.options
