@@ -188,6 +188,7 @@ class ExtendCLIOptionsProcessor():
                 }
                 option = self.process_option_w_arg(**option_settings)
             else:
+                # TODO break this out into a separate function like above
                 if nargs_ul_is_set and \
                     not nargs_ul_count > nargs_ul_count_max:
                     option = click.argument(
@@ -207,9 +208,16 @@ class ExtendCLIOptionsProcessor():
                             _is_required = False
                         else:
                             _is_required = is_required
+                        # For a flag to be required, both the following must be set
+                        # default=None
+                        # required=True
+                        if _is_required:
+                            default_value=None
+                        else:
+                            default_value=False
                         option = click.option(
                             cli_option, value, is_flag=True,
-                            default=False, help=option_help,
+                            default=default_value, help=option_help,
                             required=_is_required, envvar=value_from_env)
             try:
                 func = option(func)
