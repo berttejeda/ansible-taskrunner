@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Import builtins
+# Imports
 import os
 import sys
 
@@ -62,7 +62,7 @@ __program_name__ = 'tasks'
 logger.debug(f'{__program_name__} version is {__version__}')
 
 cli_obj = CLI(is_windows=is_windows, doc=_doc, script_name=script_name, version=__version__)
-cli = cli_obj.create_cli_entrypoint()
+cli = cli_obj.create_cli_group()
 
 # Replace cli invocation in case we're calling the script directly
 # This allows for overriding the command manifest file, A.K.A. Taskfile.yaml

@@ -9,9 +9,9 @@ from ansible_taskrunner.logger import Logger
 logger_obj = Logger()
 logger = logger_obj.init_logger('click_commands_cli_entrypoint')
 
-class CLICK_Commands_CLI_Entrypoint:
+class CLICK_Commands_CLI_Group:
 
-  def create_cli_entrypoint(self):
+  def create_cli_group(self):
 
     # Main CLI interface
     click_help_epilog = ""

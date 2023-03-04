@@ -1,4 +1,4 @@
-# Import builtins
+# Imports
 from __future__ import print_function
 import getpass
 import os
@@ -13,7 +13,7 @@ from ansible_taskrunner.libs.click_extras import ExtendCLI
 from ansible_taskrunner.libs.click_extras.help import ExtendedHelp
 from ansible_taskrunner.libs.proc_mgmt import CLIInvocation
 from ansible_taskrunner.logger import Logger
-from ansible_taskrunner.libs.cli.click_commands_create_entrypoint import CLICK_Commands_CLI_Entrypoint
+from ansible_taskrunner.libs.cli.click_commands_create_group import CLICK_Commands_CLI_Group
 from ansible_taskrunner.libs.cli.click_commands_create_init import CLICK_Commands_INIT
 from ansible_taskrunner.libs.cli.click_commands_create_sub import CLICK_Commands_SUB
 from ansible_taskrunner.libs.cli.click_commands_init_sub import CLICK_Commands_SUB_INIT
@@ -21,7 +21,7 @@ from ansible_taskrunner.libs.cli.click_commands_init_sub import CLICK_Commands_S
 logger_obj = Logger()
 logger = logger_obj.init_logger(__name__)
 
-class CLI(CLICK_Commands_CLI_Entrypoint, CLICK_Commands_INIT, CLICK_Commands_SUB, CLICK_Commands_SUB_INIT):
+class CLI(CLICK_Commands_CLI_Group, CLICK_Commands_INIT, CLICK_Commands_SUB, CLICK_Commands_SUB_INIT):
 
   def __init__(self, **kwargs):
 
