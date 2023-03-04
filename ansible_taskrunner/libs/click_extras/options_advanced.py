@@ -1,20 +1,18 @@
 # Imports
 import click
-import sys
 from ansible_taskrunner.logger import Logger
 
 logger_obj = Logger()
 logger = logger_obj.init_logger(__name__)
 
-# Allow for mutually-exlusive click options
+# Allow for click options that are not required if
+# another, related option is specified
 class NotRequiredIf(click.Option):
-
     def __init__(self, *args, **kwargs):
         self.not_required_if = kwargs.pop('not_required_if')
         assert self.not_required_if, "'not_required_if' parameter required"
         kwargs['help'] = (kwargs.get('help', '') +
-            ' NOTE: This argument is mutually exclusive with %s' %
-            self.not_required_if
+            f' NOTE: This argument is optional when a related option is specified: {self.not_required_if}'
         ).strip()
         super(NotRequiredIf, self).__init__(*args, **kwargs)
 
@@ -24,17 +22,42 @@ class NotRequiredIf(click.Option):
 
         if other_present:
             if we_are_present:
-                if self.name == self.not_required_if:
-                    logger.error(f"Option order error: `{self.name}`")
-                    logger.error("Make sure you call this option BEFORE any mutually-exlusive options referencing it")
-                    logger.error("Check your tasks manifest")
-                    sys.exit(1)
-                else:
-                    logger.error(
-                        f"Illegal usage: `{self.name}` is mutually exclusive with `{self.not_required_if}`")
-                    sys.exit(1)
+                pass
+                # raise click.UsageError(
+                #     "Illegal usage: `%s` is mutually exclusive with `%s`" % (
+                #         self.name, self.not_required_if))
             else:
+                self.required = False
                 self.prompt = None
 
         return super(NotRequiredIf, self).handle_parse_result(
             ctx, opts, args)
+
+# Allow for mutually-exclusive click options
+class MutuallyExclusiveOption(click.Option):
+    def __init__(self, *args, **kwargs):
+        self.mutually_exclusive = set(kwargs.pop('mutually_exclusive', []))
+        help = kwargs.get('help', '')
+        if self.mutually_exclusive:
+            ex_str = ', '.join(self.mutually_exclusive)
+            kwargs['help'] = help + (
+                ' NOTE: This argument is mutually exclusive with '
+                ' arguments: [' + ex_str + '].'
+            )
+        super(MutuallyExclusiveOption, self).__init__(*args, **kwargs)
+
+    def handle_parse_result(self, ctx, opts, args):
+        if self.mutually_exclusive.intersection(opts) and self.name in opts:
+            raise click.exceptions.UsageError(
+                "Illegal usage: `{}` is mutually exclusive with "
+                "arguments `{}`.".format(
+                    self.name,
+                    ', '.join(self.mutually_exclusive)
+                )
+            )
+
+        return super(MutuallyExclusiveOption, self).handle_parse_result(
+            ctx,
+            opts,
+            args
+        )
