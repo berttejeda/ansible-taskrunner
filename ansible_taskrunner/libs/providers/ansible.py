@@ -250,11 +250,12 @@ class ProviderCLI:
                     )
 
         ansible_extra_options = [
-            f'-e {key}="${{{key}}}"' for key, value in provider_vars.items() if value] #+ [f'-e {kv}' for kv in string_vars]
-        # Build command string
+            f'-e {key}="${{{key}}}"' for key, value in provider_vars.items() if value]
+        # Build inventory command string
         if ans_inv_fso_desc or bastion_settings.get('enabled'):
-            inventory_command = f'{trap}\nif [[ ($inventory) && ( "{inventory_is_embedded}" == "True") ]];then\n' + \
-            f'echo -e """{effective_inventory_input}"""' + \
+            inventory_command = f'inventory_is_embedded={inventory_is_embedded}' + \
+            f'{trap}\nif [[ "$inventory_is_embedded" == "True" ]];then\n' + \
+            f'echo -e """${{inventory}}"""' + \
             f'| while read line;do\n eval "echo -e ${{line}}" >> "{ans_inv_fp}";\ndone\n' + \
             'fi;\n'
         else:
@@ -278,7 +279,6 @@ class ProviderCLI:
         ansible_command = ' '.join(s for s in ansible_command_strings if s)
         command = f'{pre_commands} {ansible_command}'
         # Command invocation
-        # Bastion host logic
         result = None
         if prefix == 'echo':
             logger.debug("ECHO MODE ON")
