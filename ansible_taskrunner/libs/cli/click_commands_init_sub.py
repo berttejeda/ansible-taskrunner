@@ -98,27 +98,6 @@ class CLICK_Commands_SUB_INIT:
                    not self.skip_keys_pattern.search(str(t[0]))
             ]
         )
-        # List-type variables
-        for tup in yaml_variables:
-            key = tup[0]
-            value = tup[1]
-            if '\n' in value:
-                value = value.split('\n')
-            if value and key not in internal_functions.keys():
-                # We don't want to 'commands' or 'inventory' down to the subprocess
-                if key in ['commands']:
-                    yaml_variables_wo_jinja.pop(key)
-                elif isinstance(value, list) or isinstance(value, tuple):
-                    try:
-                        value_string = '\n'.join(value)
-                        yaml_variables_wo_jinja[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
-                    except TypeError as e:
-                        if logger.level == 10:
-                            logger.error(f"Unsupported variable type, skipped variable {key}")
-                            logger.error(f"Skip Reason {e}")
-                elif isinstance(value, dict):
-                    value_string = str(value)
-                    yaml_variables_wo_jinja[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
 
         special_vars = dict(
             [
@@ -126,6 +105,7 @@ class CLICK_Commands_SUB_INIT:
                 if self.special_vars_pattern.search(str(t[0]))
             ]
         )
+
         extra_vars = special_vars.get('ANSIBLE_EXTRA_VARS', [])
         # Add the k,v for __tasks_file__
         provider_vars['__tasks_file__'] = self.tf_path

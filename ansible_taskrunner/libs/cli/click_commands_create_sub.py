@@ -51,8 +51,32 @@ class CLICK_Commands_SUB:
       AttrDict.merge(provider_vars, yaml_variables_wo_jinja)
       AttrDict.merge(self.available_vars, provider_vars)
 
+      provider_vars_sanitized = provider_vars
+
+      # Process complex variables
+      for key, value in list(provider_vars_sanitized.items()):
+          if value is None:
+              value = ''
+          if isinstance(value, bool):
+              value = str(value)
+          if '\n' in value:
+              value = value.split('\n')
+          if value and key not in internal_functions.keys():
+              if isinstance(value, list) or isinstance(value, tuple):
+                  try:
+                      value_string = '\n'.join(value)
+                      provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+                  except TypeError as e:
+                      if logger.level == 10:
+                          logger.error(f"Unsupported variable type, skipped variable {key}")
+                          logger.error(f"Skip Reason {e}")
+              elif isinstance(value, dict):
+                  value_string = str(value)
+                  provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+      # We don't want to 'commands' or 'inventory' down to the subprocess
+      provider_vars_sanitized.pop('commands')
       # Derive the provider vars string from provider vars
-      provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars.items()]) + extra_vars_string
+      provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars_sanitized.items()]) + extra_vars_string
 
       cli_functions = ['{k} {v}'.format(
           k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
@@ -75,7 +99,7 @@ class CLICK_Commands_SUB:
               extra_vars=extra_vars_cli_string,
               invocation=self.cli_invocation,
               prefix=prefix,
-              provider_vars=provider_vars,
+              provider_vars=provider_vars_sanitized,
               provider_vars_string_block=provider_vars_string_block,
               raw_args=self.raw_args,
               shell_functions=shell_functions,
