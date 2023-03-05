@@ -250,7 +250,7 @@ class ProviderCLI:
                     )
 
         ansible_extra_options = [
-            f'-e {key}="${{{key}}}"' for key, value in provider_vars.items() if value]
+            '-e "{\'%s\':\'${%s}\'}"' % (key, key) for key, value in provider_vars.items() if value]
         # Build inventory command string
         if ans_inv_fso_desc or bastion_settings.get('enabled'):
             inventory_command = f'inventory_is_embedded={inventory_is_embedded}' + \

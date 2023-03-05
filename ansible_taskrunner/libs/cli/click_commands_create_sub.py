@@ -5,7 +5,7 @@ import click
 from bertdotconfig.configutils import AttrDict
 from ansible_taskrunner.libs.click_extras import ExtendCLI
 from ansible_taskrunner.logger import Logger
-
+import json
 logger_obj = Logger()
 logger = logger_obj.init_logger(__name__)
 
@@ -59,19 +59,23 @@ class CLICK_Commands_SUB:
               value = ''
           if isinstance(value, bool):
               value = str(value)
-          if '\n' in value:
+          if '\n' in str(value):
               value = value.split('\n')
           if value and key not in internal_functions.keys():
               if isinstance(value, list) or isinstance(value, tuple):
                   try:
-                      value_string = '\n'.join(value)
-                      provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+                      if key == 'inventory':
+                          value_string = '\n'.join(value)
+                          provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+                      else:
+                          value_string = '\n'.join(value).replace("'", "\'").replace('"', '\"')
+                          provider_vars_sanitized[key] = f"'{value_string}'"
                   except TypeError as e:
                       if logger.level == 10:
                           logger.error(f"Unsupported variable type, skipped variable {key}")
                           logger.error(f"Skip Reason {e}")
               elif isinstance(value, dict):
-                  value_string = str(value)
+                  value_string = json.dumps(value)
                   provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
       # We don't want to 'commands' or 'inventory' down to the subprocess
       provider_vars_sanitized.pop('commands')

@@ -2,7 +2,9 @@
 import click
 import sys
 from ansible_taskrunner.logger import Logger
-from ansible_taskrunner.libs.click_extras.options_advanced import MutuallyExclusiveOption, NotRequiredIf
+from ansible_taskrunner.libs.click_extras.options_advanced import MutuallyExclusiveOption
+from ansible_taskrunner.libs.click_extras.options_advanced import RequiredIf
+from ansible_taskrunner.libs.click_extras.options_advanced import NotRequiredIf
 from bertdotconfig.configutils import AttrDict
 from string import Template
 
@@ -16,6 +18,7 @@ class ExtendCLI():
         self.parameter_set = kwargs.get('parameter_set')
         global_options = kwargs.get('global_options', {})
         self.command_vars = kwargs.get('command_vars', {})
+        self.command_option_map = {}
         # Merge in global options
         AttrDict.merge(self.command_vars, {'options': global_options})
         self.help_msg_map = kwargs.get('help_msg_map', {})
@@ -33,12 +36,9 @@ class ExtendCLI():
         }
         self.click_option_class_map = {
             'mutually_exclusive': MutuallyExclusiveOption,
+            'required_if': RequiredIf,
             'not_required_if': NotRequiredIf,
         }
-        # self.click_option_class_options_map = {
-        #     'mutually_exlusive': MutuallyExclusiveOption,
-        #     'not_required_if': not_required_if,
-        # }
 
     def get_option_type(self, opt):
         if opt.get("type", "str") == "choice":
@@ -88,6 +88,18 @@ class ExtendCLI():
         Read dictionary of parameters, append these
         as additional options to incoming click function
         """
+
+        command_option_map = {}
+        for k,v in self.command_vars.options.items():
+            long_opt = v.get('long')
+            short_opt = v.get('short')
+            if long_opt and short_opt:
+                command_option_map[v['var']] = f"{long_opt}|{short_opt}"
+            elif long_opt:
+                command_option_map[v['var']] = f"{long_opt}"
+            elif short_opt:
+                command_option_map[v['var']] = f"{short_opt}"
+
         for option_name, option in self.command_vars.get('options', {}).items():
 
             option_name = Template(option_name).safe_substitute(**self.available_vars)
@@ -108,26 +120,46 @@ class ExtendCLI():
 
             option_variable = option.get("var", None)
             option_nargs = option.get("nargs", 1)
-            option_help = Template(option.get('help', '')).safe_substitute(**self.available_vars)
+            option_help = option_help_effective = Template(option.get('help', '')).safe_substitute(**self.available_vars)
+            option_show_default = bool(option.get('show_default', False))
             option_prompt = bool(option.get('prompt', False))
+            option_confirm_prompt = bool(option.get('confirm_prompt', False))
             option_secure = bool(option.get('secure', False))
             option_required = bool(option.get('required', False))
             option_is_flag = bool(option.get('is_flag', False))
+            option_is_hidden = bool(option.get('is_hidden', False))
+            option_show_choices = bool(option.get('show_choices', True))
+            option_show_envvar = bool(option.get('env_var_show', True))
+            option_supports_counting = bool(option.get('allow_counting', False))
+            option_supports_multiple = bool(option.get('allow_multiple', False))
             option_value_from_env = option.get('env_var', None)
-            mutually_exlusive_with = option.get('mutually_exlusive_with', '')
+            mutually_exclusive_with = option.get('mutually_exclusive_with', '')
+            required_if = option.get('required_if', '')
             not_required_if = option.get('not_required_if', '')
 
-            if mutually_exlusive_with and option_required:
-                logger.warning(f"Not honoring mutual exclisivity of opiton '{option_name}' " + \
-                               f"and options with variables {mutually_exlusive_with}, as both are set to required")
+            if mutually_exclusive_with and option_required:
+                logger.warning(f"Not honoring mutual exclusivity of option '{option_name}' " + \
+                               f"and options with variables {mutually_exclusive_with}, as 'required' must be False")
                 option_class = click.Option
                 special_options = {}
-            elif mutually_exlusive_with and not option_required:
+            elif mutually_exclusive_with and not option_required:
                 option_class = self.click_option_class_map['mutually_exclusive']
-                special_options = {'mutually_exclusive': mutually_exlusive_with}
+                special_options = {'mutually_exclusive': mutually_exclusive_with}
+                ex_str = ', '.join([command_option_map[f] for f in mutually_exclusive_with])
+                option_help_effective = option_help + \
+                f' NOTE: This argument is mutually exclusive with [{ex_str}]'
+            elif required_if:
+                option_class = self.click_option_class_map['required_if']
+                special_options = {'required_if': required_if}
+                ex_str = ', '.join([command_option_map[f] for f in required_if])
+                option_help_effective = option_help + \
+                f' NOTE: This argument is mutually inclusive with [{ex_str}]'
             elif not_required_if:
                 option_class = self.click_option_class_map['not_required_if']
                 special_options = {'not_required_if': not_required_if}
+                ex_str = ', '.join([command_option_map[f] for f in not_required_if])
+                option_help_effective = option_help + \
+                f' NOTE: This argument is optional when related options are specified: [{ex_str}]'
             else:
                 option_class = click.Option
                 special_options = {}
@@ -136,14 +168,21 @@ class ExtendCLI():
                 *param_declarations,
                 option_variable,
                 cls=option_class,
-                type=self.get_option_type(option),
-                nargs=option_nargs,
-                help=option_help,
-                prompt=option_prompt,
-                hide_input=option_secure,
-                required=option_required,
-                is_flag=option_is_flag,
+                confirmation_prompt=option_confirm_prompt,
+                count=option_supports_counting,
                 envvar=option_value_from_env,
+                nargs=option_nargs,
+                help=option_help_effective,
+                hide_input=option_secure,
+                hidden=option_is_hidden,
+                is_flag=option_is_flag,
+                prompt=option_prompt,
+                multiple=option_supports_multiple,
+                required=option_required,
+                show_choices=option_show_choices,
+                show_envvar=option_show_envvar,
+                show_default=option_show_default,
+                type=self.get_option_type(option),
                 **special_options,
             )
             func = option(func)
