@@ -30,8 +30,8 @@ class CLICK_Commands_SUB:
         command_vars=command_vars,
         help_msg_map=self.option_help_messages)
 
-    @click.option('---make', 'make_mode_engage', is_flag=True,
-                  help='Call shell function')
+    @click.option('---invoke-function', 'embedded_function_targets',
+                  help='Call shell functions')
     @click.option('---echo',
                   is_flag=True,
                   help="Don't run, simply echo underlying commands")

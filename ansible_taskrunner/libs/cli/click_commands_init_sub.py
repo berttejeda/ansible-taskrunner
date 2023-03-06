@@ -51,15 +51,14 @@ class CLICK_Commands_SUB_INIT:
         internal_functions = cli_obj.yaml_vars.get(f'commands.{c}.functions', {})
         if internal_functions:
             # Append the special make_mode_engage bash function
-            internal_functions['make_mode_engage'] = {
-                'help': 'Engage Make Mode',
+            internal_functions['embedded_function_targets'] = {
+                'help': 'Invoke Embedded Function',
                 'shell': 'bash',
                 'hidden': 'true',
                 'source': '''
-            echo Make Mode Engaged
-            echo Invoking ${1} function
+            echo "Invoking embedded function '${1}'"
             ${1}
-                        '''
+            '''
             }
             for f_n, f_s in internal_functions.items():
                 f_shell = f_s.get(f'shell', {})
