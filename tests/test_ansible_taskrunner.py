@@ -26,38 +26,38 @@ class TestCli(unittest.TestCase):
         self.cli = CliRunner()
 
     def test_help(self):
-        """ Test whether script help will return.  Basically check whether there are compile errors
+        """ Test whether script help will return.
         :return: exit_code == 0
         """
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['--help']).exit_code, 0)
         pass
 
     def test_run_help(self):
-        """ Test whether script help will successfully execute.  Basically check whether there are compile errors
+        """ Test whether script help will successfully execute.
         :return: exit_code == 0
         """
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '--help']).exit_code, 0)
         pass
 
     def test_run_foo_echo(self):
-        """ Test whether script 'run' subcommand will successfully echo subcommand.  Basically check whether there are compile errors
+        """ Test whether script 'run' subcommand will successfully echo subcommand.
         :return: exit_code == 0
         """
-        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---echo']).exit_code, 0)
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-t', 'local', '-s', '-b','bar', '---echo']).exit_code, 0)
         pass
 
-    def test_run_make_hello(self):
-        """ Test whether script 'run' subcommand will successfully execute in make mode.  Basically check whether there are compile errors
+    def test_run_embedded_function_hello(self):
+        """ Test if we can run the 'hello' embeded function in the 'run' subcommand.
         :return: exit_code == 0
         """
-        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---make', 'hello']).exit_code, 0)
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-t', 'local', '-s', '-b', 'bar', '---invoke-function', 'hello']).exit_code, 0)
         pass
 
-    def test_run_make_echo(self):
-        """ Test whether script 'run' subcommand will successfully echo subcommand in make mode.  Basically check whether there are compile errors
+    def test_run_embedded_function_echo(self):
+        """ Test whether script 'run' subcommand will successfully echo subcommand in make mode.
         :return: exit_code == 0
         """
-        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-f', 'foo', '---make', 'hello','---echo']).exit_code, 0)
+        self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-t', 'local', '-s', '-b', 'bar', '---invoke-function', 'hello', '---echo']).exit_code, 0)
         pass
 
     def test_direct_call(self):
