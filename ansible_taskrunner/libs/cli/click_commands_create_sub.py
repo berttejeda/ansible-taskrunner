@@ -19,7 +19,7 @@ class CLICK_Commands_SUB:
     extra_vars_string = kwargs['extra_vars_string']
     internal_functions = kwargs['internal_functions']
     function_ref = kwargs['function_ref']
-    shell_functions = kwargs.get('shell_functions', [])
+    shell_functions = '\n'.join(kwargs.get('shell_functions', []))
     provider_vars = kwargs['provider_vars']
     yaml_variables_wo_jinja = kwargs['yaml_variables_wo_jinja']
 
@@ -82,34 +82,25 @@ class CLICK_Commands_SUB:
       # Derive the provider vars string from provider vars
       provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars_sanitized.items()]) + extra_vars_string
 
-      cli_functions = ['{k} {v}'.format(
-          k=key, v='' if value in [True, False] else value) for key, value in kwargs.items() if
-          value and key in internal_functions.keys()]
+      cli_functions = ['{f} {a}'.format(f=fnc, a=arg if arg and arg not in ['True', 'False'] else '') for fnc,arg in kwargs.items() if fnc in internal_functions.keys() and arg]
 
-      if cli_functions:
-          bf = '\n'.join(shell_functions)
-          cf = '\n'.join(cli_functions)
-          command = f"{provider_vars_string_block}\n{bf}\n{cf} {args} {self.raw_args}"
-          if prefix == 'echo':
-              print(command)
-          else:
-              self.sub_process.call(command, debug_enabled=self.debug, suppress_output=self.suppress_output)
-      else:
-          self.provider_cli.invocation(
-              args=args,
-              available_vars=self.available_vars,
-              bastion_settings=bastion_settings,
-              debug=self.debug,
-              extra_vars=extra_vars_cli_string,
-              invocation=self.cli_invocation,
-              prefix=prefix,
-              provider_vars=provider_vars_sanitized,
-              provider_vars_string_block=provider_vars_string_block,
-              raw_args=self.raw_args,
-              shell_functions=shell_functions,
-              suppress_output=self.suppress_output,
-              yaml_input_file=self.tf_path
-          )
-          # Invoke the cli provider
+      self.provider_cli.invocation(
+          args=args,
+          available_vars=self.available_vars,
+          cli_functions=cli_functions,
+          bastion_settings=bastion_settings,
+          debug=self.debug,
+          extra_vars=extra_vars_cli_string,
+          invocation=self.cli_invocation,
+          prefix=prefix,
+          provider_vars=provider_vars_sanitized,
+          provider_vars_string_block=provider_vars_string_block,
+          raw_args=self.raw_args,
+          shell_functions=shell_functions,
+          suppress_output=self.suppress_output,
+          yaml_input_file=self.tf_path,
+          sub_process=self.sub_process
+      )
+      # Invoke the cli provider
     func.__name__ = function_ref
     return func

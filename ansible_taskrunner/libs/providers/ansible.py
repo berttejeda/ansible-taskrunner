@@ -192,6 +192,7 @@ class ProviderCLI:
         args = kwargs.get('args')
         available_vars = kwargs.get('available_vars', {})
         bastion_settings = kwargs.get('bastion_settings', {})
+        cli_functions = kwargs.get('cli_functions')
         extra_vars = kwargs.get('extra_vars', '')
         shell_functions = kwargs.get('shell_functions', [])
         debug = kwargs.get('debug', False)
@@ -214,11 +215,25 @@ class ProviderCLI:
         inventory_input = provider_vars.get('_inventory')
         embedded_inventory_string = provider_vars.get('inventory')
         ans_inv_fso_desc = None
+        sub_process = kwargs.get('sub_process')
         embedded_inventory_string_is_file = os.path.isfile(
             os.path.abspath(
                 os.path.expanduser(embedded_inventory_string)
             )
         )
+
+        if cli_functions:
+            cf = '\n'.join(cli_functions)
+            command = f"{provider_vars_string_block}\n{shell_functions}\n{cf} {args} {raw_args}"
+            if prefix == 'echo':
+                print(command)
+                sys.exit(0)
+            else:
+                if sub_process:
+                    sub_process.call(command, debug_enabled=debug, suppress_output=suppress_output)
+                    return
+                else:
+                    logger.error('No subprocess defined for this provider')
 
         if not inventory_input and not embedded_inventory_string:
             logger.error(
@@ -262,9 +277,8 @@ class ProviderCLI:
             inventory_command = ''
         anc = ansi_colors.strip()
         psb = re.sub(r'(ANSIBLE_)(.*?)=', 'export \\1\\2=', provider_vars_string_block)
-        bfn = '\n'.join(shell_functions)
         inc = inventory_command
-        pre_commands = f'{anc}\n{psb}\n{bfn}\n{inc}'
+        pre_commands = f'{anc}\n{psb}\n{shell_functions}\n{inc}'
         apc = ansible_playbook_command
         if embedded_inventory_string_is_file:
             inf = inventory_input
