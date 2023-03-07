@@ -296,7 +296,9 @@ shell_var: $(grep somestring /some/file.txt) | String                  | String
 <a name="populate-the-vars-block---define-global-options"></a>
 ## Populate the vars block - define global options
 
-Global options are available to all sub-commands
+Global options are available to all sub-commands.
+
+These are defined under the `vars.globals.options` key.
 
 Let's add a simple example:
 
@@ -335,7 +337,7 @@ Let's add a simple example:
       - webhost1
       - webhost2
       - webhost3
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -389,7 +391,7 @@ Let's add a command named 'run' to start:
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -572,7 +574,7 @@ Next, we add the help/message section:
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -733,7 +735,7 @@ Running `tasks run --help` should return the list of parameters along with the h
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -999,7 +1001,7 @@ Let's define our embedded inventory expression:
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -1221,7 +1223,7 @@ Let's specify an external inventory file instead of an embedded inventory defini
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
@@ -1401,7 +1403,7 @@ Finally, let's add some proper ansible tasks!
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"

@@ -29,7 +29,7 @@
       - webhost2
       - webhost3
     ### Global Options Block
-    global:
+    globals:
       options:
           my_global_option:
             help: "This is my global option"
