@@ -45,10 +45,10 @@ Copy local file(s)/folder(s) from local to target host(s)
 
 Options:
   --version                Show the version and exit.
-  ---make, ---m TEXT       Call make-style function
+  ---make, ---m TEXT       Call shell function
   ---raw TEXT              Specify raw options for underlying subprocess
   ---echo                  Don't run, simply echo underlying commands
-  --mock                   Invoke the 'mock_test' make-style function
+  --mock                   Invoke the 'mock_test' shell function
   -p, --local-path TEXT    Local path you're copying from  [required]
   -t, --target-path TEXT   Target path on host you're copying files to
                            [required]
@@ -67,7 +67,7 @@ tasks run -p myfolder -h host1 -t /data
 - You want to synchronize mock data:
 tasks run -p myfolder -h host1 -t /data --mock
 
-Available make-style functions:
+Available shell functions:
 mock_test: Create mock data and invoke playbook
 ```
 

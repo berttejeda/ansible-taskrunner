@@ -19,8 +19,8 @@
             tasks run --oel76
     required_parameters:
     optional_parameters:
-      --xenial: vagrant_up_xenial ## Invoke the 'vagrant_up_xenial' make-style function
-      --oel76: vagrant_up_oel76 ## Invoke the 'vagrant_up_oel76' make-style function
+      --xenial: vagrant_up_xenial ## Invoke the 'vagrant_up_xenial' shell function
+      --oel76: vagrant_up_oel76 ## Invoke the 'vagrant_up_oel76' shell function
     functions:
       vagrant_up_oel76:
         shell: bash

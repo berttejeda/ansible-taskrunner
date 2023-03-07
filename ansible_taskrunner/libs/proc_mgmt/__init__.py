@@ -20,7 +20,7 @@ else:
 
 # Import third-party and custom modules
 try:
-    from libs.formatting import Struct
+    from ansible_taskrunner.libs.formatting import Struct
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')

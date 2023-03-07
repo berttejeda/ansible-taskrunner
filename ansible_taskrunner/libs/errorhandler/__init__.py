@@ -1,7 +1,8 @@
 ERR_ARGS_TASKF_OVERRIDE = '''
-When specifying a task file override, you must do so like this:
-{script} -f /path/to/mytasks.yaml
-{script} --tasks-file /path/to/mytasks.yaml
+When specifying a task file override, you must do so in this manner:
+`{script} -f /path/to/mytasks.yaml`
+OR
+`{script} --tasks-file /path/to/mytasks.yaml`
 Additionally, only task file overrides ending in .yml or .yaml are accepted
 '''
 

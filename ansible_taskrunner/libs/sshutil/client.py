@@ -59,9 +59,9 @@ try:
     from paramiko import SSHClient, SFTPClient, ssh_exception            
     from socket import gaierror
     import libs.sshutil.scp
-    from libs.sshutil.sync import SSHSync
-    from libs.sshutil.scp import SCPClient, SCPException        
-    from libs.formatting import ansi_colors, Struct
+    from ansible_taskrunner.libs.sshutil.sync import SSHSync
+    from ansible_taskrunner.libs.sshutil.scp import SCPClient, SCPException        
+    from ansible_taskrunner.libs.formatting import ansi_colors, Struct
 except ImportError as e:
     print('Error in %s ' % os.path.basename(self_file_name))
     print('Failed to import at least one required module')

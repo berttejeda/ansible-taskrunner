@@ -17,17 +17,9 @@ else:
     self_file_name = os.path.basename(__file__)
 
 # Import third-party and custom modules
-try:
-    import paramiko
-    from paramiko import SSHClient, ssh_exception
-    from libs.sshutil.scp import SCPException
-except ImportError as e:
-    print('Error in %s ' % os.path.basename(self_file_name))
-    print('Failed to import at least one required module')
-    print('Error was %s' % e)
-    print('Please install/update the required modules:')
-    print('pip install -U -r requirements.txt')
-    sys.exit(1)
+import paramiko
+from paramiko import SSHClient, ssh_exception
+from ansible_taskrunner.libs.sshutil.scp import SCPException
 
 class SSHSync:
 

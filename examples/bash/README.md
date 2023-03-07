@@ -47,10 +47,10 @@ YAML-organized Bash script :)
 
 Options:
   --version                Show the version and exit.
-  ---make, ---m TEXT       Call make-style function
+  ---make, ---m TEXT       Call shell function
   ---raw TEXT              Specify raw options for underlying subprocess
   ---echo                  Don't run, simply echo underlying commands
-  --ping-google            Invoke the 'ping_google' make-style function
+  --ping-google            Invoke the 'ping_google' shell function
   -h, --target-hosts TEXT  Specify target hosts to ping
   --help                   Show this message and exit.
 
@@ -62,7 +62,7 @@ tasks run -h 8.8.8.8
 - You want to run the ping_google embedded function:
 tasks run --ping-google
 
-Available make-style functions:
+Available shell functions:
 ping_google: Ping Google's DNS Server
 ```
 

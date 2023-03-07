@@ -16,21 +16,11 @@ if getattr(sys, 'frozen', False):
     # frozen
     self_file_name = os.path.basename(sys.executable)
 else:
-    self_file_name = os.path.basename(__file__) 
+    self_file_name = os.path.basename(__file__)
 
 # Import third-party and custom modules
-try:
-    import click
-    from libs.proc_mgmt import shell_invocation_mappings
-    from libs.proc_mgmt import CLIInvocation
-except ImportError as e:
-    print('Error in %s ' % os.path.basename(self_file_name))
-    print('Failed to import at least one required module')
-    print('Error was %s' % e)
-    print('Please install/update the required modules:')
-    print('pip install -U -r requirements.txt')
-    sys.exit(1)
 
+from ansible_taskrunner.libs.proc_mgmt import CLIInvocation
 
 class ProviderCLI:
     def __init__(self, parameter_set=None, vars_input={}):
@@ -44,45 +34,42 @@ class ProviderCLI:
         """Add provider-specific click options"""
         return func
 
-    @staticmethod
-    def invocation(args=None,
-                   bastion_settings={},
-                   bash_functions=[],
-                   cli_vars='',
-                   debug=False,
-                   default_vars={},
-                   invocation={},
-                   kwargs={},
-                   list_vars=[],
-                   paramset_var=None,
-                   prefix='',
-                   raw_args='',
-                   string_vars=[],
-                   suppress_output=False,
-                   yaml_input_file=None,
-                   yaml_vars={}):
+    def invocation(self, **kwargs):
         """Invoke commands according to provider"""
-        logger.debug('Bash Command Provider')
+
+        args = kwargs.get('args')
+        bastion_settings = kwargs.get('bastion_settings',{})
+        shell_functions = kwargs.get('shell_functions', [])
+        cli_functions = kwargs.get('cli_functions')
+        cli_vars = kwargs.get('cli_vars', '')
+        debug = kwargs.get('debug', False)
+        default_vars = kwargs.get('default_vars', {})
+        invocation = kwargs.get('invocation', {})
+        list_vars = kwargs.get('list_vars', [])
+        paramset_var = kwargs.get('paramset_var')
+        prefix = kwargs.get('prefix', '')
+        raw_args = kwargs.get('raw_args', '')
+        string_vars = kwargs.get('string_vars', [])
+        suppress_output = kwargs.get('suppress_output', False)
+        yaml_input_file = kwargs.get('yaml_input_file')
+        yaml_vars = kwargs.get('yaml_vars', {})
+        provider_vars = kwargs.get('provider_vars', {})
+        provider_vars_string_block = kwargs.get('provider_vars_string_block', '')
         sub_process = CLIInvocation()
-        command = '''
-{clv}
-{dsv}
-{psv}
-{dlv}
-{bfn}
-        '''.format(
-            dlv='\n'.join(list_vars),
-            dsv='\n'.join(string_vars),
-            psv=paramset_var,
-            clv=cli_vars,
-            bfn='\n'.join(bash_functions),
-            deb=debug
-        )
-        command = command
+
+        logger.debug('Bash CLI Provider')
+
         # Command invocation
-        if prefix == 'echo':
-            logger.info("ECHO MODE ON")
-            print(command)
-        else:
-            result = sub_process.call(command, debug_enabled=debug, suppress_output=suppress_output)
-            sys.exit(result.returncode)
+        if cli_functions:
+            cf = '\n'.join(cli_functions)
+            command = f"{provider_vars_string_block}\n{shell_functions}\n{cf} {args} {raw_args}"
+            if prefix == 'echo':
+                print(command)
+                sys.exit(0)
+            else:
+                if sub_process:
+                    sub_process.call(command, debug_enabled=debug, suppress_output=suppress_output)
+                    return
+                else:
+                    logger.error('No subprocess defined for this provider')
+
