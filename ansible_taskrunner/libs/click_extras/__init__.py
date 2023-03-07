@@ -123,6 +123,7 @@ class ExtendCLI():
             option_help = option_help_effective = Template(option.get('help', '')).safe_substitute(**self.available_vars)
             option_show_default = bool(option.get('show_default', False))
             option_prompt = bool(option.get('prompt', False))
+            option_prompt_required = bool(option.get('prompt_required', False))
             option_confirm_prompt = bool(option.get('confirm_prompt', False))
             option_secure = bool(option.get('secure', False))
             option_required = bool(option.get('required', False))
@@ -177,6 +178,7 @@ class ExtendCLI():
                 hidden=option_is_hidden,
                 is_flag=option_is_flag,
                 prompt=option_prompt,
+                prompt_required=option_prompt_required,
                 multiple=option_supports_multiple,
                 required=option_required,
                 show_choices=option_show_choices,
