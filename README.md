@@ -15,7 +15,7 @@
     - [Add the hosts block](#add-the-hosts-block)
     - [Add the vars block](#add-the-vars-block)
     - [Populate the vars block - defaults](#populate-the-vars-block---defaults)
-    - [Populate the vars block - cli options](#populate-the-vars-block---define-commands)
+    - [Populate the vars block - cli options](#populate-the-vars-block---define-sub--commands)
       - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---define-commands---mapped-variables)
     - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
     - [Populate the vars block - embedded inventory](#populate-the-vars-block---embedded-inventory)
@@ -293,10 +293,63 @@ shell_var: $(grep somestring /some/file.txt) | String                  | String
 
 [Back To Top](#top)
 
-<a name="populate-the-vars-block---define-commands"></a>
-## Populate the vars block - define commands
+<a name="populate-the-vars-block---define-global-options"></a>
+## Populate the vars block - define global options
 
-Next, we define the available commands and their options.
+Global options are available to all sub-commands
+
+Let's add a simple example:
+
+<details>
+  <summary>Click to Expand</summary>
+
+*Taskfile.yaml*
+
+```
+### The hosts block
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  ### The vars block  
+  vars:
+    var1: value1
+    var2: value2
+    var3: value3
+    var4: |-
+      This is a multi-line value
+      of type string
+    var5:
+      - listvalue1
+      - listvalue2
+      - listvalue3
+      - listvalue4
+    var6:
+      some_key:
+        some_child_key: dictvalue1
+    var7: $(echo some_value)
+    dbhosts:
+      - dbhost1
+      - dbhost2
+      - dbhost3
+    webhosts:
+      - webhost1
+      - webhost2
+      - webhost3
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable
+
+```  
+</details>
+
+<a name="populate-the-vars-block---define-sub--commands"></a>
+## Populate the vars block - define sub-commands
+
+Next, we define the available sub-commands and their options.
 
 Let's add a command named 'run' to start:
 
@@ -335,6 +388,14 @@ Let's add a command named 'run' to start:
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable    
     ### The commands block
     commands:
       run:
@@ -510,6 +571,14 @@ Next, we add the help/message section:
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable 
     ### The commands block
     commands:
       run:
@@ -663,6 +732,14 @@ Running `tasks run --help` should return the list of parameters along with the h
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable 
     ### The commands block
     commands:
       run:
@@ -921,6 +998,14 @@ Let's define our embedded inventory expression:
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable 
     ### The commands block
     commands:
       run:
@@ -1135,6 +1220,14 @@ Let's specify an external inventory file instead of an embedded inventory defini
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable 
     ### The commands block
     commands:
       run:
@@ -1307,6 +1400,14 @@ Finally, let's add some proper ansible tasks!
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable 
     ### The commands block
     commands:
       run:

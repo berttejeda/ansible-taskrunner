@@ -115,7 +115,7 @@ class CLI(CLICK_Commands_CLI_Group, CLICK_Commands_INIT, CLICK_Commands_SUB, CLI
     # Instantiate the class for extending click options
     self.global_options = {}
     if self.yaml_vars:
-        self.global_options = self.yaml_vars.get('options', {})
+        self.global_options = self.yaml_vars.get('global.options', {})
     self.extend_cli = ExtendCLI(
         available_vars=self.available_vars,
         parameter_set=self.param_set,

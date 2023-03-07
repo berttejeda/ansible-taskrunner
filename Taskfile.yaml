@@ -28,6 +28,14 @@
       - webhost1
       - webhost2
       - webhost3
+    ### Global Options Block
+    global:
+      options:
+          my_global_option:
+            help: "This is my global option"
+            short: -g
+            long: --global
+            var: some_global_variable        
     ### The commands block
     commands:
       run:
