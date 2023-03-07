@@ -64,19 +64,20 @@ logger.debug(f'{__program_name__} version is {__version__}')
 cli_obj = CLI(is_windows=is_windows, doc=_doc, script_name=script_name, version=__version__)
 cli = cli_obj.create_cli_group()
 
-# Replace cli invocation in case we're calling the script directly
-# This allows for overriding the command manifest file, A.K.A. Taskfile.yaml
-if __name__ in ['ansible_taskrunner.cli', '__main__']:
-    sys.argv = cli_obj.cli_invocation['cli']
+if not cli_obj.cli_args_short == '--version':
+    # Replace cli invocation in case we're calling the script directly
+    # This allows for overriding the command manifest file, A.K.A. Taskfile.yaml
+    if __name__ in ['ansible_taskrunner.cli', '__main__']:
+        sys.argv = cli_obj.cli_invocation['cli']
 
-# Initialize the 'init' subcommand
-cli_obj.create_cli_init_command(cli)
+    # Initialize the 'init' subcommand
+    cli_obj.create_cli_init_command(cli)
 
-# Gather any subcommands defined in the command manifest
-cli_commands = cli_obj.yaml_vars.get('commands', {})
+    # Gather any subcommands defined in the command manifest
+    cli_commands = cli_obj.yaml_vars.get('commands', {})
 
-# Initialize subcommands
-cli_obj.init_cli_sub_command(cli_obj, cli, commands=cli_commands)
+    # Initialize subcommands
+    cli_obj.init_cli_sub_command(cli_obj, cli, commands=cli_commands)
 
 if __name__ == '__main__':
     sys.exit(cli())
