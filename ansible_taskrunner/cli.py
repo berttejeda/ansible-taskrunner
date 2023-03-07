@@ -55,7 +55,7 @@ logger_obj = Logger()
 logger = logger_obj.init_logger('cli')
 
 # Private variables
-__author__ = 'etejeda'
+__author__ = 'berttejeda'
 __version__ = get_module_version(ansible_taskrunner)[0]
 __program_name__ = 'tasks'
 
