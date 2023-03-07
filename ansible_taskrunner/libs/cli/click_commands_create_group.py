@@ -26,7 +26,8 @@ class CLICK_Commands_CLI_Group:
     @click.option('--verbose', count=True,
                   help='Increase verbosity of output')
     @click.option('--log', is_flag=True, help='Enable output logging')
-    def cli(**kwargs):
+    @click.pass_context
+    def cli(ctx, **kwargs):
         self.suppress_output = kwargs.get('silent', self.suppress_output)
         # Are we specifying an alternate config file?
         # Verbose mode enabled?
@@ -48,7 +49,7 @@ class CLICK_Commands_CLI_Group:
                 logging.disable(sys.maxint) # Python 2
         config = kwargs.get('config')
         if config:
-            self.config = self.app_config.initialize(config_file=config_file)
+            self.config = self.app_config.initialize(config_file=self.config_file)
         else:
             logger.debug(f'No valid config file found {self.config_file}')
             logger.debug('Using program defaults')
