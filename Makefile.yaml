@@ -2,263 +2,296 @@
 - hosts: local
   vars:
     app_dir: ansible_taskrunner
+    conda_environment_name: py3.10-ansible
     lib_dir_name: libs
     lib_dir: ${app_dir}/${lib_dir_name}
     zip_release_dir: build/zip-release
     cli_provider: bash
     plugins_dir: ${app_dir}/plugins
     pandoc_template_dir: ${HOME}/.pandoc/templates
+    python_versions:
+      - py3.10
     workdir: ${PWD}
-    help:
-      message: |
-        Task Runner for the Task Runner!
-      examples:
-        - Build Python Module and Push to PyPi: |-
-            python ansible_taskrunner/cli.py -f Makefile.yaml pypi run ---make pypi -U $username -P $password
-    inventory: |
-      [local]
-      localhost      
-    required_parameters:
-    optional_parameters:
+    commands:
       pypi:
-        --pypi-password|-P|sprompt: pypi_password ## Specify the password for authenticating against pypi.org
-        --pypi-username|-U|prompt: pypi_username ## Specify the username for authenticating against pypi.org
-        --pypi-repo-url|-R: pypi_repourl ## Specify an alternate pypi URL
-      -bz: build_zip ## Invoke the 'build_zip' shell function
-      -br: pypi ## Invoke the 'pypi' shell function
-      -c: clean ## Invoke the 'clean' shell function
-      -dp|--deploy: deployment_host_and_path ## Specify host:/path to deploy tasks zipapp to via SCP
-      --replace-exe: REPLACE_EXE ## Replace exe (used with build)
-    functions:
-      clean:
-        shell: bash
-        help: Remove all build, test, coverage and Python artifacts
-        source: |-
-            echo Cleaning up build, pyc, and test artifacts ...
-            clean-build
-            clean-pyc
-            clean-test
-            echo 'Done!'      
-      clean-test:
-        shell: bash
-        help: Remove test and coverage artifacts
-        source: |-
-          rm -fr .tox/
-          rm -f .coverage
-          rm -fr htmlcov/
-          rm -fr .pytest_cache
-      clean-pyc:
-        shell: bash
-        help: Remove Python file artifacts
-        source: |-
-          find . -name '*.pyc' -exec rm -f {} +
-          find . -name '*.pyo' -exec rm -f {} +
-          find . -name '*~' -exec rm -f {} +
-          find . -name '__pycache__' -exec rm -fr {} +
-      clean-build:
-        shell: bash
-        help: Remove build artifacts
-        source: |-
-          rm -rf build/
-          rm -rf dist/
-          rm -rf .eggs/
-          rm -rf ${app_dir}/{build,dist,.eggs}
-          find . -name '*.egg-info' -exec rm -fr {} +
-          find . -name '*.egg' -exec rm -f {} +
-      browser:
-        shell: python
-        source: |-
-          import os, webbrowser, sys
-          try:
-            from urllib import pathname2url
-          except:
-            from urllib.request import pathname2url
-          webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-      coverage: 
-        shell: bash
-        help: Check code coverage quickly with the default Python
-        source: |-
-          coverage run --source ansible_taskrunner setup.py test
-          coverage report -m
-          coverage html
-          browser docs/_build/html/index.html
-      docs:
-        shell: bash
-        help: Generate Sphinx HTML documentation, including API docs
-        source: |-
-          rm -f docs/ansible_taskrunner.rst
-          rm -f docs/modules.rst
-          sphinx-apidoc -o docs/ ansible_taskrunner
-          browser docs/_build/html/index.html
-      test-quick:
-        shell: bash
-        help: Run tests quickly with the default Python
-        source: |-
-            tox
-      test-all:
-        shell: bash
-        source: |-
-            python setup.py test      
-      py_pi:
-        shell: bash
-        help: Calls dist and release shell functions
-        source: |-
-          dist && release
-      dist:
-        shell: bash
-        help: Builds source and wheel package
-        source: |-
-          python setup.py sdist
-          python setup.py bdist_wheel
-      release:
-        shell: bash
-        help: Package and upload a release
-        source: |-
-            if [[ (-n $pypi_username) && (-n pypi_password) ]];then
-              if [[ -n $pypi_repourl ]];then                
-                twine upload --repository-url ${pypi_repourl} dist/* -u ${username} -p ${password}
+        options:
+          pypi_username:
+            help: "Specify the username for authenticating against pypi.org"
+            short: -U
+            long: --pypi-username
+            var: pypi_username
+            prompt: True
+          pypi_password:
+            help: "Specify the password for authenticating against pypi.org"
+            short: -P
+            long: --pypi-password
+            var: pypi_password
+            secure: True
+            prompt: True
+          pypi_repourl:
+            help: "Specify an alternate pypi URL"
+            short: -R
+            long: --pypi-repo-url
+            var: pypi_repourl
+            secure: True
+            prompt: True
+            required: False
+          replace_exe:
+            help: "Replace exe (used with build)"
+            long: --replace-exe
+            var: REPLACE_EXE
+            is_flag: True
+          build_zip:
+            help: "Invoke the 'zipapp' shell function"
+            short: -bz
+            var: zipapp
+            is_flag: true
+          pypi:
+            help: "Release to pypi"
+            short: -bz
+            var: pypi
+            is_flag: true
+          clean:
+            help: "Clean build artifacts"
+            short: -clean
+            var: clean
+            is_flag: True
+        help:
+          message: |
+            Task Runner for the Task Runner!
+          examples:
+            - Build Python Module and Push to PyPi: |-
+                python ansible_taskrunner/cli.py -f Makefile.yaml pypi run ---make pypi -U $username -P $password            
+        functions:
+          clean:
+            shell: bash
+            help: Remove all build, test, coverage and Python artifacts
+            source: |-
+                echo Cleaning up build, pyc, and test artifacts ...
+                clean-build
+                clean-pyc
+                clean-test
+                echo 'Done!'      
+          clean-test:
+            shell: bash
+            help: Remove test and coverage artifacts
+            source: |-
+              rm -fr .tox/
+              rm -f .coverage
+              rm -fr htmlcov/
+              rm -fr .pytest_cache
+          clean-pyc:
+            shell: bash
+            help: Remove Python file artifacts
+            source: |-
+              find . -name '*.pyc' -exec rm -f {} +
+              find . -name '*.pyo' -exec rm -f {} +
+              find . -name '*~' -exec rm -f {} +
+              find . -name '__pycache__' -exec rm -fr {} +
+          clean-build:
+            shell: bash
+            help: Remove build artifacts
+            source: |-
+              rm -rf build/
+              rm -rf dist/
+              rm -rf .eggs/
+              rm -rf ${app_dir}/{build,dist,.eggs}
+              find . -name '*.egg-info' -exec rm -fr {} +
+              find . -name '*.egg' -exec rm -f {} +
+          browser:
+            shell: python
+            source: |-
+              import os, webbrowser, sys
+              try:
+                from urllib import pathname2url
+              except:
+                from urllib.request import pathname2url
+              webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
+          coverage: 
+            shell: bash
+            help: Check code coverage quickly with the default Python
+            source: |-
+              coverage run --source ansible_taskrunner setup.py test
+              coverage report -m
+              coverage html
+              browser docs/_build/html/index.html
+          docs:
+            shell: bash
+            help: Generate Sphinx HTML documentation, including API docs
+            source: |-
+              rm -f docs/ansible_taskrunner.rst
+              rm -f docs/modules.rst
+              sphinx-apidoc -o docs/ ansible_taskrunner
+              browser docs/_build/html/index.html
+          test-quick:
+            shell: bash
+            help: Run tests quickly with the default Python
+            source: |-
+                tox
+          test-all:
+            shell: bash
+            source: |-
+                python setup.py test      
+          pypi:
+            shell: bash
+            help: Calls dist and release shell functions
+            source: |-
+              dist && release
+          dist:
+            shell: bash
+            help: Builds source and wheel package
+            source: |-
+              python setup.py sdist
+              python setup.py bdist_wheel
+          release:
+            shell: bash
+            help: Package and upload a release
+            source: |-
+                if [[ (-n $pypi_username) && (-n pypi_password) ]];then
+                  if [[ -n $pypi_repourl ]];then                
+                    twine upload --repository-url ${pypi_repourl} dist/* -u ${username} -p ${password}
+                  else
+                    twine upload dist/* -u ${pypi_username} -p ${pypi_password}
+                  fi
+                else
+                  echo You must provide a username and password when attempting to push your package to pypi.org
+                fi
+          install:
+            shell: bash
+            help: Install the package to the active Python's site-packages
+            source: |-
+                python setup.py install
+          lint:
+            shell: bash
+            help: Check style with flake8
+            source: |-
+                flake8 ansible_taskrunner tests   
+          check_exe:
+            shell: bash
+            hidden: true
+            source: |-
+              if ! [[ ($(type /usr/{,local/}{,s}bin/${1} 2> /dev/null)) || ($(which ${1})) ]];then
+                echo "This function requires ${1}, see installation instructions: ${2}"
+                return 1
+              fi          
+          init_libs:
+            shell: bash
+            hidden: true
+            source: |-
+              echo '!!!Caveate emptor!!!'
+              echo -e '''Make sure of the following
+                - That your virtual python environments match the version of the python interpreter you intend to use!
+              '''
+              echo Checking for embedded library directories ...
+              for pyver in $python_versions;do
+                if ! test -d ${lib_dir_name}/${pyver};then 
+                  echo ${lib_dir_name}/${pyver} not found, creating ...
+                  mkdir ${lib_dir_name}/${pyver}
+                  if ! $(conda info --envs | grep -v '^#' | awk '{print $1}' | grep -q $pyver);then 
+                    echo Python environment $pyver not found, creating ... 
+                    conda_env_create ${pyver} ${pyver: -1}
+                  fi
+                  echo Activating python virtual environment $pyver ...
+                  source activate $pyver
+                  echo Installing modules to embedded library folder ${lib_dir_name}/${pyver} ...
+                  pip install -t ${lib_dir_name}/${pyver} -r ${workdir}/requirements.txt
+                fi
+              done        
+          make_zip_release:
+            shell: bash
+            hidden: true
+            source: |-
+              source activate $conda_environment_name
+              if ! test -d ${__release_dir};then mkdir -p ${__release_dir};fi
+              mv -f tasks ${__release_dir}
+              if [[ -n $REPLACE_EXE ]];then
+                echo "Replacing current executable: $(which tasks)"
+                pip install -U .
+              fi     
+          make_zip:
+            shell: bash
+            hidden: true
+            source: |-
+              if [[ "$OSTYPE" =~ .*msys.* ]];then 
+                echo "OSType is Windows, nesting libdir ..."
+                if test -d windows;then 
+                  rm -rf windows
+                  mkdir windows
+                else
+                  mkdir windows
+                fi
+                cp -r ${lib_dir_name} plugins windows
+                echo "Creating zip-app"
+                make-zipapp -f cli.py -X __pycache__ -x .pyc -d windows
+                if test -d windows;then rm -rf windows;fi
               else
-                twine upload dist/* -u ${pypi_username} -p ${pypi_password}
+                echo "OSType is most likely POSIX native"
+                echo "Creating zip-app"
+                make-zipapp -f cli.py -X __pycache__ -x .pyc
+              fi        
+          conda_env_create:
+            shell: bash
+            hidden: true
+            source: |-
+              if [ $# -lt 1 ]; then 
+                echo "Usage: ${FUNCNAME[0]} <virtualenv_name> [python_version](optional)"; 
+                return 1
               fi
-            else
-              echo You must provide a username and password when attempting to push your package to pypi.org
-            fi
-      install:
-        shell: bash
-        help: Install the package to the active Python's site-packages
-        source: |-
-            python setup.py install
-      lint:
-        shell: bash
-        help: Check style with flake8
-        source: |-
-            flake8 ansible_taskrunner tests   
-      check_exe:
-        shell: bash
-        hidden: true
-        source: |-
-          if ! [[ ($(type /usr/{,local/}{,s}bin/${1} 2> /dev/null)) || ($(which ${1})) ]];then
-            echo "This function requires ${1}, see installation instructions: ${2}"
-            return 1
-          fi          
-      init_libs:
-        shell: bash
-        hidden: true
-        source: |-
-          echo '!!!Caveate emptor!!!'
-          echo -e '''Make sure of the following
-            - That your virtual python environments match the version of the python interpreter you intend to use!
-          '''
-          echo Checking for embedded library directories ...
-          for pyver in py2.7.15 py3.7.4;do
-            if ! test -d ${lib_dir_name}/${pyver};then 
-              echo ${lib_dir_name}/${pyver} not found, creating ...
-              mkdir ${lib_dir_name}/${pyver}
-              if ! $(conda info --envs | grep -v '^#' | awk '{print $1}' | grep -q $pyver);then 
-                echo Python environment $pyver not found, creating ... 
-                conda_env_create ${pyver} ${pyver: -1}
+              environment=$1
+              ver=${2-2.7}
+              conda create --name ${environment} python=$ver
+          msi:
+            shell: bash
+            help: Build msi
+            source: |-
+              set -o errexit
+              echo Checking for pandoc ...
+              if ! check_exe pandoc https://pandoc.org/installing.html;then 
+                return 1
               fi
-              echo Activating python virtual environment $pyver ...
-              source activate $pyver
-              echo Installing modules to embedded library folder ${lib_dir_name}/${pyver} ...
-              pip install -t ${lib_dir_name}/${pyver} -r ${workdir}/requirements.txt
-            fi
-          done        
-      make_zip_release:
-        shell: bash
-        hidden: true
-        source: |-
-          source activate py3    
-          if ! test -d ${__release_dir};then mkdir -p ${__release_dir};fi
-          mv -f tasks ${__release_dir}
-          if [[ -n $REPLACE_EXE ]];then
-            echo "Replacing current executable: $(which tasks)"
-            pip install -U .
-          fi     
-      make_zip:
-        shell: bash
-        hidden: true
-        source: |-
-          if [[ "$OSTYPE" =~ .*msys.* ]];then 
-            echo "OSType is Windows, nesting libdir ..."
-            if test -d windows;then 
-              rm -rf windows
-              mkdir windows
-            else
-              mkdir windows
-            fi
-            cp -r ${lib_dir_name} plugins windows
-            echo "Creating zip-app"
-            make-zipapp -f cli.py -X __pycache__ -x .pyc -d windows
-            if test -d windows;then rm -rf windows;fi
-          else
-            echo "OSType is most likely POSIX native"
-            echo "Creating zip-app"
-            make-zipapp -f cli.py -X __pycache__ -x .pyc
-          fi        
-      conda_env_create:
-        shell: bash
-        hidden: true
-        source: |-
-          if [ $# -lt 1 ]; then 
-            echo "Usage: ${FUNCNAME[0]} <virtualenv_name> [python_version](optional)"; 
-            return 1
-          fi
-          environment=$1
-          ver=${2-2.7}
-          conda create --name ${environment} python=$ver
-      msi:
-        shell: bash
-        help: Build msi
-        source: |-
-          set -o errexit
-          echo Checking for pandoc ...
-          if ! check_exe pandoc https://pandoc.org/installing.html;then 
-            return 1
-          fi
-          if ! test -d ${pandoc_template_dir};then
-            mkdir -p ${pandoc_template_dir}
-            git clone https://github.com/ryangrose/easy-pandoc-templates ${pandoc_template_dir}
-          fi
-          if ! test -d ${app_dir}/dist;then mkdir ${app_dir}/dist;fi
-          if ! test -d ${app_dir}/build;then mkdir ${app_dir}/build;fi
-          pandoc README.md -f markdown -o ansible_taskrunner/build/README.html --template=${pandoc_template_dir}/html/easy_template.html --toc
-          cd ${app_dir}
-          python setup.cx_freeze.py bdist_msi
-      tests:
-        shell: bash
-        help: Build self-contained zip-app
-        source: |-
-          python tests/test_ansible_taskrunner.py                  
-      zipapp:
-        shell: bash
-        help: Build self-contained zip-app
-        source: |-
-          set -o errexit
-          cd ${app_dir}
-          echo Checking for conda ...
-          if ! check_exe conda https://www.continuum.io/downloads;then 
-            return 1
-          fi
-          echo Checking for make-zipapp ...
-          if ! check_exe make-zipapp https://github.com/berttejeda/make-zipapp;then 
-            return 1
-          fi
-          init_libs
-          __version=$(grep 'version: ' ${workdir}/setup.cfg | cut -d\  -f2)
-          echo "Version is ${__version}"
-          __release_dir=${zip_release_dir}/${__version}
-          lint_result=$(python cli.py --help)
-          echo "Initial lint OK, proceeding with build"
-          make_zip
-          mv cli tasks
-          lint_result=$(./tasks --help)
-          echo "Initial lint OK, proceeding with zipapp release"
-          make_zip_release
-          echo "Cleaning up"
-          rm -rf ${lib_dir_name}/py{2,3}
-          if [[ -n $deployment_host_and_path ]];then
-            echo "Pushing up"
-            scp_result=$(scp ${__release_dir}/tasks ${deployment_host_and_path})
-          fi
+              if ! test -d ${pandoc_template_dir};then
+                mkdir -p ${pandoc_template_dir}
+                git clone https://github.com/ryangrose/easy-pandoc-templates ${pandoc_template_dir}
+              fi
+              if ! test -d ${app_dir}/dist;then mkdir ${app_dir}/dist;fi
+              if ! test -d ${app_dir}/build;then mkdir ${app_dir}/build;fi
+              pandoc README.md -f markdown -o ansible_taskrunner/build/README.html --template=${pandoc_template_dir}/html/easy_template.html --toc
+              cd ${app_dir}
+              python setup.cx_freeze.py bdist_msi
+          tests:
+            shell: bash
+            help: Build self-contained zip-app
+            source: |-
+              python tests/test_ansible_taskrunner.py                  
+          zipapp:
+            shell: bash
+            help: Build self-contained zip-app
+            source: |-
+              set -o errexit
+              cd ${app_dir}
+              echo Checking for conda ...
+              if ! check_exe conda https://www.continuum.io/downloads;then 
+                return 1
+              fi
+              echo Checking for make-zipapp ...
+              if ! check_exe make-zipapp https://github.com/berttejeda/make-zipapp;then 
+                return 1
+              fi
+              init_libs
+              __version=$(grep 'version: ' ${workdir}/setup.cfg | cut -d\  -f2)
+              echo "Version is ${__version}"
+              __release_dir=${zip_release_dir}/${__version}
+              lint_result=$(python cli.py --help)
+              echo "Initial lint OK, proceeding with build"
+              make_zip
+              mv cli tasks
+              lint_result=$(./tasks --help)
+              echo "Initial lint OK, proceeding with zipapp release"
+              make_zip_release
+              echo "Cleaning up"
+              rm -rf ${lib_dir_name}/py{2,3}
+              if [[ -n $deployment_host_and_path ]];then
+                echo "Pushing up"
+                scp_result=$(scp ${__release_dir}/tasks ${deployment_host_and_path})
+              fi
 ...
