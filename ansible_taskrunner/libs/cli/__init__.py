@@ -82,7 +82,7 @@ class CLI(CLICK_Commands_CLI_Group, CLICK_Commands_INIT, CLICK_Commands_SUB, CLI
         self.yaml_data = {}
 
     # Extend CLI Options as per Tasks Manifest
-    self.yaml_vars = self.yaml_data.get(self.path_string)
+    self.yaml_vars = self.yaml_data.get(self.path_string, {})
 
     # cli_args
     self._sys_args = [a for a in sys.argv if a != '--help']
