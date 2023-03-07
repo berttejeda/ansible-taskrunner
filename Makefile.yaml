@@ -46,10 +46,10 @@
             short: -bz
             var: zipapp
             is_flag: true
-          pypi:
+          release:
             help: "Release to pypi"
-            short: -bz
-            var: pypi
+            short: -release
+            var: pypi_release
             is_flag: true
           clean:
             help: "Clean build artifacts"
@@ -132,7 +132,7 @@
             shell: bash
             source: |-
                 python setup.py test      
-          pypi:
+          pypi_release:
             shell: bash
             help: Calls dist and release shell functions
             source: |-
@@ -148,13 +148,15 @@
             help: Package and upload a release
             source: |-
                 if [[ (-n $pypi_username) && (-n pypi_password) ]];then
+                  echo ok
+                  exit
                   if [[ -n $pypi_repourl ]];then                
                     twine upload --repository-url ${pypi_repourl} dist/* -u ${username} -p ${password}
                   else
                     twine upload dist/* -u ${pypi_username} -p ${pypi_password}
                   fi
                 else
-                  echo You must provide a username and password when attempting to push your package to pypi.org
+                  twine upload dist/*
                 fi
           install:
             shell: bash
