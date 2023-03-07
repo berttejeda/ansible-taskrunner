@@ -288,7 +288,7 @@ list_var:                                    | List Object             | String 
 dict_var:                                    | Dictionary Object       | JSON String (heredoc)
   key1: somevalue1                           |                         |
   key2: somevalue2                           |                         |
-shell_var: $(grep somestring /some/file.txt) | Depends on output       | String
+shell_var: $(grep somestring /some/file.txt) | String                  | String
 ```
 
 [Back To Top](#top)
@@ -296,7 +296,9 @@ shell_var: $(grep somestring /some/file.txt) | Depends on output       | String
 <a name="populate-the-vars-block---define-commands"></a>
 ## Populate the vars block - define commands
 
-Next, we define the available commands:
+Next, we define the available commands and their options.
+
+Let's add a command named 'run' to start:
 
 <details>
   <summary>Click to Expand</summary>
@@ -337,66 +339,126 @@ Next, we define the available commands:
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity 
 ```   
 </details>
 
 <br />
-Notice the parameter definitions for the `run` subcommand:
 
-- options.required
-- options.optional
+As you can see, commands are defined via YAML, and the syntax is mostly self-explanatory.
 
-These are yaml list objects that expose optional and required command-line options for the given subcommand.
+Currently, the parameters available to any given option are <br />
+consistent with click version 8.1.x, see [API — Click Documentation (8.1.x)](https://click.palletsprojects.com/en/8.1.x/api/)
 
-The syntax for defining options is as follows:
+**Important Notes**: 
 
-```
--{{ short_option }}|--{{ long_option }}: {{ mapped_variable }} ## {{ Help Text }}
--{{ switch }}: {{ mapped_variable }} ## {{ Help Text }}
---{{ switch }}: {{ mapped_variable }} ## {{ Help Text }}
-```
-
-Essentially, any option with a pipe '|' character in its name is evaluated as a standard [click](https://github.com/pallets/click) option, which means you must provide it an argument.
-
-Anything else is treated as a switch, which evaluates to `True` if specified, and undefined otherwise (unless you provide a default in your `vars` declaration).
-
-An option's help text can be included alongside the mapped variable, and must conform to the following syntax: <br />
-`## {{ HELP TEXT }}`
-
-So from the example above, we have:
-
-```
-| Option              | Mapped Variable                                    |   Help Text String                            |
-|:--------------------|:---------------------------------------------------|:----------------------------------------------|
-| -f|--foo            | some_foo_variable                                  | ## This is some foo option                    |
-| -b|--bar            | some_bar_variable                                  | ## This is some bar option                    |
-| -t|--targets        | playbook_targets                                   | ## ## Playbook targets                        |
-| --some-switch       | some_switch                                        | Behaves like click switches, holds the        |
-                                                                           | value of 'True' if specified)                 |
-| -A                  | hello                                              | Invoke the 'hello' embedded shell function    |
-| -B                  | goodbye                                            | Invoke the 'goodbye' embedded shell function  |
-| --debug-mode        | debug_mode                                         | Sets debug_mode to true                       |
-```
-
-**Important Note**: In the above example, the `-A` option points to a special mapped variable that itself maps to a shell 
-function defined in the subcommand's functions directive. We'll discuss this more in [section]().
+- An option's _var_ key:
+    - In the case of standard options, this variable that holds the value of the arguments passed to the option
+    - In the case of flags/switches, this variable is a boolean
+    - The variable is available during the entire runtime
+- In the above example, the `-hello` and `-goodbye` options point to special mapped variables that themselves map to corresponding shell<br />
+  functions defined in the subcommand's functions directive.<br />
+  We'll discuss this more in section [embedded-shell-functions](#embedded-shell-functions).
 
 <a name="populate-the-vars-block---cli-options---mapped-variables"></a>
 
 ### Populate the vars block - cli options - mapped variables
 
-As I mentioned before, the above mapped variables can be used **during runtime**, 
-that is, they can be referenced in any defined shell functions, 
+As I mentioned before, the above mapped variables can be used **during runtime**.<br />
+That is, they can be referenced in any defined shell functions, <br />
 embedded inventory logic, as well as during ansible execution.
 
 Consider the `-f|-foo` from the example.
@@ -452,17 +514,100 @@ Next, we add the help/message section:
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
-        ### The help message
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity
         help:
           message: |
             Invoke the 'run' command 
@@ -522,16 +667,100 @@ Running `tasks run --help` should return the list of parameters along with the h
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity
         ### The help message
         help:
           message: |
@@ -559,18 +788,26 @@ Running `tasks run --help` should return the list of parameters along with the h
 
 </details>
 
-Notice the two switches `-A` and `-B`, with mapped variables _hello_ and _goodbye_, respecitively.
+<a name="embedded-shell-functions"></a>
 
-These mapped variables correspond to keys in the `functions` block.
+Again, notice the two switches `-hello` and `-goodbye`, with mapped variables _hello_ and _goodbye_, respecitively.
 
-As such, specifying either or both `-A` and `-B` in your `tasks` invocation<br />
+These mapped variables correspond to keys in the `functions` block with matching names.
+
+As such, specifying either or both `-hello` and `-goodbye` in your `tasks run` invocation<br />
 will short-circuit normal operation and execute the corresponding functions<br /> 
 in the order in which you call them.
 
 Try it yourself by running:
 
-- `tasks run -a 1 -b bar -f foo -t local -A -B`
-- `tasks run -a 1 -b bar -f foo -t local -B -A`
+- `tasks run -t local -s -b bar -m one -m two -vvv -O -hello -goodbye`
+- `tasks run -t local -s -b bar -m one -m two -vvv -O -goodbye -hello`
+
+There is also a special flag `--invoke-function` that is globally avaialble to all subcommands.
+
+Invocation is as follows: `tasks <subcommand> --invoke-function <function_name>`.
+
+In our example, we would run: `tasks run -t local -s -b bar -m one -m two -vvv -O --invoke-function hello`
 
 For more usage examples, see the [appendix](#usage-examples).
 
@@ -636,7 +873,8 @@ The syntax for nesting these under the _functions_ key is as follows:
 
 ## Populate the vars block - embedded inventory expression
 
-A useful feature of this tool is the ability to define your ansible inventory as an embedded expression in the Taskfile itself.
+A useful feature of this tool is the ability to define your ansible<br />
+inventory as an embedded expression in the Taskfile itself.
 
 When the inventory is defined in this manner, the logic is as follows:
 
@@ -687,16 +925,100 @@ Let's define our embedded inventory expression:
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity
         ### The help message
         help:
           message: |
@@ -723,14 +1045,14 @@ Let's define our embedded inventory expression:
     ### The embedded inventory expression              
     inventory: |
       [local]
-      localhost ansible_connection=local      
-      [web-hosts]
+      localhost ansible_connection=local
+      [web_hosts]
       $(echo -e "${webhosts}" | tr ',' '\n')
-      [db-hosts]
+      [db_hosts]
       $(echo -e "${dbhosts}" | tr ',' '\n')
       [myhosts:children]
-      web-hosts
-      db-hosts
+      web_hosts
+      db_hosts
 ```
 
 </details>
@@ -751,16 +1073,16 @@ EOF
 )
 ```
 
-As such, the _web-hosts_ group in the embedded inventory expression ...
+As such, the _web_hosts_ group in the embedded inventory expression ...
 ```
-      [web-hosts]
+      [web_hosts]
       $(echo -e "${webhosts}" | tr ',' '\n')
 ```
 
 ... will evaluate to:
 
 ```
-[web-hosts]
+[web_hosts]
 webhost1
 webhost2
 webhost3
@@ -817,16 +1139,100 @@ Let's specify an external inventory file instead of an embedded inventory defini
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity
         ### The help message
         help:
           message: |
@@ -905,16 +1311,100 @@ Finally, let's add some proper ansible tasks!
     commands:
       run:
         options:
-          required:
-            -f|--foo: some_foo_variable ## This is some foo option
-            -b|--bar: some_bar_variable ## This is some bar option
-            -t|--targets: playbook_targets ## Playbook targets
-            -a|--all-else: [remaining_args] ## (behaves like [click](https://github.com/pallets/click)'s variadic arguments (nargs=\*)), this option will 'eat' up all remaining commandline arguments
-            --some-switch: some_switch ## (behaves like [click](https://github.com/pallets/click) switches, holds the value of True if specified), this is some boolean option
-          optional:
-            -A: hello ## Invoke the 'hello' shell function
-            -B: goodbye ## Invoke the 'goodbye' shell function
-            --debug-mode: debug_mode ## Enable debug logging
+          foo:
+            help: "This is some foo option"
+            short: -f
+            long: --foo
+            type: choice
+            var: some_foo_variable
+            required: True
+            not_required_if: 
+              - some_bar_variable
+            options:
+              - var1
+              - var2
+          bar:
+            help: "This is some bar option"
+            short: -b
+            long: --bar 
+            type: str
+            var: some_bar_variable
+            required: False
+            required_if: 
+              - hello
+              - some_baz_variable
+          baz:
+            help: "This is some baz option"
+            short: -z
+            long: --baz
+            type: str
+            var: some_baz_variable
+            required: False
+            mutually_exclusive_with: 
+              - some_bar_variable
+              - some_foo_variable
+          envvar:
+            help: "The value for this argument can be derived from an Environmental Variable"
+            short: -E
+            long: --env-var
+            type: str
+            var: env_var
+            env_var: SOME_ENVIRONMENT_VARIABLE
+            env_var_show: True
+          targets:
+            help: "Playbook targets"
+            short: -t
+            long: --targets
+            type: str
+            var: playbook_targets
+            required: True
+          multiple:
+            help: |-
+              This option can be specified multiple times
+            short: -m
+            long: --multiple
+            type: str
+            var: multiple_arg
+            allow_multiple: True
+          some_switch:
+            help: |-
+              This is some boolean option, behaves like Click's switches,
+              holds the value of True if specified
+              see: https://github.com/pallets/click
+            short: -s
+            long: --some-switch
+            is_flag: true
+            var: some_switch
+            required: True
+          say_hello:
+            help: "Invoke the 'hello' embedded shell function"
+            short: -hello
+            long: --say-hello
+            type: str
+            var: hello
+            is_flag: True
+          say_goodbye:
+            help: "Invoke the 'goodbye' embedded shell function"
+            short: -goodbye
+            long: --say-goodbye
+            type: str
+            var: goodbye
+            is_flag: True
+          hidden_option:
+            help: "This is a hidden option"
+            short: -O
+            long: --hidden-option
+            is_hidden: True
+            type: str
+            var: hidden
+            is_flag: True            
+          verbose:
+            help: |-
+              This is a sample paramter that supports counting, as with:
+              -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
+            short: -v
+            allow_counting: True
+            var: verbosity
         ### The help message
         help:
           message: |
@@ -942,13 +1432,13 @@ Finally, let's add some proper ansible tasks!
     inventory: |
       [local]
       localhost ansible_connection=local
-      [web-hosts]
+      [web_hosts]
       $(echo -e "${webhosts}" | tr ',' '\n')
-      [db-hosts]
+      [db_hosts]
       $(echo -e "${dbhosts}" | tr ',' '\n')
       [myhosts:children]
-      web-hosts
-      db-hosts            
+      web_hosts
+      db_hosts            
   tasks:
     - debug: 
         msg: |
@@ -975,17 +1465,15 @@ Quick usage examples:
 * Initialize your workspace<br />
   `tasks init`<br />
 * Run the Taskfile.yaml playbook, passing in additional options to the underlying subprocess<br />
-  `tasks run -a 1 -b bar -f foo -t local ---raw -vvv`</br>
+  `tasks run -t local -s -b bar -m one -m two`</br>
 * Don't do anything, just echo the underlying shell command<br />
-  `tasks run -a 1 -b bar -f foo -t local ---echo`<br />
+  `tasks run -t local -s -b bar -m one -m two -O ---echo`<br />
   Result should be similar to:<br />
   `ansible-playbook -i /var/folders/5f/4g4xnnv958q52108qxd2rj_r0000gn/T/ansible-inventorytlmz2hpz.tmp.ini -e var1="${var1}" ... Taskfile.yaml`
-* Run the Taskfile.yaml playbook<br />
-  `tasks run -a 1 -b bar -f foo -t local`
 * Run the embedded function `hello`<br />
-  `tasks run -a 1 -b bar -f foo -t local -A`
+  `tasks run -t local -s -b bar -m one -m two -hello`
 * Run the embedded functions `hello` and `goodbye`<br />
-  `tasks run -a 1 -b bar -f foo -t local -A -B`
+  `run -t local -s -b bar -m one -m two -hello -goodbye`
 
 [Back To Top](#top)
 <a name="installation"></a>
@@ -1065,13 +1553,13 @@ if [[ ($inventory) && ( "True" == "True") ]];then
 echo -e """$(cat <<EOF
 [local]
 localhost ansible_connection=local
-[web-hosts]
+[web_hosts]
 $(echo -e "${webhosts}" | tr ',' '\n')
-[db-hosts]
+[db_hosts]
 $(echo -e "${dbhosts}" | tr ',' '\n')
 [myhosts:children]
-web-hosts
-db-hosts            
+web_hosts
+db_hosts            
 EOF
 )"""| while read line;do
  eval "echo -e ${line}" >> "/var/folders/5f/4g4xnnv958q52108qxd2rj_r0000gn/T/ansible-inventorytlmz2hpz.tmp.ini";
@@ -1081,7 +1569,7 @@ fi;
 
 - And the underlying shell command would be revealed as:<br />
 
-`python ${HOME}/ansible_2.7.8/ansible-playbook -i /var/folders/5f/4g4xnnv958q52108qxd2rj_r0000gn/T/ansible-inventorytlmz2hpz.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" -e echo="True" Taskfile.yaml`
+`python ${HOME}/ansible_2.7.8/ansible-playbook -i /var/folders/5f/4g4xnnv958q52108qxd2rj_r0000gn/T/ansible-inventorytlmz2hpz.tmp.ini -e dbhosts="dbhost1" -e webhosts="webhost1" -e some_value="value1" Taskfile.yaml`
 
 [Back To Top](#top)
 <a name="cli_provider"></a>
@@ -1133,114 +1621,37 @@ The **\_\_command\_\_** variable points to the name of the invoked subcommand.
 It is available to the underlying subprocess shell.
 
 [Back To Top](#top)
-<a name="mutually-exclusive-options"></a>
+<a name="advanced-options"></a>
 
 ## Mutually Exclusive Options
 
-Taken from [Mutually exclusive option groups in python Click - Stack Overflow](https://stackoverflow.com/questions/37310718/mutually-exclusive-option-groups-in-python-click).
+This tool supports the following advanced options:
+
+  - Mutually Exclusive, see [Mutually exclusive option groups in python Click - Stack Overflow](https://stackoverflow.com/questions/37310718/mutually-exclusive-option-groups-in-python-click).
+  - Mutually Inclusive
+  - Conditionally required
 
 Suppose you want a set of options such that:
 - You want to accept one option but only if another, related option has not been specified
 
-You can accomplish this by defining your options with an ' or ' format, as with:
+You can accomplish this by defining your option with the following parameters:
 
 ```
--a|--auth-token: auth_token ## Specify auth token
--u|--username or -a|--auth-token: username ## Specify Username
--p|--password or -a|--auth-token: password ## Specify Password
+  - required: False
+  - mutually_exclusive_with: 
+    - some_bar_variable
+    - some_foo_variable
 ```
 
-In the above configuration, calling the options for 
-username and password will render the option for auth token _optional_, 
-that is, you don't need to specify the auth token if you've specified 
-the username and password.
+In the above configuration, calling this option along with options<br /> 
+`-f|-foo` and `-b|-bar` will trigger an illegal usage error, since you've<br />
+marked the option as mutually exclusive with either of these two options.
 
-A sample is provided in the [examples](examples) directory.
+Feel free to review the [Taskfile.yaml](Taskfile.yaml), as you'll find an example of:
 
-<a name="option-tags"></a>
-## Option Tags
-
-Option tags provide an elegant mechanism for further 
-customizing the behavior of your command-line options.
-
-The logic treats anything after the first two pipe ('|') characters as option tags.
-
-So far, four option tags are honored, and these are:
-- prompt
-- sprompt
-- choice
-- env
-
-Note that these can be combined.
-
-<a name="prompt-options"></a>
-### Prompt option tag
-
-Taken from [Options — Click Documentation (7.x)](https://click.palletsprojects.com/en/7.x/options/#prompting)
-
-Suppose you want a set of *optional* options such that:
-- You will be prompted if said option is not provided a value
-
-You can accomplish this by defining your options with a 'prompt' option tag, as with:
-```
-optional_parameters:
-  -u|--username|prompt: username ## Specify password
-  -p|--password|sprompt: password ## Specify password
-```
-
-In the above configuration, *not* calling the options for 
-username and password invoke a prompt
-
-There are two types of option tags related to prompting:
-- prompt
-- sprompt
-
-The latter will hide the input, and so is best used for accepting sensitive input, such as passwords.
-
-A sample is provided in the [examples](examples) directory.
-
-<a name="choice-options"></a>
-### Choice option tag
-
-Taken from [Options — Click Documentation (7.x)](https://click.palletsprojects.com/en/7.x/options/#choice-options)
-
-Suppose you want a set of options such that:
-- The value you provide for such an option must come from a list of pre-defined values.
-
-You can accomplish this by defining your options with a 'choice' option tag, as with:
-
-```
--s|--selection|choice: selection ## Specify a selection
-  - choice1
-  - choice2
-  - choice3
-```
-
-In the above configuration, providing a value for _selection_
-will limit you to the values defined in the option list.
-
-A sample is provided in the [examples](examples) directory.
-
-
-<a name="combining-option-tags"></a>
-### Combining option tags
-
-Suppose you want a set of options that combine some or all of the behavior described above.
-
-You can accomplish this by defining your options with a multiple tags, as with:
-
-```
--u|--username|env|prompt: username ## Specify password
--p|--password|env|sprompt: password ## Specify password
-```
-
-Note that the _choice_ option tag only works with values that are a list type, 
-so you can't do something like:
-
-```
--u|--username|env|choice: username ## Specify password
--p|--password|env|choice: password ## Specify password
-```
+- mutually exclusive
+- mutually inclusive
+- conditionally required
 
 <a name="simple-templating"></a>
 
@@ -1258,11 +1669,16 @@ What this means is that we expose a limited set of internal variables to the abo
 As an example:
 
 ```
-      examples:
-        - example1: |
-            tasks -f $tf_path --foo foo --bar bar
-        - example2: |
-            tasks -f $tf_path --foo foo --baz baz
+        help:
+          message: |
+            Invoke the 'run' command 
+          epilog: |
+            This line will be displayed at the end of the help text message
+          examples:
+            - example1: |
+                tasks -f $tf_path --foo foo --bar bar
+            - example2: |
+                tasks -f $tf_path --foo foo --baz baz
 ```            
 
 In the above strings, `$tf_path` will expand to the internal variable tf_path,
@@ -1270,10 +1686,6 @@ which holds the relative path to the current tasks file.
 
 Below is a list of available variables for your convenience:
 
-- cli_args
-- cli_args_short
-- parameter_sets
-- tf_path
 
 ```
 Variable        | Description
@@ -1281,10 +1693,11 @@ Variable        | Description
 exe_path        | The absolute path to the tasks executable
 cli_args        | The current command-line invocation
 cli_args_short  | The current command-line invocation, minus the executable
-parameter_sets  | The parameter sets you have invoked
 sys_platform    | The OS Platform as detected by Python
 tf_path         | The relative path to the specified Taskfile
 ```
+
+Additionally, all **currently set environmental variables** are also available for templating.
 
 [Back To Top](#top)
 <a name="single-executable-releases"></a>
