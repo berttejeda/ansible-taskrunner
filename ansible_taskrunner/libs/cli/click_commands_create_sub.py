@@ -80,7 +80,7 @@ class CLICK_Commands_SUB:
       # We don't want to 'commands' or 'inventory' down to the subprocess
       provider_vars_sanitized.pop('commands')
       # Derive the provider vars string from provider vars
-      provider_vars_string_block = '\n'.join([f'{k}={v}' for k, v in provider_vars_sanitized.items()]) + extra_vars_string
+      provider_vars_string_block = '\n'.join(['{k}={v}'.format(k=key, v='""' if value == None else value) for key, value in provider_vars_sanitized.items()]) + extra_vars_string
 
       cli_functions = ['{f} {a}'.format(f=fnc, a=arg if arg and arg not in ['True', 'False'] else '') for fnc,arg in kwargs.items() if fnc in internal_functions.keys() and arg]
 
