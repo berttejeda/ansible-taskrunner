@@ -2,6 +2,12 @@
 History
 =======
 
+## Release 2023-03-08 v2.4.1
+
+* Ensure boolean inputs are represented as such [c0f5642](/commit/c0f56429988336116236f004d50d9b508e775995)
+* Removed bogus whitespace [5bb8860](/commit/5bb886042cb54b49b20902b9c39175aa1c00fa87)
+* Updated usage example [3174263](/commit/31742631ec7159362b84edc155a0325f235e1d53)
+
 ## Release 2023-03-08 v2.4.0
 
 * Use subprocess.check_call to support terminal colors [b64ada1](/commit/b64ada15467acd89389755e86d8da433742c8c5a)
