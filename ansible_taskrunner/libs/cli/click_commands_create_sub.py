@@ -59,17 +59,23 @@ class CLICK_Commands_SUB:
               value = ''
           if isinstance(value, bool):
               value = str(value)
-          if '\n' in str(value):
+          if '\n' in str(value) and key == 'inventory_expression':
               value = value.split('\n')
           if value and key not in internal_functions.keys():
-              if isinstance(value, list) or isinstance(value, tuple):
+              if isinstance(value, str):
+                if '\n' in value and key != 'inventory_expression':
+                    value_string = json.dumps(value)
+                    provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+                else:
+                    provider_vars_sanitized[key] = f'"{value}"'
+              elif type(value) in [dict, list, tuple]:
                   try:
-                      if key == 'inventory':
+                      if key == 'inventory_expression':
                           value_string = '\n'.join(value)
                           provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
                       else:
-                          value_string = '\n'.join(value).replace("'", "\'").replace('"', '\"')
-                          provider_vars_sanitized[key] = f"'{value_string}'"
+                          value_string = json.dumps(value)
+                          provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
                   except TypeError as e:
                       if logger.level == 10:
                           logger.error(f"Unsupported variable type, skipped variable {key}")

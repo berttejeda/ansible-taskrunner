@@ -8,8 +8,6 @@ import re
 import sys
 import time
 from tempfile import mkstemp
-
-# Import third-party and custom modules
 import click
 from ansible_taskrunner.logger import Logger
 from ansible_taskrunner.libs.formatting import ansi_colors, Struct
@@ -206,21 +204,17 @@ class ProviderCLI:
         logger.debug('Ansible Command Provider')
         ansible_playbook_command = provider_vars.get(
             'ansible_playbook_command', 'ansible-playbook')
-        # Embedded inventory logic
-        inventory_is_embedded = False
+        # Inventory expression
+        inventory_is_ephemeral = False
         # Employ an exit trap if we're using bastion mode
         trap = ''
         # Where to create the temporary inventory (if applicable)
         inventory_dir = provider_vars.get('_inventory_tmp_dir') or provider_vars.get('inventory_dir')
         inventory_input = provider_vars.get('_inventory')
-        embedded_inventory_string = provider_vars.get('inventory')
+        inventory_file = provider_vars.get('inventory_file')
+        inventory_expression = provider_vars.get('inventory_expression')
         ans_inv_fso_desc = None
         sub_process = kwargs.get('sub_process')
-        embedded_inventory_string_is_file = os.path.isfile(
-            os.path.abspath(
-                os.path.expanduser(embedded_inventory_string)
-            )
-        )
 
         if cli_functions:
             cf = '\n'.join(cli_functions)
@@ -235,44 +229,51 @@ class ProviderCLI:
                 else:
                     logger.error('No subprocess defined for this provider')
 
-        if not inventory_input and not embedded_inventory_string:
+        if not any([inventory_input, inventory_file, inventory_expression]):
             logger.error(
-                "Playbook does not contain an inventory declaration and no inventory was specified. Seek --help")
+                "Playbook does not contain an inventory declaration" + \
+                "and no inventory was specified.Seek --help"
+            )
             sys.exit(1)
         elif inventory_input:
-            ans_inv_fp = inventory_input
-            logger.debug("Using specified inventory file %s" % ans_inv_fp)
-            effective_inventory_input = inventory_input
-            if bastion_settings.get('enabled'):
-                if not debug:
-                    trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
+            ephemeral_inventory_file_path = inventory_input
+            logger.debug("Using specified inventory file %s" % ephemeral_inventory_file_path)
         else:
             if bastion_settings.get('enabled'):
                 inventory_dir = '/tmp' if not inventory_dir else inventory_dir
-                ans_inv_fp = '{}/ansible.inventory.{}.tmp.ini'.format(inventory_dir, uuid.uuid4())
+                ephemeral_inventory_file_path = f'{inventory_dir}/ansible.inventory.{uuid.uuid4()}.tmp.ini'
+                inventory_is_ephemeral = True
                 if not debug:
-                    trap = 'trap "rm -f %s" EXIT' % ans_inv_fp
+                    trap = f'trap "rm -f {ephemeral_inventory_file_path}" EXIT'
             else:
-                if not embedded_inventory_string_is_file:
-                    ans_inv_fso_desc, ans_inv_fp = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)
+                if inventory_expression:
+                    ans_inv_fso_desc, ephemeral_inventory_file_path = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)
                     logger.debug("No external inventory specified")
-                    logger.debug("Created temporary inventory file %s (normally deleted after run)" % ans_inv_fp)
-                    effective_inventory_input = embedded_inventory_string
-                    inventory_is_embedded = True
+                    logger.debug(
+                                 f"Created temporary inventory file {ephemeral_inventory_file_path}" + \
+                                 "(normally deleted after run)"
+                                 )
+                    inventory_is_ephemeral = True
+                    if not debug:
+                        trap = f'trap "rm -f {ephemeral_inventory_file_path}" EXIT'
                 else:
-                    effective_inventory_input = os.path.abspath(
-                        os.path.expanduser(embedded_inventory_string)
+                    inventory_file_effective = Template(inventory_file).safe_substitute(**available_vars)
+                    ephemeral_inventory_file_path = os.path.abspath(
+                        os.path.expanduser(inventory_file_effective)
                     )
-
-        ansible_extra_options = [
-            '-e "{\'%s\':\'${%s}\'}"' % (key, key) for key, value in provider_vars.items() if value]
+        ansible_extra_options = []
+        for key, value in provider_vars.items():
+            if value and isinstance(value, str):
+                ansible_extra_options.append('-e "{\'%s\':\'${%s}\'}"' % (key, key))
+            elif value:
+                ansible_extra_options.append('-e "{\'%s\':${%s}}"' % (key, key))
         # Build inventory command string
-        if ans_inv_fso_desc or bastion_settings.get('enabled'):
-            inventory_command = f'inventory_is_embedded={inventory_is_embedded}' + \
-            f'{trap}\nif [[ "$inventory_is_embedded" == "True" ]];then\n' + \
-            f'echo -e """${{inventory}}"""' + \
-            f'| while read line;do\n eval "echo -e ${{line}}" >> "{ans_inv_fp}";\ndone\n' + \
-            'fi;\n'
+        if inventory_is_ephemeral:
+            inventory_command = f'inventory_is_ephemeral={inventory_is_ephemeral}\n' + \
+                f'if [[ "$inventory_is_ephemeral" == "True" ]];then\n' + \
+                f'echo -e """${{inventory_expression}}"""' + \
+                f'| while read line;do\n eval "echo -e ${{line}}" >> "{ephemeral_inventory_file_path}";\ndone\n' + \
+                'fi;\n'
         else:
             inventory_command = ''
         anc = ansi_colors.strip()
@@ -280,10 +281,7 @@ class ProviderCLI:
         inc = inventory_command
         pre_commands = f'{anc}\n{psb}\n{shell_functions}\n{inc}'
         apc = ansible_playbook_command
-        if embedded_inventory_string_is_file:
-            inf = inventory_input
-        else:
-            inf = ans_inv_fp
+        inf = ephemeral_inventory_file_path
         opt = ' \\\n'.join(ansible_extra_options)
         pb = yaml_input_file
         arg = args
@@ -310,13 +308,13 @@ class ProviderCLI:
             logger.debug('Ansible command file can be found here: %s' %
                          ansible_command_file_path)
             logger.debug('Ansible inventory file can be found here: %s' %
-                         ans_inv_fp)
+                         ephemeral_inventory_file_path)
             with fdopen(ansible_command_file_descriptor, "w") as f:
                 f.write(command)
         else:
             if ans_inv_fso_desc:
                 os.close(ans_inv_fso_desc)
-                remove(ans_inv_fp)
+                remove(ephemeral_inventory_file_path)
         if result:
             sys.exit(result.returncode)
         else:
