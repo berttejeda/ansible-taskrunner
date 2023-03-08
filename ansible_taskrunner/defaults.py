@@ -10,17 +10,23 @@ path_string = 'vars'
 
 default_settings = {
   "help": {
-    "max_content_width": help_max_content_width,    
+    "max_content_width": help_max_content_width,
   },
   "logging": {
-    "maxBytes": logging_maxBytes,    
-    "backupCount": logging_backupCount,    
-    "debug": __debug,    
-    "verbose": __verbose,    
-    "silent": suppress_output,    
-    "log_file": log_file,    
+    "maxBytes": logging_maxBytes,
+    "backupCount": logging_backupCount,
+    "debug": __debug,
+    "verbose": __verbose,
+    "silent": suppress_output,
+    "log_file": log_file,
   },
   "taskfile": {
     "path_string": path_string
   }
+}
+
+shell_invocation_mappings = {
+    'bash': '{src}',
+    'python': 'python -c """{src}"""',
+    'ruby': 'ruby < <(echo -e """{src}""")'
 }
