@@ -8,6 +8,17 @@ suppress_output = 0
 log_file = None
 path_string = 'vars'
 
+bool_strings = [
+    'true',
+    'false',
+    'enabled',
+    'disabled',
+    'on',
+    'off',
+    '0',
+    '1'
+    ]
+
 default_settings = {
   "help": {
     "max_content_width": help_max_content_width,

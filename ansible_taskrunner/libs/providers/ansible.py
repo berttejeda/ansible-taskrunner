@@ -265,7 +265,7 @@ class ProviderCLI:
         for key, value in provider_vars.items():
             if value and isinstance(value, str):
                 ansible_extra_options.append('-e "{\'%s\':\'${%s}\'}"' % (key, key))
-            elif value:
+            elif value is not None:
                 ansible_extra_options.append('-e "{\'%s\':${%s}}"' % (key, key))
         # Build inventory command string
         if inventory_is_ephemeral:

@@ -4,6 +4,7 @@
 import click
 from bertdotconfig.configutils import AttrDict
 from ansible_taskrunner.libs.click_extras import ExtendCLI
+from ansible_taskrunner.defaults import bool_strings
 from ansible_taskrunner.logger import Logger
 import json
 logger_obj = Logger()
@@ -57,10 +58,10 @@ class CLICK_Commands_SUB:
       for key, value in list(provider_vars_sanitized.items()):
           if value is None:
               value = ''
-          if isinstance(value, bool):
-              value = str(value)
           if '\n' in str(value) and key == 'inventory_expression':
               value = value.split('\n')
+          if str(value).lower() in bool_strings:
+              value = bool(value)
           if value and key not in internal_functions.keys():
               if isinstance(value, str):
                 if '\n' in value and key != 'inventory_expression':
@@ -68,7 +69,7 @@ class CLICK_Commands_SUB:
                     provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
                 else:
                     provider_vars_sanitized[key] = f'"{value}"'
-              elif type(value) in [dict, list, tuple]:
+              elif type(value) in [AttrDict, dict, list, tuple]:
                   try:
                       if key == 'inventory_expression':
                           value_string = '\n'.join(value)
@@ -80,9 +81,8 @@ class CLICK_Commands_SUB:
                       if logger.level == 10:
                           logger.error(f"Unsupported variable type, skipped variable {key}")
                           logger.error(f"Skip Reason {e}")
-              elif isinstance(value, dict):
-                  value_string = json.dumps(value)
-                  provider_vars_sanitized[key] = f'$(cat <<EOF\n{value_string}\nEOF\n)'
+              else:
+                  provider_vars_sanitized[key] = value
       # We don't want to 'commands' or 'inventory' down to the subprocess
       provider_vars_sanitized.pop('commands')
       # Derive the provider vars string from provider vars
