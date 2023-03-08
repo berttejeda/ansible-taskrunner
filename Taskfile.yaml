@@ -5,7 +5,7 @@
   ### The vars block  
   vars:
     ANSIBLE_STDOUT_CALLBACK: community.general.yaml    
-    var1: value1
+    var1: "This is value1"
     var2: value2
     var3: value3
     var4: |-
@@ -20,6 +20,7 @@
       some_key:
         some_child_key: "do it"
     var7: $(echo some_value)
+    var8: 8000
     dbhosts:
       - dbhost1
       - dbhost2
@@ -80,6 +81,13 @@
             var: env_var
             env_var: SOME_ENVIRONMENT_VARIABLE
             env_var_show: True
+          num:
+            help: "This is a numeric argument"
+            short: -n
+            long: --number
+            var: some_num_variable
+            type: int
+            required: False            
           targets:
             help: "Playbook targets"
             short: -t
@@ -133,7 +141,7 @@
               -v, -vv, -vvv, which would evaluate to 1, 2, and 3, respectively
             short: -v
             allow_counting: True
-            var: verbosity            
+            var: verbosity          
         ### The help message
         help:
           message: |
@@ -157,22 +165,21 @@
             help: Say goodbye
             source: |-
               echo The value for var1 is $var1. Goodbye!
-    ### The embedded inventory expression              
-    inventory: |
+    ### Inventory expression
+    inventory_expression: |
       [local]
       localhost ansible_connection=local
       [web_hosts]
-      $(echo -e "${webhosts}" | tr ',' '\n')
+      $(echo -e "${webhosts}" | jq -r '.[]')
       [db_hosts]
-      $(echo -e "${dbhosts}" | tr ',' '\n')
+      $(echo -e "${dbhosts}"  | jq -r '.[]')
       [myhosts:children]
       web_hosts
       db_hosts            
   tasks:
+
     - name: Show Variables
       debug:
         msg: |-
-          HOST Variables ("hostvars"):
-          --------------------------------
           {{ hostvars[inventory_hostname] | to_nice_json }}          
           
