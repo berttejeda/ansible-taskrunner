@@ -281,6 +281,7 @@ The rules for evaluation of these are as follows:<br /><br />
 Variable                                     | Ansible Evaluation      | Shell Function Evaluation
 -------------------------------------------- | ----------------------- | -----------------------
 str_var: value1                              | String                  | String
+bool_var: True                               | Boolean                 | String
 num_var: 3                                   | Integer                 | Integer
 multiline_var: |                             | Multiline String        | String (heredoc)
   This is a multi-line value                 |                         |
@@ -293,6 +294,9 @@ dict_var:                                    | Dictionary Object       | JSON St
   key2: somevalue2                           |                         |
 shell_var: $(grep somestring /some/file.txt) | String                  | Depends on output
 ```
+
+Additionally, arguments supplied from the commandline conform<br />
+to the type specified in the options definition, with "string" being the default type.
 
 [Back To Top](#top)
 
