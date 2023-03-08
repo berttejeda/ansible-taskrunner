@@ -295,7 +295,7 @@ dict_var:                                    | Dictionary Object       | JSON St
 shell_var: $(grep somestring /some/file.txt) | String                  | Depends on output
 ```
 
-Additionally, arguments supplied from the commandline conform<br />
+Additionally, arguments supplied from the command-line conform<br />
 to the type specified in the options definition, with "string" being the default type.
 
 [Back To Top](#top)
@@ -527,7 +527,7 @@ consistent with click version 8.1.x, see [API — Click Documentation (8.1.x)](h
 
 - An option's _var_ key:
     - In the case of standard options, this variable holds the value of the arguments passed to the option
-    - In the case of flags/switches, this variable is a boolean
+    - In the case of flags/switches, this variable is a Boolean
     - The variable is available during the entire runtime
 - In the above example, the `-hello` and `-goodbye` options point to special mapped<br />
   variables that themselves map to corresponding shell functions defined in the subcommand's<br />
@@ -904,7 +904,7 @@ Running `tasks run --help` should return the list of parameters along with the h
 
 <a name="embedded-shell-functions"></a>
 
-Again, notice the two switches `-hello` and `-goodbye`, with mapped variables _hello_ and _goodbye_, respecitively.
+Again, notice the two switches `-hello` and `-goodbye`, with mapped variables _hello_ and _goodbye_, respectively.
 
 These mapped variables correspond to keys in the `functions` block with matching names.
 
@@ -917,7 +917,7 @@ Try it yourself by running:
 - `tasks run -t local -s -b bar -m one -m two -vvv -O -hello -goodbye`
 - `tasks run -t local -s -b bar -m one -m two -vvv -O -goodbye -hello`
 
-There is also a special flag `---invoke-function` that is globally avaialble to all subcommands.
+There is also a special flag `---invoke-function` that is globally available to all subcommands.
 
 Invocation is as follows: `tasks <subcommand> ---invoke-function <function_name>`.
 
@@ -1220,7 +1220,7 @@ webhost2
 webhost3
 ```
 
-Also, notice how the inline shell command tranforms commas into newline characters by way of the transform (`tr`) command.
+Also, notice how the inline shell command transforms commas into newline characters by way of the transform (`tr`) command.
 
 This makes it so that if we were to have defined the _webhosts_ variable<br />
 in the Tasksfile as `webhosts: webhost1,webhost2,webhost3`, it would have had the same outcome<br />
@@ -1620,7 +1620,7 @@ Finally, let's add some proper ansible tasks!
 </details>
 
 <br />
-The task above will display all available host variabes.
+The task above will display all available host variables.
 
 <a name="usage-examples"></a>
 
@@ -1651,11 +1651,13 @@ Quick usage examples:
 
 # Installation
 
-Ansible-taskrunner consists of the `tasks` binary (for now), and it can be installed in a few ways:
+Ansible-taskrunner consists of the `tasks` command.
+
+It can be installed in a few ways:
 
 1. pip install ansible-taskrunner
 2. pip install git+https://github.com/berttejeda/ansible-taskrunner.git
-3. Obtaining a [release](#single-executable-releases)
+3. Obtaining a [release](#single-executable-releases) (these lag behind the pip distributions)
 
 Note: You'll need to pre-install a python distribution for the Windows MSI release.
 Not yet sure if I am doing something wrong or if that's by design.
