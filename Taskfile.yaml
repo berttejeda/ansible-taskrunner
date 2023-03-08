@@ -181,5 +181,5 @@
     - name: Show Variables
       debug:
         msg: |-
-          {{ hostvars[inventory_hostname] | to_nice_json }}          
+          {{ hostvars[inventory_hostname] | to_nice_json }}
           
