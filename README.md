@@ -29,7 +29,7 @@
     - [Add tasks](#add-tasks)
 - [Usage Examples](#usage-examples)
 - [Installation](#installation)
-    - [More Examples](#more-examples)
+- [More Examples](#more-examples)
 - [Appendix](#appendix)
     - [Bastion Mode](#bastion-mode)
     - [Special Variables](#special-variables)
