@@ -72,9 +72,10 @@ If you are running this tool from Windows, please read the section on [Bastion M
 `ansible-playbook -i myinventory.txt -d dbhost1 -w webhost1 -t value1 myplaybook.yaml`
 - Well, you can through the use of an ansible-playbook wrapper
 - That's where `tasks` comes in:<br />
-`tasks run -a 1 -b bar -f foo -t local`<br />
+`tasks -s -b bar -f foo1`<br />
 translates to:<br />
-`ansible-playbook -i /tmp/ansible-inventory16xdkrjd.tmp.ini -e foo="foo" -e bar="bar" -e playbook_taregets="local" -e all_else="1" Taskfile.yaml`
+`ansible-playbook -i /tmp/ansible-inventory16xdkrjd.tmp.ini \
+-e "{'some_foo_variable':'foo1'}" -e "{'some_bar_variable':'bar'}" -e "{'playbook_targets':'local'}" Taskfile.yaml`
 
 1. Jump down to the [usage examples](#usage-examples) to see this in action
 2. Review the [installation](#installation) instructions if you want to test-drive it
@@ -416,8 +417,8 @@ Let's add a sub-command named `run` along with its command-line options:
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
@@ -542,7 +543,7 @@ Whatever argument you pass to this option becomes the value for the mapped varia
 
 Again, this variable is made available to the underlying subprocess call, and thus to ansible.
 
-So when we call the tasks command like so `tasks run -f foo`, the value for the `some_foo_variable` becomes `foo`.
+So when we call the tasks command like so `tasks run -f foo1`, the value for the `some_foo_variable` becomes `foo`.
 
 <a name="populate-the-vars-block---helpmessage"></a>
 
@@ -608,8 +609,8 @@ Next, we add the help/message section:
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
@@ -778,8 +779,8 @@ Running `tasks run --help` should return the list of parameters along with the h
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
@@ -1055,8 +1056,8 @@ Let's define our inventory expression:
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
@@ -1285,8 +1286,8 @@ We can specify an inventory file instead of an inventory expression with the _in
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
@@ -1479,8 +1480,8 @@ Finally, let's add some proper ansible tasks!
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b

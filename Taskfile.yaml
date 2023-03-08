@@ -51,8 +51,8 @@
             not_required_if: 
               - some_bar_variable
             options:
-              - var1
-              - var2
+              - foo1
+              - foo2
           bar:
             help: "This is some bar option"
             short: -b
