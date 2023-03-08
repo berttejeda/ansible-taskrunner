@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-08 v2.4.0
+
+* Use subprocess.check_call to support terminal colors [b64ada1](/commit/b64ada15467acd89389755e86d8da433742c8c5a)
+
 ## Release 2023-03-08 v2.3.0
 
 * Latest updates [0eebe1b](/commit/0eebe1b3b01b5feab0d6dab642f0fdcd0da80b1d)
