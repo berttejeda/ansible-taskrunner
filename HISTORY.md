@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-08 v2.4.2
+
+* Fixed bug when deriving path to inventory_file from Taskfile [e65454d](/commit/e65454d34ef82a1d29c0525078316718f647cc79)
+
 ## Release 2023-03-08 v2.4.1
 
 * Ensure boolean inputs are represented as such [c0f5642](/commit/c0f56429988336116236f004d50d9b508e775995)
