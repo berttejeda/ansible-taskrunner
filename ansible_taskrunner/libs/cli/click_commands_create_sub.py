@@ -84,8 +84,8 @@ class CLICK_Commands_SUB:
               else:
                   provider_vars_sanitized[key] = value
       # We don't want to 'commands' or 'inventory' down to the subprocess
-      provider_vars_sanitized.pop('commands')
-      provider_vars_sanitized.pop('environment_vars')
+      provider_vars_sanitized.pop('commands', '')
+      provider_vars_sanitized.pop('environment_vars', '')
       # Derive the provider vars string from provider vars
       exports = self.yaml_vars.get('environment_vars', {})
       if isinstance(exports, dict):
