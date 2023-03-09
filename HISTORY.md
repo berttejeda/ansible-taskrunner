@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-09 v2.5.1
+
+* Account for possibility of missing vars [c3b73f1](git@github.com:berttejeda/ansible-taskrunner/commit/c3b73f1f34873229a246a44d9f3451b529af7269)
+
 ## Release 2023-03-09 v2.5.0
 
 * Add support for declaring environment variables via the Taskfile [2047b02](git@github.com:berttejeda/ansible-taskrunner/commit/2047b0200b7fa9b49e3e3e4f61fe21a35bbfb0d1)
