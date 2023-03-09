@@ -2,6 +2,7 @@
 import json
 import os
 from os import fdopen, remove
+from pathlib import Path
 import uuid
 from string import Template
 import re
@@ -236,31 +237,29 @@ class ProviderCLI:
             )
             sys.exit(1)
         elif inventory_input:
-            ephemeral_inventory_file_path = inventory_input
-            logger.debug("Using specified inventory file %s" % ephemeral_inventory_file_path)
+            effective_inventory_file_path = inventory_input
+            logger.debug("Using specified inventory file %s" % effective_inventory_file_path)
         else:
             if bastion_settings.get('enabled'):
                 inventory_dir = '/tmp' if not inventory_dir else inventory_dir
-                ephemeral_inventory_file_path = f'{inventory_dir}/ansible.inventory.{uuid.uuid4()}.tmp.ini'
+                effective_inventory_file_path = f'{inventory_dir}/ansible.inventory.{uuid.uuid4()}.tmp.ini'
                 inventory_is_ephemeral = True
                 if not debug:
-                    trap = f'trap "rm -f {ephemeral_inventory_file_path}" EXIT'
+                    trap = f'trap "rm -f {effective_inventory_file_path}" EXIT'
             else:
                 if inventory_expression:
-                    ans_inv_fso_desc, ephemeral_inventory_file_path = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)
+                    ans_inv_fso_desc, effective_inventory_file_path = mkstemp(prefix='ansible-inventory', suffix='.tmp.ini', dir=inventory_dir)
                     logger.debug("No external inventory specified")
                     logger.debug(
-                                 f"Created temporary inventory file {ephemeral_inventory_file_path}" + \
+                                 f"Created temporary inventory file {effective_inventory_file_path}" + \
                                  "(normally deleted after run)"
                                  )
                     inventory_is_ephemeral = True
                     if not debug:
-                        trap = f'trap "rm -f {ephemeral_inventory_file_path}" EXIT'
+                        trap = f'trap "rm -f {effective_inventory_file_path}" EXIT'
                 else:
                     inventory_file_effective = Template(inventory_file).safe_substitute(**available_vars)
-                    ephemeral_inventory_file_path = os.path.abspath(
-                        os.path.expanduser(inventory_file_effective)
-                    )
+                    effective_inventory_file_path = Path(inventory_file_effective).expanduser().as_posix()
         ansible_extra_options = []
         for key, value in provider_vars.items():
             if value and isinstance(value, str):
@@ -270,9 +269,10 @@ class ProviderCLI:
         # Build inventory command string
         if inventory_is_ephemeral:
             inventory_command = f'inventory_is_ephemeral={inventory_is_ephemeral}\n' + \
+                f'{trap}' + \
                 f'if [[ "$inventory_is_ephemeral" == "True" ]];then\n' + \
                 f'echo -e """${{inventory_expression}}"""' + \
-                f'| while read line;do\n eval "echo -e ${{line}}" >> "{ephemeral_inventory_file_path}";\ndone\n' + \
+                f'| while read line;do\n eval "echo -e ${{line}}" >> "{effective_inventory_file_path}";\ndone\n' + \
                 'fi;\n'
         else:
             inventory_command = ''
@@ -281,7 +281,7 @@ class ProviderCLI:
         inc = inventory_command
         pre_commands = f'{anc}\n{psb}\n{shell_functions}\n{inc}'
         apc = ansible_playbook_command
-        inf = ephemeral_inventory_file_path
+        inf = effective_inventory_file_path
         opt = ' \\\n'.join(ansible_extra_options)
         pb = yaml_input_file
         arg = args
@@ -308,13 +308,13 @@ class ProviderCLI:
             logger.debug('Ansible command file can be found here: %s' %
                          ansible_command_file_path)
             logger.debug('Ansible inventory file can be found here: %s' %
-                         ephemeral_inventory_file_path)
+                         effective_inventory_file_path)
             with fdopen(ansible_command_file_descriptor, "w") as f:
                 f.write(command)
         else:
             if ans_inv_fso_desc:
                 os.close(ans_inv_fso_desc)
-                remove(ephemeral_inventory_file_path)
+                remove(effective_inventory_file_path)
         if result:
             sys.exit(result.returncode)
         else:
