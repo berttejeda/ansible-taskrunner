@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-09 v2.5.0
+
+* Add support for declaring environment variables via the Taskfile [2047b02](git@github.com:berttejeda/ansible-taskrunner/commit/2047b0200b7fa9b49e3e3e4f61fe21a35bbfb0d1)
+
 ## Release 2023-03-08 v2.4.2
 
 * Fixed bug when deriving path to inventory_file from Taskfile [e65454d](/commit/e65454d34ef82a1d29c0525078316718f647cc79)
