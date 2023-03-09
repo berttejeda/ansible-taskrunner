@@ -1744,6 +1744,49 @@ python ${HOME}/ansible_2.7.8/ansible-playbook \
 ```
 
 [Back To Top](#top)
+<a name="environment_vars"></a>
+
+### environment_vars
+
+By defining the playbook dictionary variable *environment_vars*,<br />
+the following occurs:
+
+- For each dictionary `key: value` pair:
+    - A corresponding `export` statement is defined in the underlying shell expression
+
+
+As an example, suppose I define this variable in the above *Taskfile.yaml*, as follows:
+
+```
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  vars:
+    ansible_playbook_command: 'python ${HOME}/ansible_2.7.8/ansible-playbook'
+    var1: value1
+    var2: value2
+    var3: value3
+    some_path: /some/path
+    environment_vars:
+      MY_ENV_VAR1: "${some_path}/${var1}"    
+      MY_ENV_VAR2: "${some_path}/${var2}"    
+    # ...
+```
+
+Upon invoking the `tasks` command with the `---echo` flag:
+
+- The underlying shell expression would be revealed as:<br />
+
+```
+var1="value1"
+var2="value2"
+export MY_ENV_VAR1="${some_path}/${var1}"
+export MY_ENV_VAR2="${some_path}/${var2}"
+```
+
+These export statements are always placed **after**<br />
+all variables declarations in the underlying shell expresison.
+
 <a name="cli_provider"></a>
 
 ### cli_provider

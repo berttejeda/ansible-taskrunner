@@ -85,9 +85,16 @@ class CLICK_Commands_SUB:
                   provider_vars_sanitized[key] = value
       # We don't want to 'commands' or 'inventory' down to the subprocess
       provider_vars_sanitized.pop('commands')
+      provider_vars_sanitized.pop('environment_vars')
       # Derive the provider vars string from provider vars
-      provider_vars_string_block = '\n'.join(['{k}={v}'.format(k=key, v='""' if value == None else value) for key, value in provider_vars_sanitized.items()]) + extra_vars_string
-
+      exports = self.yaml_vars.get('environment_vars', {})
+      if isinstance(exports, dict):
+        exports_string = '\n'.join([f'export {key}="{value}"' for key, value in exports.items() if value])
+      else:
+        exports_string = f'environment_vars={exports}'
+      provider_vars_string_block = '\n'.join(['{k}={v}'.format(k=key, v='""' if value == None else value) for key, value in provider_vars_sanitized.items()]) + \
+                                   f'\n{exports_string}\n' + \
+                                   extra_vars_string
       cli_functions = ['{f} {a}'.format(f=fnc, a=arg if arg and arg not in ['True', 'False'] else '') for fnc,arg in kwargs.items() if fnc in internal_functions.keys() and arg]
 
       self.provider_cli.invocation(
