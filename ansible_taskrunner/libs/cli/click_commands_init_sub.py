@@ -42,10 +42,10 @@ class CLICK_Commands_SUB_INIT:
                 if isinstance(example, dict):
                     for key, value in example.items():
                         value = Template(value).safe_substitute(**cli_obj.available_vars)
-                        examples_string += '- {k}:\n{v}'.format(k=key, v=value)
+                        examples_string += '\n- {k}:\n{v}'.format(k=key, v=value)
                 if isinstance(example, str):
                     example = Template(example).safe_substitute(**cli_obj.available_vars)
-                    examples_string += '%s\n' % example
+                    examples_string += f'{example}\n'
         # Shell functions
         shell_functions = []
         internal_functions = cli_obj.yaml_vars.get(f'commands.{c}.functions', {})
@@ -74,18 +74,18 @@ class CLICK_Commands_SUB_INIT:
         if epilog_string:
             shell_function_help_string = ''
             for f_n, f_s in internal_functions.items():
-                f_hidden_functions = internal_functions.get(f'{f_n}.hidden', {})
-                f_help = internal_functions.get(f'{f_n}.help', {})
-                if f_hidden_functions or f_help:
+                is_hidden = internal_functions.get(f'{f_n}.hidden', False)
+                if is_hidden:
                     continue
                 else:
-                    f_help_string = internal_functions[f].get('help')
-                    shell_function_help_string += f'{f}: {f_help_string}\n'
-            epilog = f"{epilog_string}\nExamples:\n\n{examples_string or 'None'}\n\nAvailable shell functions:\n\n{shell_function_help_string or 'None'}"
+                    f_help_string = internal_functions.get(f'{f_n}.help', '')
+                    shell_function_help_string += f'{f_n}: {f_help_string}\n'
+            epilog = f"{epilog_string}\n" + \
+                     f"Examples:\n{examples_string or 'None'}\n\n" + \
+                     f"Available shell functions:\n\n{shell_function_help_string or 'None'}"
             epilog = Template(epilog).safe_substitute(**cli_obj.available_vars)
 
         command_vars = cli_obj.yaml_vars.get(f'commands.{c}')
-
 
         provider_vars = {}
         # Define the list of yaml variables, excluding the 'inventory' variable (if applicable)
