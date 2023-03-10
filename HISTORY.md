@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-10 v2.5.2
+
+* Fixed bug when displaying help examples [0d65a2c](git@github.com:berttejeda/ansible-taskrunner/commit/0d65a2cbaf74eb95ae88a7c7bc9b82edc29643ee)
+
 ## Release 2023-03-09 v2.5.1
 
 * Account for possibility of missing vars [c3b73f1](git@github.com:berttejeda/ansible-taskrunner/commit/c3b73f1f34873229a246a44d9f3451b529af7269)
