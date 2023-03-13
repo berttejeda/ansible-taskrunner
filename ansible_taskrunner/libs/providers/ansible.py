@@ -287,7 +287,7 @@ class ProviderCLI:
         arg = args
         raw = raw_args
         ev = extra_vars
-        ansible_command_strings = [apc, '${__ansible_extra_options__}', f'-i {inf}', opt, arg, ev, raw, pb]
+        ansible_command_strings = [apc, '${__ansible_run_flags__}', f'-i {inf}', opt, arg, ev, raw, pb]
         ansible_command = ' '.join(s for s in ansible_command_strings if s)
         command = f'{pre_commands} {ansible_command}'
         # Command invocation
