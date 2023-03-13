@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2023-03-10 v2.5.3
+
+* Use a more appropriate variable name [25cc355](git@github.com:berttejeda/ansible-taskrunner/commit/25cc355b954e94688cec14a0609ec2c652a843a9)
+* Use default options whenever invalid option associations are listed [2b38073](git@github.com:berttejeda/ansible-taskrunner/commit/2b380737046f496142f67d79cf9f8766e20b1935)
+
 ## Release 2023-03-10 v2.5.2
 
 * Fixed bug when displaying help examples [0d65a2c](git@github.com:berttejeda/ansible-taskrunner/commit/0d65a2cbaf74eb95ae88a7c7bc9b82edc29643ee)
