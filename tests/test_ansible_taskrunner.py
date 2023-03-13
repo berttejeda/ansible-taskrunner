@@ -53,8 +53,8 @@ class TestCli(unittest.TestCase):
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-t', 'local', '-s', '-b', 'bar', '---invoke-function', 'hello']).exit_code, 0)
         pass
 
-    def test_run_embedded_function_echo(self):
-        """ Test whether script 'run' subcommand will successfully echo subcommand in make mode.
+    def test_run_embedded_function_hello_echo(self):
+        """ Test if we can run the 'hello' embeded function in the 'run' subcommand.
         :return: exit_code == 0
         """
         self.assertEqual(self.cli.invoke(cli_interface.cli, ['run', '-t', 'local', '-s', '-b', 'bar', '---invoke-function', 'hello', '---echo']).exit_code, 0)
@@ -64,7 +64,7 @@ class TestCli(unittest.TestCase):
         proc = Popen(['python', 'ansible_taskrunner/cli.py', '--help'], stdout=PIPE)
         stdout, stderr = proc.communicate()
         self.assertTrue(stdout.startswith(b'Usage:'))
-        self.assertEquals(0, proc.returncode)        
+        self.assertEquals(0, proc.returncode)
 
 
 if __name__ == '__main__':
