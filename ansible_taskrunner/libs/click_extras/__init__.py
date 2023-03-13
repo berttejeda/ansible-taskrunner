@@ -25,6 +25,8 @@ class ExtendCLI():
         self.available_vars = kwargs.get('available_vars', {})
         # Populate list of available variables for use in internal string Templating
         self.sys_platform = sys.platform
+        self.default_option_class = click.Option
+
         self.seen_options = set()
         self.click_type_map = {
         "str": click.STRING,
@@ -141,28 +143,40 @@ class ExtendCLI():
             if mutually_exclusive_with and option_required:
                 logger.warning(f"Not honoring mutual exclusivity of option '{option_name}' " + \
                                f"and options with variables {mutually_exclusive_with}, as 'required' must be False")
-                option_class = click.Option
+                option_class = self.default_option_class
                 special_options = {}
             elif mutually_exclusive_with and not option_required:
                 option_class = self.click_option_class_map['mutually_exclusive']
                 special_options = {'mutually_exclusive': mutually_exclusive_with}
-                ex_str = ', '.join([command_option_map[f] for f in mutually_exclusive_with])
-                option_help_effective = option_help + \
-                f' NOTE: This argument is mutually exclusive with [{ex_str}]'
+                ex_strs = [command_option_map.get(f,'') for f in mutually_exclusive_with]
+                ex_str = ', '.join(ex_strs)
+                if ex_str:
+                    option_help_effective = option_help + \
+                    f' NOTE: This argument is mutually exclusive with [{ex_str}]'
+                else:
+                    option_help_effective = ''
             elif required_if:
                 option_class = self.click_option_class_map['required_if']
                 special_options = {'required_if': required_if}
-                ex_str = ', '.join([command_option_map[f] for f in required_if])
-                option_help_effective = option_help + \
-                f' NOTE: This argument is mutually inclusive with [{ex_str}]'
+                ex_strs = [command_option_map.get(f,'') for f in required_if]
+                ex_str = ', '.join(ex_strs)
+                if ex_str:
+                    option_help_effective = option_help + \
+                    f' NOTE: This argument is mutually inclusive with [{ex_str}]'
+                else:
+                    option_help_effective = ''
             elif not_required_if:
                 option_class = self.click_option_class_map['not_required_if']
                 special_options = {'not_required_if': not_required_if}
-                ex_str = ', '.join([command_option_map[f] for f in not_required_if])
-                option_help_effective = option_help + \
-                f' NOTE: This argument is optional when related options are specified: [{ex_str}]'
+                ex_strs = [command_option_map.get(f, '') for f in not_required_if]
+                ex_str = ', '.join(ex_strs)
+                if ex_str:
+                    option_help_effective = option_help + \
+                    f' NOTE: This argument is optional when related options are specified: [{ex_str}]'
+                else:
+                    option_help_effective = ''
             else:
-                option_class = click.Option
+                option_class = self.default_option_class
                 special_options = {}
 
             option = click.option(
