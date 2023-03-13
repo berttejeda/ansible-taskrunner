@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2023-03-10 v2.5.4
+
+* Fixed file formatting [42f4288](git@github.com:berttejeda/ansible-taskrunner/commit/42f4288f6c43ef9bab963a258fa9937823f4b794)
+* Fixed typo in underlying shell process [7c14965](git@github.com:berttejeda/ansible-taskrunner/commit/7c14965797c54e54476e74007757c77b92d19342)
+
 ## Release 2023-03-10 v2.5.3
 
 * Use a more appropriate variable name [25cc355](git@github.com:berttejeda/ansible-taskrunner/commit/25cc355b954e94688cec14a0609ec2c652a843a9)
