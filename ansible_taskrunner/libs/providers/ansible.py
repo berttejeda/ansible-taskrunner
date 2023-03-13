@@ -269,7 +269,7 @@ class ProviderCLI:
         # Build inventory command string
         if inventory_is_ephemeral:
             inventory_command = f'inventory_is_ephemeral={inventory_is_ephemeral}\n' + \
-                f'{trap}' + \
+                f'{trap}\n' + \
                 f'if [[ "$inventory_is_ephemeral" == "True" ]];then\n' + \
                 f'echo -e """${{inventory_expression}}"""' + \
                 f'| while read line;do\n eval "echo -e ${{line}}" >> "{effective_inventory_file_path}";\ndone\n' + \
