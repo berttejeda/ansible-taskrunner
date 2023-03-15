@@ -31,6 +31,7 @@
 - [Installation](#installation)
 - [More Examples](#more-examples)
 - [Appendix](#appendix)
+    - [The Options Separator](#the-options-separator)
     - [Bastion Mode](#bastion-mode)
     - [Special Variables](#special-variables)
         - [ansible_playbook_command](#ansible_playbook_command)
@@ -1673,8 +1674,14 @@ Review the [examples](examples) directory for more hands-on usage samples.
 
 # Appendix
 
-<a name="bastion_mode"></a>
 
+<a name="the-options-separator"></a>
+## The Options Separator
+
+When you pass the `---` options separator to any subcommand, anything
+after the separator is passed directly to the ansible subprocess.
+
+<a name="bastion-mode"></a>
 ## Bastion Mode
 
 If you're launching the `tasks` command from a Windows host, this tool will automatically execute in _Bastion Mode_
@@ -1819,7 +1826,7 @@ There are three cli-providers built in to the tasks command:
 
 ### __ansible_extra_options__
 
-Apart from utilizing the `---raw` flag, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **\_\_ansible_extra_options\_\_** Environmental variable.
+Apart from utilizing the `---` options separator, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **\_\_ansible_extra_options\_\_** Environmental variable.
 
 <a name="__tasks_file__"></a>
 
