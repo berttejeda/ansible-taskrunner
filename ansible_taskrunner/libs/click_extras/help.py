@@ -1,9 +1,13 @@
 # Imports
+from typing import Pattern
+
 import click
 from ansible_taskrunner.logger import Logger
+import re
 
 logger_obj = Logger()
 logger = logger_obj.init_logger(__name__)
+example_pattern: Pattern[str] = re.compile('- .*[\d]+:')
 
 class ExtendedEpilog(click.Group):
     def format_epilog(self, ctx, formatter):
@@ -45,7 +49,7 @@ class ExtendedHelp(click.Command):
             formatter.write_paragraph()
             for line in self.epilog.split('\n'):
                 if line:
-                    if line.startswith('-'):
+                    if example_pattern.search(line):
                         self.colorize(formatter, 'magenta', line)
                     else:
                         self.colorize(formatter, 'yellow', line)
