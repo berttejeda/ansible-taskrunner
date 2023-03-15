@@ -30,7 +30,7 @@ else:
 def get_invocation(script_name):
     # Are we invoking the run subcommand?
     arg_run_index = sys.argv.index('run') if 'run' in sys.argv else None
-    raw_run_index = sys.argv.index('---raw') if '---raw' in sys.argv else None
+    raw_run_index = sys.argv.index('---') if '---' in sys.argv else None
     # Are we specifing a Taskfile override (option -f)?
     # If so, make sure this special cli option 
     # occurs before the 'run' subcommand
