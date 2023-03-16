@@ -2,6 +2,11 @@
 History
 =======
 
+## Release 2023-03-16 v2.6.0
+
+* Adjusted ExtendedHelp epilog parser [cd0b0c9](git@github.com:berttejeda/ansible-taskrunner/commit/cd0b0c986b9cc8ca71157ca3d330cbe240c8e611)
+* Renamed the '---raw' option to '---' [ca473eb](git@github.com:berttejeda/ansible-taskrunner/commit/ca473eb9bc41af0af02e7b1df9d108eb7d28ed57)
+
 ## Release 2023-03-10 v2.5.4
 
 * Fixed file formatting [42f4288](git@github.com:berttejeda/ansible-taskrunner/commit/42f4288f6c43ef9bab963a258fa9937823f4b794)
