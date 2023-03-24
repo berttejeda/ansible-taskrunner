@@ -7,7 +7,7 @@ import re
 
 logger_obj = Logger()
 logger = logger_obj.init_logger(__name__)
-example_pattern: Pattern[str] = re.compile('- .*[\d]+:')
+example_pattern: Pattern[str] = re.compile('Available shell functions|- .*: \|\W')
 
 class ExtendedEpilog(click.Group):
     def format_epilog(self, ctx, formatter):
@@ -47,11 +47,13 @@ class ExtendedHelp(click.Command):
                 formatter.write_dl(opts)
         if self.epilog:
             formatter.write_paragraph()
-            for line in self.epilog.split('\n'):
+            parsed_epilog = re.sub(':\n', ': |-\n', self.epilog.split('Examples:')[-1])
+            for line in parsed_epilog.split('\n'):
                 if line:
+                    tabbed_line = f'\t{line}'
                     if example_pattern.search(line):
                         self.colorize(formatter, 'magenta', line)
                     else:
-                        self.colorize(formatter, 'yellow', line)
+                        self.colorize(formatter, 'yellow', tabbed_line)
                 else:
                     formatter.write_text(line)
