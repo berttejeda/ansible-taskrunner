@@ -2,6 +2,10 @@
 History
 =======
 
+## Release 2023-03-24 v2.7.0
+
+* Improved formatting for ExtendedHelp epilog parser [77a74da](git@github.com:berttejeda/ansible-taskrunner/commit/77a74dab41940a1ee8008d0c9af55991d6a12efe)
+
 ## Release 2023-03-16 v2.6.0
 
 * Adjusted ExtendedHelp epilog parser [cd0b0c9](git@github.com:berttejeda/ansible-taskrunner/commit/cd0b0c986b9cc8ca71157ca3d330cbe240c8e611)
