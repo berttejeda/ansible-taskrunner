@@ -5,7 +5,7 @@ from ansible_taskrunner.logger import Logger
 from ansible_taskrunner.libs.click_extras.options_advanced import MutuallyExclusiveOption
 from ansible_taskrunner.libs.click_extras.options_advanced import RequiredIf
 from ansible_taskrunner.libs.click_extras.options_advanced import NotRequiredIf
-from bertdotconfig.configutils import AttrDict
+from btconfig.configutils import AttrDict
 from string import Template
 
 logger_obj = Logger()

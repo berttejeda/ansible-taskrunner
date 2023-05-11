@@ -1,5 +1,5 @@
 
-from bertdotconfig import Config
+from btconfig import Config
 from ansible_taskrunner.defaults import default_settings
 from ansible_taskrunner.defaults import default_config_file_name
 from ansible_taskrunner.logger import Logger

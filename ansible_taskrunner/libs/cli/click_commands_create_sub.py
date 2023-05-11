@@ -2,7 +2,7 @@
 
 # Import third-party and custom modules
 import click
-from bertdotconfig.configutils import AttrDict
+from btconfig.configutils import AttrDict
 from ansible_taskrunner.libs.click_extras import ExtendCLI
 from ansible_taskrunner.defaults import bool_strings
 from ansible_taskrunner.logger import Logger

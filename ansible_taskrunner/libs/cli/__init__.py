@@ -7,7 +7,7 @@ import sys
 from string import Template
 
 from ansible_taskrunner.config import AppConfig
-from bertdotconfig.configutils import AttrDict
+from btconfig.configutils import AttrDict
 from ansible_taskrunner.libs.cli.invocation import get_invocation
 from ansible_taskrunner.libs.click_extras import ExtendCLI
 from ansible_taskrunner.libs.click_extras.help import ExtendedHelp
