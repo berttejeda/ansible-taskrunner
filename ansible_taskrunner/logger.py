@@ -7,7 +7,7 @@ import sys
 class Logger:
 
   def __init__(self, **kwargs):
-    env_debug_is_on = os.environ.get('WEBTERMINAL_DEBUG', '').lower() in [
+    env_debug_is_on = os.environ.get('TASKS_DEBUG', '').lower() in [
     't', 'true', '1', 'on', 'y', 'yes']
     self.debug = kwargs.get('debug', False) or env_debug_is_on
     self.FORMAT_STR = "%(asctime)s %(name)s [%(levelname)s]: %(message)s"
@@ -22,7 +22,7 @@ class Logger:
     # Setup Logging
     logger = logging.getLogger(name)
     # TODO Find a better approach to this hacky method
-    if '--debug' in ' '.join(sys.argv) or self.debug:
+    if self.debug:
         logging_level = logging.DEBUG
     else:
         logging_level = logging.INFO
