@@ -136,6 +136,7 @@ class ExtendCLI():
             option_supports_counting = bool(option.get('allow_counting', False))
             option_supports_multiple = bool(option.get('allow_multiple', False))
             option_value_from_env = option.get('env_var', None)
+            option_default_value = option.get('default', None)
             mutually_exclusive_with = option.get('mutually_exclusive_with', '')
             required_if = option.get('required_if', '')
             not_required_if = option.get('not_required_if', '')
@@ -187,6 +188,7 @@ class ExtendCLI():
                 count=option_supports_counting,
                 envvar=option_value_from_env,
                 nargs=option_nargs,
+                default=option_default_value,
                 help=option_help_effective,
                 hide_input=option_secure,
                 hidden=option_is_hidden,
