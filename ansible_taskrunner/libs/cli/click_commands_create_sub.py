@@ -61,7 +61,7 @@ class CLICK_Commands_SUB:
           if '\n' in str(value) and key == 'inventory_expression':
               value = value.split('\n')
           if str(value).lower() in bool_strings:
-              value = bool(value)
+              value = value in bool_strings
           if value and key not in internal_functions.keys():
               if isinstance(value, str):
                 if '\n' in value and key != 'inventory_expression':
