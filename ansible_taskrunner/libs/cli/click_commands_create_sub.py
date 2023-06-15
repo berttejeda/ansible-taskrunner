@@ -4,7 +4,7 @@
 import click
 from btconfig.configutils import AttrDict
 from ansible_taskrunner.libs.click_extras import ExtendCLI
-from ansible_taskrunner.defaults import bool_strings
+from ansible_taskrunner.defaults import bool_strings, bool_strings_truthy
 from ansible_taskrunner.logger import Logger
 import json
 logger_obj = Logger()
@@ -61,7 +61,7 @@ class CLICK_Commands_SUB:
           if '\n' in str(value) and key == 'inventory_expression':
               value = value.split('\n')
           if str(value).lower() in bool_strings:
-              value = value in bool_strings
+              value = str(value).lower() in bool_strings_truthy
           if value and key not in internal_functions.keys():
               if isinstance(value, str):
                 if '\n' in value and key != 'inventory_expression':

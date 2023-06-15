@@ -8,16 +8,24 @@ suppress_output = 0
 log_file = None
 path_string = 'vars'
 
-bool_strings = [
+bool_strings_truthy = [
     'true',
-    'false',
     'enabled',
-    'disabled',
     'on',
+    '1',
+    'yes',
+    'y'
+]
+
+bool_strings_false = [
+    'false',
+    'f',
+    'disabled',
     'off',
     '0',
-    '1'
     ]
+
+bool_strings = bool_strings_truthy + bool_strings_false
 
 default_settings = {
   "help": {
