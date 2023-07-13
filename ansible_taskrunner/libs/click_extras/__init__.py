@@ -136,7 +136,11 @@ class ExtendCLI():
             option_supports_counting = bool(option.get('allow_counting', False))
             option_supports_multiple = bool(option.get('allow_multiple', False))
             option_value_from_env = option.get('env_var', None)
-            option_default_value = option.get('default', None)
+            if not option_is_flag:
+                option_default_value = option.get('default', None)
+            else:
+                option_default_value = None
+
             mutually_exclusive_with = option.get('mutually_exclusive_with', '')
             required_if = option.get('required_if', '')
             not_required_if = option.get('not_required_if', '')
@@ -180,28 +184,52 @@ class ExtendCLI():
                 option_class = self.default_option_class
                 special_options = {}
 
-            option = click.option(
-                *param_declarations,
-                option_variable,
-                cls=option_class,
-                confirmation_prompt=option_confirm_prompt,
-                count=option_supports_counting,
-                envvar=option_value_from_env,
-                nargs=option_nargs,
-                default=option_default_value,
-                help=option_help_effective,
-                hide_input=option_secure,
-                hidden=option_is_hidden,
-                is_flag=option_is_flag,
-                prompt=option_prompt,
-                prompt_required=option_prompt_required,
-                multiple=option_supports_multiple,
-                required=option_required,
-                show_choices=option_show_choices,
-                show_envvar=option_show_envvar,
-                show_default=option_show_default,
-                type=self.get_option_type(option),
-                **special_options,
-            )
+            if not option_is_flag:
+                option = click.option(
+                    *param_declarations,
+                    option_variable,
+                    cls=option_class,
+                    confirmation_prompt=option_confirm_prompt,
+                    count=option_supports_counting,
+                    default=option_default_value,
+                    envvar=option_value_from_env,
+                    nargs=option_nargs,
+                    help=option_help_effective,
+                    hide_input=option_secure,
+                    hidden=option_is_hidden,
+                    is_flag=option_is_flag,
+                    prompt=option_prompt,
+                    prompt_required=option_prompt_required,
+                    multiple=option_supports_multiple,
+                    required=option_required,
+                    show_choices=option_show_choices,
+                    show_envvar=option_show_envvar,
+                    show_default=option_show_default,
+                    type=self.get_option_type(option),
+                    **special_options,
+                )
+            else:
+                option = click.option(
+                    *param_declarations,
+                    option_variable,
+                    cls=option_class,
+                    confirmation_prompt=option_confirm_prompt,
+                    count=option_supports_counting,
+                    envvar=option_value_from_env,
+                    nargs=option_nargs,
+                    help=option_help_effective,
+                    hide_input=option_secure,
+                    hidden=option_is_hidden,
+                    is_flag=option_is_flag,
+                    prompt=option_prompt,
+                    prompt_required=option_prompt_required,
+                    multiple=option_supports_multiple,
+                    required=option_required,
+                    show_choices=option_show_choices,
+                    show_envvar=option_show_envvar,
+                    show_default=option_show_default,
+                    type=self.get_option_type(option),
+                    **special_options,
+                )
             func = option(func)
         return func
