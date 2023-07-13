@@ -193,7 +193,7 @@ class ProviderCLI:
         bastion_settings = kwargs.get('bastion_settings', {})
         cli_functions = kwargs.get('cli_functions')
         extra_vars = kwargs.get('extra_vars', '')
-        shell_functions = kwargs.get('shell_functions', [])
+        shell_functions = '# Embedded Shell Functions' + '\n' + kwargs.get('shell_functions', '')
         debug = kwargs.get('debug', False)
         provider_vars = kwargs.get('provider_vars', {})
         provider_vars_string_block = kwargs.get('provider_vars_string_block', '')
@@ -276,10 +276,24 @@ class ProviderCLI:
                 'fi;\n'
         else:
             inventory_command = ''
-        anc = ansi_colors.strip()
-        psb = re.sub(r'(ANSIBLE_)(.*?)=', 'export \\1\\2=', provider_vars_string_block)
-        inc = inventory_command
-        pre_commands = f'{anc}\n{psb}\n{shell_functions}\n{inc}'
+        anc = '# ANSI Colors' + '\n' + ansi_colors.strip()
+        _pexe = available_vars.get('pre_execution', '')
+        if _pexe:
+            pexe = '# Pre-Execution' + '\n' + _pexe
+        else:
+            pexe = _pexe
+        _poxe = available_vars.get('post_execution', '')
+        if _poxe:
+            poxe = '# Post-Execution' + '\n' + _poxe
+        else:
+            poxe = _poxe
+        _psb = re.sub(r'(ANSIBLE_)(.*?)=', 'export \\1\\2=', provider_vars_string_block)
+        psb = '# Provider-Vars' + '\n' + _psb.replace('export export', 'export')
+        if inventory_command:
+            inc = '# Inventory Command' + '\n' + inventory_command
+        else:
+            inc = inventory_command
+        pre_commands = f'{anc}\n{pexe}\n{psb}\n{shell_functions}\n{inc}'
         apc = ansible_playbook_command
         inf = effective_inventory_file_path
         opt = ' \\\n'.join(ansible_extra_options)
@@ -288,8 +302,8 @@ class ProviderCLI:
         raw = raw_args
         ev = extra_vars
         ansible_command_strings = [apc, '${__ansible_run_flags__}', f'-i {inf}', opt, arg, ev, raw, pb]
-        ansible_command = ' '.join(s for s in ansible_command_strings if s)
-        command = f'{pre_commands} {ansible_command}'
+        ansible_command = '# Ansible Command(s)' + '\n' + ' '.join(s for s in ansible_command_strings if s)
+        command = f'{pre_commands} {ansible_command} \n{poxe}'
         # Command invocation
         result = None
         if prefix == 'echo':

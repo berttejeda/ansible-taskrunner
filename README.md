@@ -1751,6 +1751,46 @@ python ${HOME}/ansible_2.7.8/ansible-playbook \
 ```
 
 [Back To Top](#top)
+<a name="pre_execution"></a>
+
+### pre_execution
+
+Anything defined under the *pre_execution* variable will be evaluated
+**before** all other statements in the underlying shell expression.
+
+As an example, suppose I define the pre_execution variable in the above *Taskfile.yaml*, as follows:
+
+```
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  vars:
+    pre_execution: |-
+      export pxe_var=some_value
+      touch /tmp/.run.lock
+```
+
+Upon invoking the `tasks` command with the `---echo` flag:
+
+- The underlying shell expression would be revealed as:<br />
+
+```
+...
+export pxe_var=some_value
+touch /tmp/.run.lock
+...
+```
+
+The commands above are always placed **before**<br />
+all variables declarations in the underlying shell expresison.
+
+<a name="post_execution"></a>
+
+### post_execution
+
+This is similar to *pre_execution*, except that anything defined under the *post_execution* variable will be evaluated
+**after** all other statements in the underlying shell expression.
+
 <a name="environment_vars"></a>
 
 ### environment_vars
@@ -1760,7 +1800,6 @@ the following occurs:
 
 - For each dictionary `key: value` pair:
     - A corresponding `export` statement is defined in the underlying shell expression
-
 
 As an example, suppose I define this variable in the above *Taskfile.yaml*, as follows:
 
@@ -1793,6 +1832,33 @@ export MY_ENV_VAR2="${some_path}/${var2}"
 
 These export statements are always placed **after**<br />
 all variables declarations in the underlying shell expresison.
+
+#### ANSIBLE_ Variables
+
+Any variables matching ANSIBLE_.* will automatically be expressed as export statements.
+
+As an example, suppose I define such variables in the above *Taskfile.yaml*, as follows:
+
+```
+- hosts: myhosts
+  gather_facts: true
+  become: true
+  vars:
+    ANSIBLE_VAULT_PASSWORD_FILE: /some/path/some/password_file
+    ANSIBLE_CALLBACK_PLUGINS: /some/other/path/some/plugins
+    # ...
+```
+
+Upon invoking the `tasks` command with the `---echo` flag:
+
+- The underlying shell expression would be revealed as:<br />
+
+```
+var1="value1"
+var2="value2"
+export ANSIBLE_VAULT_PASSWORD_FILE="/some/path/some/password_file"
+export ANSIBLE_CALLBACK_PLUGINS="/some/other/path/some/plugins"
+```
 
 <a name="cli_provider"></a>
 
