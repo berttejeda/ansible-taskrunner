@@ -2,6 +2,27 @@
 History
 =======
 
+## Release 2023-07-17 v2.9.0
+
+* Add support for pre_execution and post_execution directives [67b82c2](git@github.com:berttejeda/ansible-taskrunner/commit/67b82c220b4079fd0e687e18c4198c8c2d918d85)
+* Honor option defaults [7ae2bd6](git@github.com:berttejeda/ansible-taskrunner/commit/7ae2bd6aeedae1e11b5e9544b5b8cd887de11248)
+* Another adjustment to handling of boolean options [0eed168](git@github.com:berttejeda/ansible-taskrunner/commit/0eed168a77f9e239c28d9d734c222c4a8faa6e28)
+
+## Release 2023-06-15 v2.8.2
+
+* Fixed bug in handling of boolean options [171a099](git@github.com:berttejeda/ansible-taskrunner/commit/171a099f40e416acd1850874da9730da34931ddc)
+
+## Release 2023-06-09 v2.8.1
+
+* Support default value for options [61889c7](git@github.com:berttejeda/ansible-taskrunner/commit/61889c770b5704dd9882bee7154f27e068dcbc6a)
+* Changed debug logging behavior [dde1546](git@github.com:berttejeda/ansible-taskrunner/commit/dde154676ad270a397907467c615a217f775b400)
+
+## Release 2023-05-11 v2.8.0
+
+* Refactor as per renaming of bertdotconfig dependency to btconfig [de98a2d](git@github.com:berttejeda/ansible-taskrunner/commit/de98a2d31860ad946f7858ab14fc228ccdbce1f8)
+* Latest release notes [cf813ff](git@github.com:berttejeda/ansible-taskrunner/commit/cf813ff9c4c801e1e406e5c02074f73d203347f8)
+
+
 ## Release 2023-03-24 v2.7.0
 
 * Improved formatting for ExtendedHelp epilog parser [77a74da](git@github.com:berttejeda/ansible-taskrunner/commit/77a74dab41940a1ee8008d0c9af55991d6a12efe)
