@@ -1888,11 +1888,18 @@ There are three cli-providers built in to the tasks command:
 - bash
 - vagrant
 
-<a name="__ansible_extra_options"></a>
+<a name="__ansible_run_flags__"></a>
 
-### __ansible_extra_options__
+### __ansible_run_flags__
 
-Apart from utilizing the `---` options separator, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for the **\_\_ansible_extra_options\_\_** Environmental variable.
+Apart from utilizing the `---` options separator, you can specify additional options to pass to the underlying `ansible-playbook` subprocess by setting an appropriate value for **\_\_ansible_run_flags\_\_** 
+via Environmental variable or Taskfile, as with:
+
+`__ansible_run_flags__: --diff`
+
+or 
+
+`export __ansible_run_flags__='--diff'`
 
 <a name="__tasks_file__"></a>
 
