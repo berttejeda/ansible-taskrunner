@@ -16,30 +16,35 @@
     - [Add the vars block](#add-the-vars-block)
     - [Populate the vars block - defaults](#populate-the-vars-block---defaults)
     - [Populate the vars block - define global options](#populate-the-vars-block---define-global-options)
-    - [Populate the vars block - define sub-commands](#populate-the-vars-block---define-sub-commands)
-        - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
+    - [Populate the vars block - define subcommands](#populate-the-vars-block---define-subcommands)
+      - [Populate the vars block - cli options - mapped variables](#populate-the-vars-block---cli-options---mapped-variables)
     - [Populate the vars block - help/message](#populate-the-vars-block---helpmessage)
     - [Populate the vars block - embedded shell functions](#populate-the-vars-block---embedded-shell-functions)
-        - [More about embedded shell functions](#more-about-embedded-shell-functions)
-          - [Bash example:](#bash-example)
-          - [Python example:](#python-example)
-          - [Ruby example:](#ruby-example)
+      - [More about embedded shell functions](#more-about-embedded-shell-functions)
+        - [Bash example:](#bash-example)
+        - [Python example:](#python-example)
+        - [Ruby example:](#ruby-example)
     - [Populate the vars block - dynamic inventory expression](#populate-the-vars-block---dynamic-inventory-expression)
     - [Populate the vars block - inventory file](#populate-the-vars-block---inventory-file)
     - [Add tasks](#add-tasks)
 - [Usage Examples](#usage-examples)
 - [Installation](#installation)
-- [More Examples](#more-examples)
+    - [More Examples](#more-examples)
 - [Appendix](#appendix)
     - [The Options Separator](#the-options-separator)
     - [Bastion Mode](#bastion-mode)
     - [Special Variables](#special-variables)
-        - [ansible_playbook_command](#ansible_playbook_command)
-        - [cli_provider](#cli_provider)
-        - [__ansible_extra_options__](#__ansible_extra_options__)
-        - [__tasks_file__](#__tasks_file__)
-        - [__command__](#__command__)
+      - [ansible_playbook_command](#ansible_playbook_command)
+      - [pre_execution](#pre_execution)
+      - [post_execution](#post_execution)
+      - [environment_vars](#environment_vars)
+        - [ANSIBLE_ Variables](#ansible_-variables)
+      - [cli_provider](#cli_provider)
+      - [__ansible_run_flags__](#__ansible_run_flags__)
+      - [__tasks_file__](#__tasks_file__)
+      - [__command__](#__command__)
     - [Mutually Exclusive Options](#mutually-exclusive-options)
+    - [Cloned subcommands](#cloned-subcommands)
     - [Simple Templating](#simple-templating)
     - [Single-Executable Releases](#single-executable-releases)
     - [Unit Testing](#unit-testing)
@@ -304,7 +309,7 @@ to the type specified in the options definition, with "string" being the default
 <a name="populate-the-vars-block---define-global-options"></a>
 ## Populate the vars block - define global options
 
-Global options are available to all sub-commands.
+Global options are available to all subcommands.
 
 These are defined under the `vars.globals.options` key.
 
@@ -357,10 +362,10 @@ Let's add a simple example:
 ```  
 </details>
 
-<a name="populate-the-vars-block---define-sub-commands"></a>
-## Populate the vars block - define sub-commands
+<a name="populate-the-vars-block---define-subcommands"></a>
+## Populate the vars block - define subcommands
 
-Next, we define the available sub-commands and their options.
+Next, we define the available subcommands and their options.
 
 Let's add a sub-command named `run` along with its command-line options:
 
@@ -1844,6 +1849,8 @@ As an example, suppose I define such variables in the above *Taskfile.yaml*, as 
   gather_facts: true
   become: true
   vars:
+    var1: value1
+    var2: value2
     ANSIBLE_VAULT_PASSWORD_FILE: /some/path/some/password_file
     ANSIBLE_CALLBACK_PLUGINS: /some/other/path/some/plugins
     # ...
@@ -1948,6 +1955,32 @@ Feel free to review the [Taskfile.yaml](Taskfile.yaml), as you'll find an exampl
 - mutually inclusive
 - conditionally required
 
+<a name="cloned-subcommands"></a>
+
+## Cloned subcommands
+
+There might exist edge cases in which you need two different
+subcommands to be defined with identical commandline options.
+
+This could be useful for, say, subcommands like `install` or `uninstall`,
+where the only differentiating factor between the two would be the
+name of the subcommand being invoked.
+
+To enable this, simply declare your subcommand with a pipe `|` delimiter, as with:
+
+```
+    commands:
+      install|uninstall:
+        options:
+          foo:
+            help: "Install/Uninstall an app"
+            short: -n
+            long: --app-name
+            type: choice
+            var: app_name
+            required: True
+```
+
 <a name="simple-templating"></a>
 
 ## Simple Templating
@@ -1981,18 +2014,17 @@ which holds the relative path to the current tasks file.
 
 Below is a list of available variables for your convenience:
 
-
 ```
 Variable        | Description
 -------------   | -------------
-exe_path        | The absolute path to the tasks executable
+__command__     | The name of the current subcommand
 cli_args        | The current command-line invocation
 cli_args_short  | The current command-line invocation, minus the executable
 sys_platform    | The OS Platform as detected by Python
 tf_path         | The relative path to the specified Taskfile
 ```
 
-Additionally, all **currently set environmental variables** are also available for templating.
+Additionally, all **currently set environmental variables** are available for templating.
 
 [Back To Top](#top)
 <a name="single-executable-releases"></a>

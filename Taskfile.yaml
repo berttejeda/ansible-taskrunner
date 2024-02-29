@@ -39,7 +39,7 @@
             var: some_global_variable        
     ### The commands block
     commands:
-      run:
+      run|doit:
         options:
           foo:
             help: "This is some foo option"
@@ -145,12 +145,12 @@
         ### The help message
         help:
           message: |
-            Invoke the 'run' command 
+            Invoke the ${__command__} command 
           epilog: |
             This line will be displayed at the end of the help text message
           examples:
             - example1: |
-                tasks $command
+                tasks $__command__
             - example2: |
                 Usage example 2
         ### Embedded shell functions

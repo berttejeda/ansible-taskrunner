@@ -23,8 +23,7 @@ class ExtendCLI():
         AttrDict.merge(self.command_vars, {'options': global_options})
         self.help_msg_map = kwargs.get('help_msg_map', {})
         self.available_vars = kwargs.get('available_vars', {})
-        # Populate list of available variables for use in internal string Templating
-        self.sys_platform = sys.platform
+
         self.default_option_class = click.Option
 
         self.seen_options = set()
