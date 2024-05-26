@@ -5,10 +5,9 @@ import os
 import sys
 
 # Import third-party and custom modules
-import ansible_taskrunner
+from ansible_taskrunner import __version__
 from ansible_taskrunner.logger import Logger
 from ansible_taskrunner.libs.cli import CLI
-from getversion import get_module_version
 
 # Account for script packaged as an exe via cx_freeze
 if getattr(sys, 'frozen', False):
@@ -56,7 +55,6 @@ logger = logger_obj.init_logger('cli')
 
 # Private variables
 __author__ = 'berttejeda'
-__version__ = get_module_version(ansible_taskrunner)[0]
 __program_name__ = 'tasks'
 
 logger.debug(f'{__program_name__} version is {__version__}')
