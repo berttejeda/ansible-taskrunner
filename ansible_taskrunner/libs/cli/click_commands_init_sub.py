@@ -33,7 +33,7 @@ class CLICK_Commands_SUB_INIT:
 
     # Add special variable for system platform
     cli_obj.available_vars['sys_platform'] = sys.platform
-    
+
     for cmd, opt in commands.items():
         for c in cmd.split('|'):
           # Parse help documentation
@@ -77,7 +77,7 @@ class CLICK_Commands_SUB_INIT:
                           f'function {f_n}(){{\n{function_source}\n}}'
                       )
 
-          epilog_string = cli_obj.yaml_vars.get(f'commands.{c}.help.epilog', '')
+          epilog_string = cli_obj.yaml_vars.get(f'commands.{cmd}.help.epilog', '')
 
           if epilog_string:
               shell_function_help_string = ''
