@@ -54,6 +54,13 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
+  <div align="center">
+    <h1>ATTENTION</h1>
+    <p>I'm rewriting this tool in Go</p>
+    <p>New Repo: https://github.com/berttejeda/bert.tasks</p>
+  </div>
+
+
 <a name="top"></a>
 <a name="overview"></a>
 
